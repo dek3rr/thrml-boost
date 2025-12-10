@@ -11,6 +11,7 @@ from typing import Sequence
 
 import jax
 import jax.numpy as jnp
+from jax import lax
 
 from thrml.block_sampling import BlockSamplingProgram, sample_blocks
 from thrml.conditional_samplers import AbstractConditionalSampler
@@ -70,11 +71,19 @@ def _attempt_swap_pair(
 
     log_r = (Ei_xi + Ej_xj) - (Ei_xj + Ej_xi)
     accept_prob = jnp.exp(jnp.minimum(0.0, log_r))
-    accept = jax.random.uniform(key) < accept_prob
+    u = jax.random.uniform(key)
 
-    if bool(accept):
-        return state_j, state_i, True
-    return state_i, state_j, False
+    def do_swap(states):
+        s_i, s_j = states
+        # swap and mark accepted
+        return s_j, s_i, jnp.int32(1)
+
+    def no_swap(states):
+        s_i, s_j = states
+        # keep as-is and mark rejected
+        return s_i, s_j, jnp.int32(0)
+
+    return lax.cond(u < accept_prob, do_swap, no_swap, (state_i, state_j))
 
 
 def _swap_pass(
@@ -105,10 +114,12 @@ def _swap_pass(
         new_i, new_j, accepted = _attempt_swap_pair(
             keys[idx], ebms[i], ebms[j], programs[i], programs[j], new_states[i], new_states[j], clamp_state
         )
-        if accepted:
-            accept_counts[pair] = 1
-            new_states[i], new_states[j] = new_i, new_j
-            new_sampler_states[i], new_sampler_states[j] = new_sampler_states[j], new_sampler_states[i]
+
+        # states already come swapped or not from _attempt_swap_pair
+        new_states[i], new_states[j] = new_i, new_j
+        # sampler states follow the same swap pattern
+        new_sampler_states[i], new_sampler_states[j] = new_sampler_states[j], new_sampler_states[i]
+        accept_counts[pair] = accepted
 
     return new_states, new_sampler_states, accept_counts, attempt_counts
 
@@ -123,23 +134,11 @@ def parallel_tempering(
     gibbs_steps_per_round: int,
     sampler_states: Sequence[list] | None = None,
 ):
-    """
-    Run parallel tempering with alternating swap passes across adjacent temperatures.
+    """Run parallel tempering across a sequence of tempered chains.
 
-    Args:
-        key: JAX PRNG key.
-        ebms: Sequence of models ordered from coldest (highest beta) to hottest (lowest beta).
-        programs: Matching BlockSamplingPrograms (one per model). All must share the same block layout.
-        init_states: Initial free-block states for each chain (one list per program).
-        clamp_state: State for clamped blocks (shared across chains).
-        n_rounds: Number of outer iterations; each round does Gibbs updates then a swap pass.
-        gibbs_steps_per_round: Number of block Gibbs sweeps per chain before proposing swaps.
-        sampler_states: Optional initial sampler states (one per chain). Defaults to sampler.init().
-
-    Returns:
-        final_states: list of free-block states for each chain.
-        final_sampler_states: list of sampler states for each chain.
-        stats: dict with 'accepted', 'attempted', and 'acceptance_rate' arrays for adjacent pairs.
+    Each round performs block Gibbs updates in every chain, then proposes
+    swaps between adjacent temperatures. All chains share the same
+    block structure and clamped state layout.
     """
     if not (len(ebms) == len(programs) == len(init_states)):
         raise ValueError("ebms, programs, and init_states must have the same length.")

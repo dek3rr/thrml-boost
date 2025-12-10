@@ -39,16 +39,20 @@ def test_parallel_tempering_smoke():
     init_state = make_empty_block_state(free_blocks, ebm_cold.node_shape_dtypes)
     init_states = [init_state, init_state]
 
+    @jax.jit
+    def run(key, init_states):
+        return parallel_tempering(
+            key,
+            [ebm_cold, ebm_hot],
+            programs,
+            init_states,
+            clamp_state=[],
+            n_rounds=2,
+            gibbs_steps_per_round=1,
+        )
+
     key = jax.random.key(0)
-    final_states, sampler_states, stats = parallel_tempering(
-        key,
-        [ebm_cold, ebm_hot],
-        programs,
-        init_states,
-        clamp_state=[],
-        n_rounds=2,
-        gibbs_steps_per_round=1,
-    )
+    final_states, sampler_states, stats = run(key, init_states)
 
     assert len(final_states) == 2
     assert len(sampler_states) == 2
