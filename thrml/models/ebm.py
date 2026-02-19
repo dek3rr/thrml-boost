@@ -16,13 +16,15 @@ class AbstractEBM(eqx.Module):
     """
 
     @abc.abstractmethod
-    def energy(self, state: list[_State], blocks: list[Block]) -> Float[Array, ""]:
+    def energy(self, state: list[_State], blocks: "BlockSpec | list[Block]") -> Float[Array, ""]:
         """Evaluate the energy function of the EBM given some state information.
 
         **Arguments:**
 
         - `state`: The state for which to evaluate the energy function. Must be compatible with `blocks`.
-        - `blocks`: Specifies how the information in `state` is organized.
+        - `blocks`: Specifies how the information in `state` is organized. May be either a pre-built
+            `BlockSpec` (fast path — avoids rebuilding the spec) or a plain `list[Block]` for
+            convenience when calling from user code.
 
         **Returns:**
 
@@ -68,9 +70,22 @@ class AbstractFactorizedEBM(AbstractEBM):
     def __init__(self, node_shape_dtypes: _SD = DEFAULT_NODE_SHAPE_DTYPES):
         self.node_shape_dtypes = node_shape_dtypes
 
-    def energy(self, state: list[_State], blocks: list[Block]) -> Float[Array, ""]:
-        block_spec = BlockSpec(blocks, self.node_shape_dtypes)
+    def energy(self, state: list[_State], blocks: "BlockSpec | list[Block]") -> Float[Array, ""]:
+        """Evaluate the total energy as the sum of all factor energies.
+
+        Accepts either a pre-built `BlockSpec` or a plain `list[Block]`. Internal
+        callers (e.g. `parallel_tempering._attempt_swap_pair`) should pass the
+        `BlockSpec` they already hold from the sampling program to avoid
+        rebuilding it on every call. User-facing callers can continue passing a
+        plain list of blocks for convenience.
+        """
+        if isinstance(blocks, BlockSpec):
+            block_spec = blocks
+        else:
+            block_spec = BlockSpec(blocks, self.node_shape_dtypes)
+
         global_state = block_state_to_global(state, block_spec)
+
         energy = jnp.array(0.0)
         for factor in self.factors:
             energy += factor.energy(global_state, block_spec)
