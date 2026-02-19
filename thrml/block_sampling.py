@@ -291,6 +291,7 @@ def sample_single_block(
     block: int,
     sampler_state: _SamplerState,
     global_state: list[PyTree] | None = None,
+    per_block_interactions: list[list[PyTree]] | None = None,
 ) -> tuple[_State, _SamplerState]:
     """Samples a single block within a Gibbs sampling program based on the current
     states and program configurations. It extracts neighboring states, processes
@@ -309,6 +310,10 @@ def sample_single_block(
         perform the update.
     - `global_state`: Optionally precomputed global state for the concatenated
         free and clamped blocks; when omitted the function constructs it internally.
+    - `per_block_interactions`: Optional override for the interaction weights. When
+        provided (e.g. inside a vmapped multi-chain runner), this is used instead of
+        `program.per_block_interactions`. The caller is responsible for ensuring the
+        PyTree structure matches `program.per_block_interactions`.
 
     **Returns:**
 
@@ -344,10 +349,18 @@ def sample_single_block(
 
     sd_to_pass = jax.tree.map(_resize_sd, template_sd)
 
+    # Use the override interactions if provided (vmapped multi-chain execution),
+    # otherwise fall back to the program's own interactions.
+    block_interactions = (
+        per_block_interactions[block]
+        if per_block_interactions is not None
+        else program.per_block_interactions[block]
+    )
+
     sampler = program.samplers[block]
     out_samples, out_sampler_state = sampler.sample(
         key,
-        program.per_block_interactions[block],
+        block_interactions,
         program.per_block_interaction_active[block],
         all_interaction_states,
         sampler_state,
@@ -413,6 +426,7 @@ def _run_blocks(
     state_clamp: list[_State],
     n_iters: int,
     sampler_states: list[_SamplerState],
+    per_block_interactions: list[list[PyTree]] | None = None,
 ) -> tuple[list[PyTree[Shaped[Array, "nodes ?*state"]]], list[_SamplerState]]:
     """
     Perform `n_iters` steps of block sampling.
@@ -422,6 +436,14 @@ def _run_blocks(
     block is sampled, only its positions in the global state are updated via a
     targeted scatter (`jnp.ndarray.at[...].set(...)`). The clamped portion of
     the global state is never recomputed.
+
+    **Arguments:**
+
+    - `per_block_interactions`: Optional override for interaction weights. When
+        provided, these are used in place of `program.per_block_interactions`
+        throughout the scan. Used by `parallel_tempering` to inject per-chain
+        beta-scaled weights into a vmapped runner that shares all other program
+        structure from a single template program.
     """
     # Build the full global state once (free + clamped). The clamped slice
     # never changes, so it only needs to be concatenated here. Built before
@@ -432,6 +454,10 @@ def _run_blocks(
 
     if n_iters == 0:
         return init_chain_state, sampler_states, init_global_state
+
+    # Resolve which interactions to use for the whole scan.
+    # Closing over `pbi` here means the choice is made once at trace time.
+    pbi = per_block_interactions if per_block_interactions is not None else program.per_block_interactions
 
     # Pull out precomputed scatter metadata so the scan body stays pure.
     block_sd_inds = program._block_sd_inds
@@ -446,7 +472,8 @@ def _run_blocks(
             state_updates = {}
             for i in sampling_group:
                 state_updates[i], sampler_state[i] = sample_single_block(
-                    keys[i], state_free, state_clamp, program, i, sampler_state[i], global_state
+                    keys[i], state_free, state_clamp, program, i, sampler_state[i], global_state,
+                    per_block_interactions=pbi,
                 )
             for i, new_state in state_updates.items():
                 state_free[i] = new_state
