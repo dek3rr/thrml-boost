@@ -56,11 +56,8 @@ class IsingEBM(AbstractFactorizedEBM):
         - `weights`: Weight values for each edge
         - `beta`: Temperature parameter
         """
-        # nodes should be same type, should be at least one node passed in
         sd_map = {nodes[0].__class__: jax.ShapeDtypeStruct((), jnp.bool_)}
-
         super().__init__(sd_map)
-
         self.nodes = nodes
         self.edges = edges
         self.beta = beta
@@ -90,9 +87,7 @@ class IsingSamplingProgram(FactorSamplingProgram):
         - `clamped_blocks`: List of blocks that are held fixed
         """
         samp = SpinGibbsConditional()
-
         spec = BlockGibbsSpec(free_blocks, clamped_blocks, ebm.node_shape_dtypes)
-
         super().__init__(spec, [samp for _ in spec.free_blocks], ebm.factors, [])
 
 
@@ -120,17 +115,18 @@ class IsingTrainingSpec(eqx.Module):
         schedule_negative: SamplingSchedule,
     ):
         self.ebm = ebm
-
         self.program_positive = IsingSamplingProgram(ebm, positive_sampling_blocks, data_blocks + conditioning_blocks)
         self.program_negative = IsingSamplingProgram(ebm, negative_sampling_blocks, conditioning_blocks)
-
         self.schedule_positive = schedule_positive
         self.schedule_negative = schedule_negative
 
 
 @eqx.filter_jit
 def hinton_init(
-    key: Key[Array, ""], model: IsingEBM, blocks: list[Block[AbstractNode]], batch_shape: tuple[int]
+    key: Key[Array, ""],
+    model: IsingEBM,
+    blocks: list[Block[AbstractNode]],
+    batch_shape: tuple[int],
 ) -> list[Bool[Array, "batch_size block_size"]]:
     r"""
     Initialize the blocks according to the marginal bias.
@@ -142,33 +138,39 @@ def hinton_init(
     where $h_i$ is the bias of unit *i* and $\beta$ is the
     inverse-temperature scaling factor. See Hinton (2012) for a discussion of this initialization heuristic.
 
+    All blocks are sampled in parallel via `vmap` over a stacked index array,
+    so the number of XLA ops is O(1) in the number of blocks rather than O(n_blocks).
+    Blocks must all have the same size; empty blocks are rejected by `BlockSpec` upstream.
+
     Arguments:
         key: the JAX PRNG key to use
         model: the Ising model to initialize for
         blocks: the blocks that are to be initialized
-        batch_shape: the pre-pended dimension
+        batch_shape: the pre-pended batch dimension
 
     Returns:
-        the initialized blocks
+        the initialized blocks as a list of bool arrays, one per block
     """
     node_map = {node: i for i, node in enumerate(model.nodes)}
 
-    data = []
-    keys = jax.random.split(key, len(blocks))
-    for i, block in enumerate(blocks):
-        if len(block) == 0:
-            data.append(jnp.zeros((*batch_shape, 0), dtype=jnp.bool_))
-            continue
+    # Stack all block indices into a single (n_blocks, block_size) array so we
+    # can gather biases and sample in one vectorised pass instead of one XLA op
+    # per block.
+    block_indices = jnp.array(
+        [[node_map[n] for n in block] for block in blocks], dtype=jnp.int32
+    )  # (n_blocks, block_size)
+    block_biases = model.biases[block_indices]                    # (n_blocks, block_size)
+    probs = jax.nn.sigmoid(model.beta * block_biases)             # (n_blocks, block_size)
 
-        block_indices = jnp.array([node_map[node] for node in block], dtype=jnp.int32)
-        block_biases = model.biases[block_indices]
-        probs = jax.nn.sigmoid(model.beta * block_biases)
+    keys = jax.random.split(key, len(blocks))                     # (n_blocks, 2)
 
-        block_data = jax.random.bernoulli(keys[i], p=probs, shape=(*batch_shape, len(block))).astype(jnp.bool_)
+    # vmap over blocks; each call samples one block of shape (*batch_shape, block_size)
+    all_blocks = jax.vmap(
+        lambda k, p: jax.random.bernoulli(k, p=p, shape=(*batch_shape, p.shape[0])).astype(jnp.bool_)
+    )(keys, probs)  # (n_blocks, *batch_shape, block_size)
 
-        data.append(block_data)
-
-    return data
+    # Return as a plain Python list to match the expected block-state format.
+    return list(all_blocks)
 
 
 def estimate_moments(
@@ -194,21 +196,28 @@ def estimate_moments(
     Returns:
         the first and second moment data
     """
-
-    # add a layer of tuple
-    first_moments = ((),)
-    if len(first_moment_nodes) > 0:
-        first_moments = [(node,) for node in first_moment_nodes]
+    # Build the moment spec. When first_moment_nodes is empty we skip the
+    # first-moment group entirely rather than passing a sentinel ((),) that
+    # would create a spurious empty moment inside MomentAccumulatorObserver.
+    moment_spec = []
+    if first_moment_nodes:
+        moment_spec.append([(node,) for node in first_moment_nodes])
+    moment_spec.append(list(second_moment_edges))
 
     def _spin_transform(state, _):
         return [2 * x.astype(jnp.int8) - 1 for x in state]
 
-    observer = MomentAccumulatorObserver((first_moments, second_moment_edges), _spin_transform)
+    observer = MomentAccumulatorObserver(moment_spec, _spin_transform)
     init_mem = observer.init()
 
     moments, _ = sample_with_observation(key, program, schedule, init_state, clamped_data, init_mem, observer)
 
-    node_sums, edge_sums = moments
+    if first_moment_nodes:
+        node_sums, edge_sums = moments
+    else:
+        node_sums = jnp.zeros(0)
+        edge_sums = moments[0]
+
     node_moments = node_sums / schedule.n_samples
     edge_moments = edge_sums / schedule.n_samples
 
@@ -229,7 +238,7 @@ def estimate_kl_grad(
     Estimate the KL-gradients of an Ising model with respect to its weights and biases.
 
     Uses the standard two-term Monte Carlo estimator of the gradient of the KL-divergence between an Ising model and
-    a data distribution
+    a data distribution.
 
     The gradients are:
 
@@ -257,12 +266,15 @@ def estimate_kl_grad(
     Returns:
         the weight gradients and the bias gradients
     """
-
     key_pos, key_neg = jax.random.split(key, 2)
 
-    cond_batched_pos = jax.tree.map(lambda x: jnp.broadcast_to(x, (data[0].shape[0], *x.shape)), conditioning_values)
+    cond_batched_pos = jax.tree.map(
+        lambda x: jnp.broadcast_to(x, (data[0].shape[0], *x.shape)), conditioning_values
+    )
 
-    keys_pos = jax.random.split(key_pos, init_state_positive[0].shape[:2])
+    # Name the chain/batch axes explicitly to make the split shape legible.
+    n_chains_pos, batch_size = init_state_positive[0].shape[:2]
+    keys_pos = jax.random.split(key_pos, (n_chains_pos, batch_size))
 
     moms_b_pos, moms_w_pos = jax.vmap(
         lambda k_out, i_out: jax.vmap(
@@ -272,7 +284,8 @@ def estimate_kl_grad(
         )(k_out, i_out, data + cond_batched_pos)
     )(keys_pos, init_state_positive)
 
-    keys_neg = jax.random.split(key_neg, init_state_negative[0].shape[0])
+    n_chains_neg = init_state_negative[0].shape[0]
+    keys_neg = jax.random.split(key_neg, n_chains_neg)
 
     moms_b_neg, moms_w_neg = jax.vmap(
         lambda k, i: estimate_moments(
