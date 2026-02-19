@@ -423,12 +423,15 @@ def _run_blocks(
     targeted scatter (`jnp.ndarray.at[...].set(...)`). The clamped portion of
     the global state is never recomputed.
     """
-    if n_iters == 0:
-        return init_chain_state, sampler_states
-
     # Build the full global state once (free + clamped). The clamped slice
-    # never changes, so it only needs to be concatenated here.
+    # never changes, so it only needs to be concatenated here. Built before
+    # the n_iters==0 early-return so callers (e.g. sample_with_observation)
+    # always receive a valid global_state to pass to observers — avoiding a
+    # redundant rebuild at the observation site.
     init_global_state = block_state_to_global(init_chain_state + state_clamp, program.gibbs_spec)
+
+    if n_iters == 0:
+        return init_chain_state, sampler_states, init_global_state
 
     # Pull out precomputed scatter metadata so the scan body stays pure.
     block_sd_inds = program._block_sd_inds
@@ -462,10 +465,13 @@ def _run_blocks(
         return (state_free, sampler_state, global_state), None
 
     keys = jax.random.split(key, n_iters)
-    (final_state_free, final_sampler_states, _final_global), _ = jax.lax.scan(
+    (final_state_free, final_sampler_states, final_global), _ = jax.lax.scan(
         body_fn, (init_chain_state, sampler_states, init_global_state), keys
     )
-    return final_state_free, final_sampler_states
+    # Return final_global so sample_with_observation can pass it directly to
+    # observers, eliminating the block_state_to_global rebuild inside each
+    # StateObserver / MomentAccumulatorObserver call.
+    return final_state_free, final_sampler_states, final_global
 
 
 @dataclasses.dataclass
@@ -519,7 +525,7 @@ def sample_with_observation(
     sampler_states = [s.init() for s in program.samplers]
 
     key, subkey = jax.random.split(key, 2)
-    warmup_state, warmup_sampler_states = _run_blocks(
+    warmup_state, warmup_sampler_states, warmup_global = _run_blocks(
         subkey,
         program,
         init_chain_state,
@@ -527,7 +533,11 @@ def sample_with_observation(
         schedule.n_warmup,
         sampler_states,
     )
-    mem, warmup_observation = f_observe(program, warmup_state, state_clamp, observation_carry_init, jnp.array(0))
+    # Pass warmup_global directly — observers can use it instead of rebuilding
+    # block_state_to_global from scratch.
+    mem, warmup_observation = f_observe(
+        program, warmup_state, state_clamp, observation_carry_init, jnp.array(0), warmup_global
+    )
 
     if schedule.n_samples <= 1:
         warmup_observation = jax.tree.map(lambda x: x[None], warmup_observation)
@@ -540,7 +550,7 @@ def sample_with_observation(
 
         _key, i = input
 
-        new_state, new_sampler_state = _run_blocks(
+        new_state, new_sampler_state, new_global = _run_blocks(
             _key,
             program,
             prev_state,
@@ -548,7 +558,7 @@ def sample_with_observation(
             schedule.steps_per_sample,
             prev_sampler_state,
         )
-        _mem, observe_out = f_observe(program, new_state, state_clamp, _mem, i)
+        _mem, observe_out = f_observe(program, new_state, state_clamp, _mem, i, new_global)
         new_carry = ((new_state, new_sampler_state), _mem)
         return new_carry, observe_out
 
