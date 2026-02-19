@@ -4,6 +4,7 @@ from . import models as models
 from .block_management import Block as Block
 from .block_management import BlockSpec as BlockSpec
 from .block_management import block_state_to_global as block_state_to_global
+from .block_management import scatter_block_to_global as scatter_block_to_global
 from .block_management import from_global_state as from_global_state
 from .block_management import get_node_locations as get_node_locations
 from .block_management import make_empty_block_state as make_empty_block_state
