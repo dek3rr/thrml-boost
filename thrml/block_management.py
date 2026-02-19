@@ -172,8 +172,8 @@ class BlockSpec:
 
         self.blocks = blocks
 
-        # come up with an ordering of SDs for the global representation of the blocks
-        all_sds = list({sd for sd in self.node_shape_dtypes.values()})
+        # Deduplicate while preserving insertion order
+        all_sds = list(dict.fromkeys(self.node_shape_dtypes.values()))
         self.global_sd_order = all_sds
 
         # map from SD to location in global representation
