@@ -42,7 +42,8 @@ def _gibbs_steps(
     """
     if n_iters == 0:
         return state_free, sampler_state
-    return _run_blocks(key, program, state_free, state_clamp, n_iters, sampler_state)
+    state_free, sampler_state, _ = _run_blocks(key, program, state_free, state_clamp, n_iters, sampler_state)
+    return state_free, sampler_state
 
 
 def _attempt_swap_pair(
@@ -61,13 +62,15 @@ def _attempt_swap_pair(
     Acceptance ratio uses energies of both states under both models:
     log r = (E_i(x_i) + E_j(x_j)) - (E_i(x_j) + E_j(x_i))
     """
-    blocks_i = program_i.gibbs_spec.blocks
-    blocks_j = program_j.gibbs_spec.blocks
+    # Pass the pre-built BlockSpec directly so energy() skips rebuilding it.
+    # gibbs_spec IS a BlockSpec (it subclasses it), so this hits the fast path.
+    spec_i = program_i.gibbs_spec
+    spec_j = program_j.gibbs_spec
 
-    Ei_xi = ebm_i.energy(state_i + clamp_state, blocks_i)
-    Ej_xj = ebm_j.energy(state_j + clamp_state, blocks_j)
-    Ei_xj = ebm_i.energy(state_j + clamp_state, blocks_i)
-    Ej_xi = ebm_j.energy(state_i + clamp_state, blocks_j)
+    Ei_xi = ebm_i.energy(state_i + clamp_state, spec_i)
+    Ej_xj = ebm_j.energy(state_j + clamp_state, spec_j)
+    Ei_xj = ebm_i.energy(state_j + clamp_state, spec_i)
+    Ej_xi = ebm_j.energy(state_i + clamp_state, spec_j)
 
     log_r = (Ei_xi + Ej_xj) - (Ei_xj + Ej_xi)
     accept_prob = jnp.exp(jnp.minimum(0.0, log_r))
@@ -95,26 +98,30 @@ def _swap_pass(
 ):
     """Perform one swap pass over a fixed set of adjacent pairs."""
     n_pairs = len(ebms) - 1
-    accept_counts = [0] * n_pairs
-    attempt_counts = [0] * n_pairs
 
     if len(pair_indices) == 0:
-        return states, sampler_states, accept_counts, attempt_counts
+        # Return zero JAX arrays so the caller can always do `accepted + acc_counts`
+        # without a mixed Python-int / JAX-scalar conversion.
+        return states, sampler_states, jnp.zeros(n_pairs, dtype=jnp.int32), jnp.zeros(n_pairs, dtype=jnp.int32)
 
     keys = jax.random.split(key, len(pair_indices))
     new_states = list(states)
     new_sampler_states = list(sampler_states)
 
+    # Use JAX arrays throughout so accumulation in one_round is a plain array add.
+    accept_counts = jnp.zeros(n_pairs, dtype=jnp.int32)
+    attempt_counts = jnp.zeros(n_pairs, dtype=jnp.int32)
+
     for idx, pair in enumerate(pair_indices):
         i, j = pair, pair + 1
-        attempt_counts[pair] = 1
+        attempt_counts = attempt_counts.at[pair].set(1)
         new_i, new_j, accepted = _attempt_swap_pair(
             keys[idx], ebms[i], ebms[j], programs[i], programs[j], new_states[i], new_states[j], clamp_state
         )
         new_states[i], new_states[j] = new_i, new_j
         # Sampler states follow the chain, not the state index.
         new_sampler_states[i], new_sampler_states[j] = new_sampler_states[j], new_sampler_states[i]
-        accept_counts[pair] = accepted
+        accept_counts = accept_counts.at[pair].set(accepted)
 
     return new_states, new_sampler_states, accept_counts, attempt_counts
 
@@ -194,8 +201,9 @@ def parallel_tempering(
                 clamp_state,
                 even_pair_indices,
             )
-            accepted = accepted + jnp.array(acc_counts, dtype=jnp.int32)
-            attempted = attempted + jnp.array(att_counts, dtype=jnp.int32)
+            # acc_counts and att_counts are already JAX int32 arrays from _swap_pass.
+            accepted = accepted + acc_counts
+            attempted = attempted + att_counts
             return states, sampler_states, accepted, attempted
 
         def do_odd(args):
@@ -209,8 +217,8 @@ def parallel_tempering(
                 clamp_state,
                 odd_pair_indices,
             )
-            accepted = accepted + jnp.array(acc_counts, dtype=jnp.int32)
-            attempted = attempted + jnp.array(att_counts, dtype=jnp.int32)
+            accepted = accepted + acc_counts
+            attempted = attempted + att_counts
             return states, sampler_states, accepted, attempted
 
         parity = round_idx & 1
