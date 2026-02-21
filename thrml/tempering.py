@@ -2,14 +2,22 @@
 Parallel tempering utilities built on THRML's block Gibbs samplers.
 
 This module orchestrates multiple tempered chains (one per beta/model), runs
-blocked Gibbs steps on each, and proposes swaps between adjacent temperatures.
+blocked Gibbs steps on each via ``jax.vmap``, and proposes swaps between
+adjacent temperatures.
 
 Key design: all chains share the same *structural* program data (block spec,
-active flags, gather/scatter indices, samplers). Only `per_block_interactions`
-differs across chains, because it carries the beta-scaled weights. We exploit
-this by vmapping a single-chain runner over (key, state, per_block_interactions),
-replacing the Python for-loop over chains that previously unrolled n_chains
-copies of the full Gibbs graph into the XLA computation.
+active flags, gather/scatter indices, samplers). Only ``per_block_interactions``
+differs across chains, because it carries the beta-scaled weights. We vmap a
+single-chain runner over (key, state, per_block_interactions), replacing the
+Python for-loop over chains that previously unrolled n_chains copies of the
+full Gibbs graph into the XLA computation.
+
+Non-array pytree leaves (e.g. ``DiscreteEBMInteraction.n_spin: int``) are
+handled carefully: ``_stack_pbi_across_chains`` stacks only JAX array leaves
+while keeping Python-int leaves from ``programs[0]``, and the corresponding
+``in_axes`` uses ``None`` for those leaves so vmap does not attempt to batch
+them. This preserves the Python-int type that is required by slice indexing
+inside ``SpinGibbsConditional.compute_parameters``.
 """
 
 from typing import Sequence
@@ -25,6 +33,53 @@ from thrml.models.ebm import AbstractEBM
 def _init_sampler_states(program: BlockSamplingProgram) -> list:
     """Initialize sampler state list for a BlockSamplingProgram."""
     return [s.init() for s in program.samplers]
+
+
+def _stack_pbi_across_chains(interaction_list: list) -> object:
+    """Stack ``per_block_interactions`` entries across chains.
+
+    Only JAX array leaves are stacked (shape ``(n_chains, ...)``).
+    Non-array leaves (Python ints, strings, etc.) are kept from the first
+    element — they must be equal across chains by the program-structure
+    validation, and they must remain Python ints so that slice indexing like
+    ``states[:interaction.n_spin]`` continues to work inside the vmapped
+    function body.
+
+    **Arguments:**
+
+    - ``interaction_list``: ``n_chains`` interaction objects with the same
+      pytree structure.
+
+    **Returns:**
+
+    A single interaction object whose array leaves are stacked along a new
+    leading axis of size ``n_chains``.
+    """
+    flat0, treedef = jax.tree_util.tree_flatten(interaction_list[0])
+    flat_rest = [jax.tree_util.tree_flatten(inter)[0] for inter in interaction_list[1:]]
+
+    stacked_leaves = []
+    for i, leaf in enumerate(flat0):
+        if isinstance(leaf, jax.Array):
+            stacked_leaves.append(jnp.stack([leaf] + [f[i] for f in flat_rest], axis=0))
+        else:
+            # Python int, bool, str, etc. — same across all chains; keep as-is.
+            stacked_leaves.append(leaf)
+
+    return treedef.unflatten(stacked_leaves)
+
+
+def _make_pbi_in_axes(stacked_pbi):
+    """Build a matching pytree of vmap axis specs for ``stacked_pbi``.
+
+    Returns a pytree with the same structure as ``stacked_pbi`` where:
+    - JAX array leaves → ``0`` (batch along the leading chain axis)
+    - Non-array leaves → ``None`` (not batched; same value for every chain)
+    """
+    return jax.tree.map(
+        lambda x: 0 if isinstance(x, jax.Array) else None,
+        stacked_pbi,
+    )
 
 
 def _attempt_swap_pair(
@@ -101,8 +156,8 @@ def _swap_pass_stacked(
     for idx, pair in enumerate(pair_indices):
         i, j = pair, pair + 1
 
-        # Extract single-chain states for the energy computation.
-        # Static int indexing into a stacked array — compiles to a gather slice.
+        # Extract single-chain states via static int indexing.
+        # Compiles to a gather slice rather than a general dynamic gather.
         state_i = [stacked_states[b][i] for b in range(n_free_blocks)]
         state_j = [stacked_states[b][j] for b in range(n_free_blocks)]
 
@@ -111,16 +166,13 @@ def _swap_pass_stacked(
             state_i, state_j, clamp_state,
         )
 
-        # Scatter updated states back into the stacked arrays.
-        # Both .at[i] and .at[j] use static Python ints, so XLA lowers these
-        # to a pair of scatter ops rather than a general dynamic scatter.
+        # Scatter updated states back. Static int indices → pair of static scatters.
         stacked_states = [
             stacked_states[b].at[i].set(new_i[b]).at[j].set(new_j[b])
             for b in range(n_free_blocks)
         ]
 
         if not all_ss_none:
-            # Swap sampler-state rows in the same way.
             stacked_ss = [
                 stacked_ss[b].at[i].set(stacked_ss[b][j]).at[j].set(stacked_ss[b][i])
                 for b in range(n_free_blocks)
@@ -155,15 +207,15 @@ def parallel_tempering(
 
     **Arguments:**
 
-    - `key`: JAX PRNG key.
-    - `ebms`: One EBM per temperature, ordered from lowest to highest beta.
-    - `programs`: One ``BlockSamplingProgram`` per temperature. All must share
+    - ``key``: JAX PRNG key.
+    - ``ebms``: One EBM per temperature, ordered from lowest to highest beta.
+    - ``programs``: One ``BlockSamplingProgram`` per temperature. All must share
         the same block structure; only ``per_block_interactions`` may differ.
-    - `init_states`: Initial free-block states, one list per chain.
-    - `clamp_state`: Clamped-block state, shared across all chains.
-    - `n_rounds`: Number of Gibbs + swap rounds to run.
-    - `gibbs_steps_per_round`: Gibbs sweeps per chain per round.
-    - `sampler_states`: Optional initial sampler states; inferred from programs
+    - ``init_states``: Initial free-block states, one list per chain.
+    - ``clamp_state``: Clamped-block state, shared across all chains.
+    - ``n_rounds``: Number of Gibbs + swap rounds to run.
+    - ``gibbs_steps_per_round``: Gibbs sweeps per chain per round.
+    - ``sampler_states``: Optional initial sampler states; inferred from programs
         if not provided.
 
     **Returns:**
@@ -183,7 +235,9 @@ def parallel_tempering(
     for prog in programs[1:]:
         if (len(prog.gibbs_spec.free_blocks) != base_free
                 or len(prog.gibbs_spec.clamped_blocks) != base_clamped):
-            raise ValueError("All programs must share the same block structure (free + clamped blocks).")
+            raise ValueError(
+                "All programs must share the same block structure (free + clamped blocks)."
+            )
 
     clamp_state = clamp_state or []
     n_chains = len(ebms)
@@ -196,11 +250,9 @@ def parallel_tempering(
         else [_init_sampler_states(p) for p in programs]
     )
 
-    # Detect whether all sampler states are None (covers all built-in samplers:
-    # BernoulliConditional, SoftmaxConditional, SpinGibbsConditional).
-    # We handle this at Python level so we can exclude None from vmap arguments
-    # — jax.vmap cannot batch over None (it has no array axis to strip).
-    # If your sampler has real state, add it to the stacked vmap inputs below.
+    # Detect whether all sampler states are None (covers all built-in samplers).
+    # We handle this at Python level so we can exclude None from vmap arguments —
+    # jax.vmap cannot batch over None (it has no array axis to strip).
     all_ss_none = all(
         ss is None
         for chain_ss in sampler_states
@@ -211,15 +263,11 @@ def parallel_tempering(
     # Convert to chain-stacked representation
     # -------------------------------------------------------------------------
     # stacked_states[b]: shape (n_chains, n_nodes_b, *node_shape)
-    # All blocks for the same node type are concatenated along axis 0 inside
-    # the global state; the stacked format adds a leading chain axis on top of
-    # the per-block arrays.
     stacked_states = [
         jnp.stack([states[c][b] for c in range(n_chains)], axis=0)
         for b in range(n_free_blocks)
     ]
 
-    # stacked_ss[b]: shape (n_chains, ...) or None
     if all_ss_none:
         stacked_ss = [None] * n_free_blocks
     else:
@@ -231,20 +279,30 @@ def parallel_tempering(
             for b in range(n_free_blocks)
         ]
 
-    # stacked_pbi[b][g]: same PyTree as programs[0].per_block_interactions[b][g]
-    # but with a leading chain axis on every array leaf.
-    # Under jax.vmap the chain axis is stripped, so each vmapped call sees
-    # exactly the single-chain interaction weights it expects.
+    # Stack per_block_interactions across chains.
+    #
+    # Only JAX array leaves (the weights) are stacked; non-array leaves (e.g.
+    # DiscreteEBMInteraction.n_spin: int) are kept as Python ints from
+    # programs[0]. This is necessary because:
+    #   1. jnp.stack([1, 1], axis=0) produces jnp.array([1, 1]), and under
+    #      vmap that becomes a 0-d JAX array.
+    #   2. Code inside the sampler does `states[:interaction.n_spin]` which
+    #      requires a Python int, not a traced JAX value.
+    #
+    # See _stack_pbi_across_chains for the implementation.
     stacked_pbi = [
         [
-            jax.tree.map(
-                lambda *xs: jnp.stack(xs, axis=0),
-                *[programs[c].per_block_interactions[b][g] for c in range(n_chains)],
+            _stack_pbi_across_chains(
+                [programs[c].per_block_interactions[b][g] for c in range(n_chains)]
             )
             for g in range(len(programs[0].per_block_interactions[b]))
         ]
         for b in range(n_free_blocks)
     ]
+
+    # Matching in_axes pytree: 0 for array leaves (batch along chain axis),
+    # None for non-array leaves (same value for every chain, not batched).
+    pbi_in_axes = _make_pbi_in_axes(stacked_pbi)
 
     n_pairs = max(n_chains - 1, 0)
     accepted = jnp.zeros(n_pairs, dtype=jnp.int32)
@@ -256,20 +314,6 @@ def parallel_tempering(
     # -------------------------------------------------------------------------
     # Build vmapped Gibbs runner
     # -------------------------------------------------------------------------
-    # We close over:
-    #   programs[0]       — template for all static structural data
-    #   clamp_state       — identical across chains
-    #   gibbs_steps_per_round — scalar
-    #   stacked_pbi       — constant JAX arrays (captured in the closure)
-    #
-    # We vmap over:
-    #   gibbs_key         — one key per chain
-    #   state_free        — one block list per chain (stacked_states)
-    #   pbi               — one interaction weight set per chain (stacked_pbi)
-    #
-    # Sampler states are None for all built-in samplers, so we close over
-    # [None] * n_free_blocks rather than passing them as vmapped arguments.
-    # If you add a stateful sampler, stack its states and add them here.
     if all_ss_none:
         null_ss = [None] * n_free_blocks
 
@@ -282,11 +326,13 @@ def parallel_tempering(
             )
             return new_state
 
-        _run_all_chains = jax.vmap(_run_one_chain)
+        _run_all_chains = jax.vmap(
+            _run_one_chain,
+            in_axes=(0, [0] * n_free_blocks, pbi_in_axes),
+        )
 
     else:
         def _run_one_chain_with_ss(gibbs_key, state_free, pbi, ss):
-            """Run one chain with real sampler state."""
             new_state, new_ss, _ = _run_blocks(
                 gibbs_key, programs[0], state_free, clamp_state,
                 gibbs_steps_per_round, ss,
@@ -294,7 +340,11 @@ def parallel_tempering(
             )
             return new_state, new_ss
 
-        _run_all_chains = jax.vmap(_run_one_chain_with_ss)
+        ss_in_axes = jax.tree.map(lambda x: 0 if isinstance(x, jax.Array) else None, stacked_ss)
+        _run_all_chains = jax.vmap(
+            _run_one_chain_with_ss,
+            in_axes=(0, [0] * n_free_blocks, pbi_in_axes, ss_in_axes),
+        )
 
     # -------------------------------------------------------------------------
     # Scan over rounds
@@ -302,14 +352,12 @@ def parallel_tempering(
     def one_round(carry, round_idx):
         key, stacked_states, stacked_ss, accepted, attempted = carry
 
-        # One key per chain for Gibbs, one for swaps.
         key, key_round = jax.random.split(key)
         gibbs_keys = jax.random.split(key_round, n_chains)
         key, swap_key = jax.random.split(key)
 
         # --- Gibbs updates: all chains simultaneously via vmap ---
-        # stacked_pbi is a constant captured in the closure above; it does not
-        # change across rounds, so it is not part of the carry.
+        # stacked_pbi is a constant captured in the closure; not part of carry.
         if all_ss_none:
             stacked_states = _run_all_chains(gibbs_keys, stacked_states, stacked_pbi)
         else:
@@ -318,10 +366,6 @@ def parallel_tempering(
             )
 
         # --- Swap step: alternating even/odd pairs via lax.cond ---
-        # Both branches (do_even, do_odd) are traced at compile time to establish
-        # output shapes; lax.cond selects between them at runtime based on parity.
-        # The Python for-loops inside _swap_pass_stacked execute at trace time,
-        # producing a fixed XLA scatter pattern for each parity.
         def do_even(args):
             s_states, s_ss, acc, att, s_key = args
             s_states, s_ss, acc_counts, att_counts = _swap_pass_stacked(
