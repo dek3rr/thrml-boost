@@ -176,7 +176,10 @@ class MomentAccumulatorObserver(AbstractObserver):
             inside the scan body.
         """
         self.f_transform = f_transform
-        self._accumulate_dtype = dtype
+        # Canonicalize the dtype immediately so that if JAX truncates float64
+        # to float32 (because JAX_ENABLE_X64 is not set), the warning fires
+        # once here at construction time rather than on every scan iteration.
+        self._accumulate_dtype = jnp.zeros(0, dtype=dtype).dtype
 
         flat_nodes_list = []
         node_to_flat_idx = {}
@@ -198,6 +201,8 @@ class MomentAccumulatorObserver(AbstractObserver):
                     moment_slice[j, k] = idx
                     nodes_by_type[node.__class__].append(node)
                     flat_to_type_slices[node.__class__].append(node_to_flat_idx[node])
+
+            flat_to_full_moment_slices.append(moment_slice)
 
         blocks_to_sample = []
         flat_to_type_slices_list = []

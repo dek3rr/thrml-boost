@@ -113,10 +113,17 @@ def test_output_state_format():
     _, _, free_blocks, ebms, programs, init_state = _tiny_ising(n_temps=2)
     init_states = [init_state, init_state]
 
-    final_states, sampler_states, stats = jax.jit(parallel_tempering)(
-        jax.random.key(1), ebms, programs, init_states, [],
-        n_rounds=2, gibbs_steps_per_round=2,
-    )
+    # Close over ebms and programs — they contain non-array leaves (node
+    # objects, block specs) that jax.jit cannot trace. Only array args
+    # (key, init_states) are passed as traced arguments.
+    @jax.jit
+    def run(key, init_states):
+        return parallel_tempering(
+            key, ebms, programs, init_states, [],
+            n_rounds=2, gibbs_steps_per_round=2,
+        )
+
+    final_states, sampler_states, stats = run(jax.random.key(1), init_states)
 
     assert len(final_states) == 2
     for chain_state in final_states:
@@ -190,10 +197,17 @@ def test_single_chain_matches_run_blocks():
 
     key = jax.random.key(999)
 
-    final_pt, _, _ = jax.jit(parallel_tempering)(
-        key, [ebms[0]], [programs[0]], init_states, [],
-        n_rounds=1, gibbs_steps_per_round=3,
-    )
+    ebm_single = ebms[0]
+    prog_single = programs[0]
+
+    @jax.jit
+    def run_pt(key, init_states):
+        return parallel_tempering(
+            key, [ebm_single], [prog_single], init_states, [],
+            n_rounds=1, gibbs_steps_per_round=3,
+        )
+
+    final_pt, _, _ = run_pt(key, init_states)
 
     # Reproduce the key splitting that parallel_tempering does internally.
     # one_round: key, key_round = split(key); gibbs_keys = split(key_round, 1)
@@ -201,9 +215,12 @@ def test_single_chain_matches_run_blocks():
     gibbs_key = jax.random.split(key_round, 1)[0]
 
     ss = [None] * len(free_blocks)
-    final_rb, _, _ = jax.jit(_run_blocks)(
-        gibbs_key, programs[0], init_state, [], 3, ss,
-    )
+
+    @jax.jit
+    def run_rb(gibbs_key, init_state):
+        return _run_blocks(gibbs_key, prog_single, init_state, [], 3, ss)
+
+    final_rb, _, _ = run_rb(gibbs_key, init_state)
 
     for b in range(len(free_blocks)):
         assert jnp.array_equal(final_pt[0][b], final_rb[b]), (
@@ -215,19 +232,29 @@ def test_mismatched_programs_raises():
     """Programs with different block structures should raise ValueError."""
     _, _, free_blocks, ebms, programs, init_state = _tiny_ising(n_temps=2)
 
-    # Build a program with a different number of free blocks
-    nodes_alt = [SpinNode() for _ in range(4)]
-    alt_block = [Block(nodes_alt)]
-    biases_alt = jnp.zeros(4)
-    weights_alt = jnp.zeros(0)
-    ebm_alt = IsingEBM(nodes_alt, [], biases_alt, weights_alt, jnp.array(1.0))
-    prog_alt = IsingSamplingProgram(ebm_alt, alt_block, clamped_blocks=[])
+    # Build a program with 3 free blocks instead of 2, using a small but
+    # valid Ising model (non-empty edges so SpinEBMFactor is valid).
+    nodes_alt = [SpinNode() for _ in range(6)]
+    edges_alt = [(nodes_alt[i], nodes_alt[i + 1]) for i in range(5)]
+    biases_alt = jnp.zeros(6)
+    weights_alt = jnp.zeros(5)
+    ebm_alt = IsingEBM(nodes_alt, edges_alt, biases_alt, weights_alt, jnp.array(1.0))
+    # Three free blocks instead of two — structurally different
+    prog_alt = IsingSamplingProgram(
+        ebm_alt,
+        [Block(nodes_alt[:2]), Block(nodes_alt[2:4]), Block(nodes_alt[4:])],
+        clamped_blocks=[],
+    )
 
     with pytest.raises(ValueError, match="block structure"):
         parallel_tempering(
-            jax.random.key(0), [ebms[0], ebm_alt], [programs[0], prog_alt],
-            [init_state, [jnp.zeros((4,), jnp.bool_)]],
-            [], n_rounds=1, gibbs_steps_per_round=1,
+            jax.random.key(0),
+            [ebms[0], ebm_alt],
+            [programs[0], prog_alt],
+            [init_state, [jnp.zeros((2,), jnp.bool_), jnp.zeros((2,), jnp.bool_), jnp.zeros((2,), jnp.bool_)]],
+            [],
+            n_rounds=1,
+            gibbs_steps_per_round=1,
         )
 
 
@@ -259,15 +286,19 @@ def test_nonzero_energy_acceptance():
     init_cold = [jnp.ones((len(b),), jnp.bool_) for b in free_blocks]
     init_hot = [jnp.zeros((len(b),), jnp.bool_) for b in free_blocks]
 
-    _, _, stats = jax.jit(parallel_tempering)(
-        jax.random.key(123),
-        [ebm_cold, ebm_hot],
-        programs,
-        [init_cold, init_hot],
-        clamp_state=[],
-        n_rounds=20,
-        gibbs_steps_per_round=1,
-    )
+    @jax.jit
+    def run(key, init_cold, init_hot):
+        return parallel_tempering(
+            key,
+            [ebm_cold, ebm_hot],
+            programs,
+            [init_cold, init_hot],
+            clamp_state=[],
+            n_rounds=20,
+            gibbs_steps_per_round=1,
+        )
+
+    _, _, stats = run(jax.random.key(123), init_cold, init_hot)
 
     # With a cold chain at beta=5 and ferromagnetic coupling, swapping a very
     # low-energy state into the hot chain and vice versa is usually rejected

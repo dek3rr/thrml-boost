@@ -128,7 +128,7 @@ class TestMomentAccumulator(unittest.TestCase):
 
 def _all_bitstrings(N):
     num_bitstrings = 1 << N  # Calculate 2^N
-    indices = jnp.arange(num_bitstrings, dtype=jnp.int64)  # Generate numbers from 0 to 2^N - 1
+    indices = jnp.arange(num_bitstrings)  # int32 is sufficient for N<=31
     bits = ((indices[:, None] >> jnp.arange(N)) & 1).astype(jnp.int8).astype(jnp.bool)
     bits = bits[:, ::-1]  # Reverse to maintain correct bit order
     return bits

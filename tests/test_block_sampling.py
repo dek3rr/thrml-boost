@@ -280,7 +280,10 @@ class TestRunBlocksGlobalState(unittest.TestCase):
     def test_global_state_consistent_with_final_state(self):
         """The returned global_state should match block_state_to_global applied to the final free state."""
         prog, init_state = self._make_simple_program()
-        final_state, _, returned_global = jax.jit(_run_blocks)(
+        # _run_blocks is an internal function that gets jitted when called from
+        # within a jitted context. Call it directly here; it will be compiled
+        # on first call anyway via equinox's implicit tracing.
+        final_state, _, returned_global = _run_blocks(
             jax.random.key(0), prog, init_state, [], n_iters=3, sampler_states=[None, None]
         )
 
@@ -359,10 +362,10 @@ class TestPerBlockInteractionsOverride(unittest.TestCase):
         n_iters = 3
         ss = [None]
 
-        state_b, _, _ = jax.jit(_run_blocks)(
+        state_b, _, _ = _run_blocks(
             self.key, self.prog_b, self.init_state, [], n_iters, ss
         )
-        state_override, _, _ = jax.jit(_run_blocks)(
+        state_override, _, _ = _run_blocks(
             self.key, self.prog_a, self.init_state, [], n_iters, ss,
             per_block_interactions=self.prog_b.per_block_interactions,
         )

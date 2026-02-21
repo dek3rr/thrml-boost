@@ -153,24 +153,23 @@ def hinton_init(
     """
     node_map = {node: i for i, node in enumerate(model.nodes)}
 
-    # Stack all block indices into a single (n_blocks, block_size) array so we
-    # can gather biases and sample in one vectorised pass instead of one XLA op
-    # per block.
-    block_indices = jnp.array(
-        [[node_map[n] for n in block] for block in blocks], dtype=jnp.int32
-    )  # (n_blocks, block_size)
-    block_biases = model.biases[block_indices]                    # (n_blocks, block_size)
-    probs = jax.nn.sigmoid(model.beta * block_biases)             # (n_blocks, block_size)
+    # Process each block independently so ragged block sizes are handled
+    # correctly. Blocks in a two-coloured checkerboard partition can have
+    # unequal lengths (e.g. 5 nodes → blocks of size 3 and 2), so we cannot
+    # stack them into a homogeneous (n_blocks, block_size) array.
+    keys = jax.random.split(key, len(blocks))
 
-    keys = jax.random.split(key, len(blocks))                     # (n_blocks, 2)
+    result = []
+    for block, k in zip(blocks, keys):
+        indices = jnp.array([node_map[n] for n in block], dtype=jnp.int32)
+        block_biases = model.biases[indices]                          # (block_size,)
+        probs = jax.nn.sigmoid(model.beta * block_biases)
+        sample = jax.random.bernoulli(
+            k, p=probs, shape=(*batch_shape, len(block))
+        ).astype(jnp.bool_)
+        result.append(sample)
 
-    # vmap over blocks; each call samples one block of shape (*batch_shape, block_size)
-    all_blocks = jax.vmap(
-        lambda k, p: jax.random.bernoulli(k, p=p, shape=(*batch_shape, p.shape[0])).astype(jnp.bool_)
-    )(keys, probs)  # (n_blocks, *batch_shape, block_size)
-
-    # Return as a plain Python list to match the expected block-state format.
-    return list(all_blocks)
+    return result
 
 
 def estimate_moments(

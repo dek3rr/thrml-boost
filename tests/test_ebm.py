@@ -65,11 +65,15 @@ class TestEnergyBlockSpecFastPath(unittest.TestCase):
         self.assertTrue(jnp.allclose(energy_list, energy_spec))
 
     def test_energy_is_jit_compatible(self):
-        """energy() should be JIT-able whether called with list or BlockSpec."""
+        """energy() should be JIT-able when called through eqx.filter_jit,
+        which correctly treats non-array leaves (BlockSpec, nodes) as static."""
+        import equinox as eqx
         node_sd = {SpinNode: jax.ShapeDtypeStruct((), jnp.bool_)}
         block_spec = BlockSpec([self.block], node_sd)
 
-        energy_jit = jax.jit(self.ebm.energy)(self.state, block_spec)
+        # eqx.filter_jit is the correct way to JIT equinox modules and
+        # functions that take non-array arguments like BlockSpec.
+        energy_jit = eqx.filter_jit(self.ebm.energy)(self.state, block_spec)
         energy_eager = self.ebm.energy(self.state, block_spec)
 
         self.assertTrue(jnp.allclose(energy_jit, energy_eager))
