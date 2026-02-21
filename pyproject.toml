@@ -1,13 +1,14 @@
 [project]
-name = "thrml"
-version = "0.1.3"
-description = "Thermodynamic HypergRaphical Model Library (THRML)"
+name = "thrml-boost"
+version = "0.1.3-boost.1"
+description = "Thermodynamic HypergRaphical Model Library (THRML) — performance-optimized fork"
 readme = "README.md"
 requires-python = ">=3.10"
 authors = [
   {name = "Extropic AI"},
+  {name = "dek3rr"},
 ]
-urls = { repository = "https://github.com/extropic-ai/thrml" }
+urls = { repository = "https://github.com/dek3rr/thrml-boost" }
 
 dependencies = [
     "equinox>=0.11.2",
@@ -55,7 +56,7 @@ docs = [
 ]
 
 [tool.setuptools]
-packages = { find = { include = ["thrml", "thrml.*"] } }
+packages = { find = { include = ["thrml_boost", "thrml_boost.*"] } }
 
 [tool.ruff]
 extend-include = ["*.ipynb"]
@@ -63,7 +64,6 @@ src = []
 line-length = 120
 
 [tool.ruff.lint]
-# F722: Syntax error in forward annotation
 ignore = ["F722"]
 
 [tool.isort]
@@ -74,6 +74,6 @@ line-length = 120
 
 [tool.pyright]
 reportUnnecessaryTypeIgnoreComment = true
-include = ["thrml"]
+include = ["thrml_boost"]
 venvPath = "."
 venv = "venv"

@@ -11,11 +11,11 @@ import unittest
 import jax
 import jax.numpy as jnp
 
-from thrml.block_management import Block, BlockSpec
-from thrml.block_sampling import BlockGibbsSpec
-from thrml.models.discrete_ebm import SpinEBMFactor
-from thrml.models.ebm import FactorizedEBM
-from thrml.pgm import SpinNode
+from thrml_boost.block_management import Block, BlockSpec
+from thrml_boost.block_sampling import BlockGibbsSpec
+from thrml_boost.models.discrete_ebm import SpinEBMFactor
+from thrml_boost.models.ebm import FactorizedEBM
+from thrml_boost.pgm import SpinNode
 
 
 class TestEnergyBlockSpecFastPath(unittest.TestCase):
@@ -55,7 +55,7 @@ class TestEnergyBlockSpecFastPath(unittest.TestCase):
 
     def test_gibbs_spec_passes_isinstance_check(self):
         """BlockGibbsSpec is a BlockSpec subclass, so it should hit the fast path."""
-        from thrml.block_management import BlockSpec
+        from thrml_boost.block_management import BlockSpec
         node_sd = {SpinNode: jax.ShapeDtypeStruct((), jnp.bool_)}
         gibbs_spec = BlockGibbsSpec([self.block], [], node_sd)
         self.assertIsInstance(gibbs_spec, BlockSpec)

@@ -2,8 +2,8 @@ def test_readme_quick_example():
     import jax
     import jax.numpy as jnp
 
-    from thrml import Block, SamplingSchedule, SpinNode, sample_states
-    from thrml.models import IsingEBM, IsingSamplingProgram, hinton_init
+    from thrml_boost import Block, SamplingSchedule, SpinNode, sample_states
+    from thrml_boost.models import IsingEBM, IsingSamplingProgram, hinton_init
 
     nodes = [SpinNode() for _ in range(5)]
     edges = [(nodes[i], nodes[i + 1]) for i in range(4)]

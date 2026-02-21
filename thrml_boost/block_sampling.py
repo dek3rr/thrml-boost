@@ -8,7 +8,7 @@ import numpy as np
 from jax import numpy as jnp
 from jaxtyping import Array, Key, PyTree, Shaped
 
-from thrml.block_management import (
+from thrml_boost.block_management import (
     Block,
     BlockSpec,
     block_state_to_global,
@@ -16,8 +16,8 @@ from thrml.block_management import (
     get_node_locations,
     verify_block_state,
 )
-from thrml.interaction import InteractionGroup
-from thrml.pgm import DEFAULT_NODE_SHAPE_DTYPES, AbstractNode
+from thrml_boost.interaction import InteractionGroup
+from thrml_boost.pgm import DEFAULT_NODE_SHAPE_DTYPES, AbstractNode
 
 from .conditional_samplers import AbstractConditionalSampler, _SamplerState
 from .observers import AbstractObserver, ObserveCarry, StateObserver

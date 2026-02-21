@@ -5,10 +5,10 @@ import numpy as np
 from jax import numpy as jnp
 from jaxtyping import Array, Key
 
-from thrml.block_management import Block
-from thrml.block_sampling import BlockSamplingProgram, SamplingSchedule, sample_states
-from thrml.models.ebm import AbstractEBM
-from thrml.pgm import DEFAULT_NODE_SHAPE_DTYPES, CategoricalNode, SpinNode
+from thrml_boost.block_management import Block
+from thrml_boost.block_sampling import BlockSamplingProgram, SamplingSchedule, sample_states
+from thrml_boost.models.ebm import AbstractEBM
+from thrml_boost.pgm import DEFAULT_NODE_SHAPE_DTYPES, CategoricalNode, SpinNode
 
 
 def generate_all_states_binary(num_binary: int) -> Array:

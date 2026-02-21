@@ -13,10 +13,10 @@ import unittest
 import jax
 import jax.numpy as jnp
 
-from thrml.block_management import Block, block_state_to_global
-from thrml.block_sampling import BlockGibbsSpec
-from thrml.observers import MomentAccumulatorObserver, StateObserver
-from thrml.pgm import CategoricalNode, SpinNode
+from thrml_boost.block_management import Block, block_state_to_global
+from thrml_boost.block_sampling import BlockGibbsSpec
+from thrml_boost.observers import MomentAccumulatorObserver, StateObserver
+from thrml_boost.pgm import CategoricalNode, SpinNode
 
 
 def _make_simple_program(blocks, node_shape_dtypes):

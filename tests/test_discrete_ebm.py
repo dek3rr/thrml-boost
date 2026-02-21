@@ -8,15 +8,15 @@ import networkx as nx
 import numpy as np
 from jax import numpy as jnp
 
-from thrml.block_management import Block
-from thrml.block_sampling import (
+from thrml_boost.block_management import Block
+from thrml_boost.block_sampling import (
     BlockGibbsSpec,
     SamplingSchedule,
     sample_single_block,
     sample_states,
 )
-from thrml.factor import FactorSamplingProgram
-from thrml.models.discrete_ebm import (
+from thrml_boost.factor import FactorSamplingProgram
+from thrml_boost.models.discrete_ebm import (
     CategoricalEBMFactor,
     CategoricalGibbsConditional,
     DiscreteEBMFactor,
@@ -25,8 +25,8 @@ from thrml.models.discrete_ebm import (
     SquareCategoricalEBMFactor,
     SquareDiscreteEBMFactor,
 )
-from thrml.models.ebm import FactorizedEBM
-from thrml.pgm import AbstractNode, CategoricalNode, SpinNode
+from thrml_boost.models.ebm import FactorizedEBM
+from thrml_boost.pgm import AbstractNode, CategoricalNode, SpinNode
 
 from .utils import (
     count_samples,

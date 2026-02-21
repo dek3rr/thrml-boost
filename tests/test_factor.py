@@ -2,10 +2,10 @@ import unittest
 
 import jax.numpy as jnp
 
-from thrml.block_management import Block
-from thrml.factor import AbstractFactor, WeightedFactor
-from thrml.interaction import InteractionGroup
-from thrml.pgm import AbstractNode
+from thrml_boost.block_management import Block
+from thrml_boost.factor import AbstractFactor, WeightedFactor
+from thrml_boost.interaction import InteractionGroup
+from thrml_boost.pgm import AbstractNode
 
 
 class Node(AbstractNode):

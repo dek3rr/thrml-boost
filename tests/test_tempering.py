@@ -12,11 +12,11 @@ import jax
 import jax.numpy as jnp
 import pytest
 
-from thrml import Block, SpinNode, make_empty_block_state
-from thrml.block_management import BlockSpec
-from thrml.block_sampling import SamplingSchedule, _run_blocks, sample_states
-from thrml.models import IsingEBM, IsingSamplingProgram
-from thrml.tempering import parallel_tempering
+from thrml_boost import Block, SpinNode, make_empty_block_state
+from thrml_boost.block_management import BlockSpec
+from thrml_boost.block_sampling import SamplingSchedule, _run_blocks, sample_states
+from thrml_boost.models import IsingEBM, IsingSamplingProgram
+from thrml_boost.tempering import parallel_tempering
 
 
 # ---------------------------------------------------------------------------

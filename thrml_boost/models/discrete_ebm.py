@@ -7,16 +7,16 @@ import numpy as np
 from jax import numpy as jnp
 from jaxtyping import Array, Key, PyTree
 
-from thrml.block_management import Block, BlockSpec, from_global_state
-from thrml.block_sampling import _State
-from thrml.conditional_samplers import (
+from thrml_boost.block_management import Block, BlockSpec, from_global_state
+from thrml_boost.block_sampling import _State
+from thrml_boost.conditional_samplers import (
     BernoulliConditional,
     SoftmaxConditional,
 )
-from thrml.factor import WeightedFactor
-from thrml.interaction import InteractionGroup
-from thrml.models.ebm import EBMFactor
-from thrml.pgm import AbstractNode
+from thrml_boost.factor import WeightedFactor
+from thrml_boost.interaction import InteractionGroup
+from thrml_boost.models.ebm import EBMFactor
+from thrml_boost.pgm import AbstractNode
 
 
 class DiscreteEBMInteraction(eqx.Module):

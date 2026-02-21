@@ -26,8 +26,8 @@ import jax
 import jax.numpy as jnp
 from jax import lax
 
-from thrml.block_sampling import BlockSamplingProgram, _run_blocks
-from thrml.models.ebm import AbstractEBM
+from thrml_boost.block_sampling import BlockSamplingProgram, _run_blocks
+from thrml_boost.models.ebm import AbstractEBM
 
 
 def _init_sampler_states(program: BlockSamplingProgram) -> list:

@@ -15,8 +15,8 @@ import jax.numpy as jnp
 import numpy as np
 from jaxtyping import Array, Key, PyTree
 
-from thrml.block_management import Block, block_state_to_global
-from thrml.block_sampling import (
+from thrml_boost.block_management import Block, block_state_to_global
+from thrml_boost.block_sampling import (
     BlockGibbsSpec,
     BlockSamplingProgram,
     SamplingSchedule,
@@ -25,13 +25,13 @@ from thrml.block_sampling import (
     sample_single_block,
     sample_states,
 )
-from thrml.conditional_samplers import (
+from thrml_boost.conditional_samplers import (
     AbstractConditionalSampler,
     _SamplerState,
     _State,
 )
-from thrml.interaction import InteractionGroup
-from thrml.pgm import AbstractNode
+from thrml_boost.interaction import InteractionGroup
+from thrml_boost.pgm import AbstractNode
 
 
 class ContinousScalarNode(AbstractNode):

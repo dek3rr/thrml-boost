@@ -12,7 +12,7 @@ import jax.numpy as jnp
 from jaxtyping import Array
 
 import thrml.pgm
-from thrml import block_management
+from thrml_boost import block_management
 
 
 class Node1(thrml.pgm.AbstractNode):
@@ -290,7 +290,7 @@ class TestBlockSpecOrdering(unittest.TestCase):
         self.assertEqual(len(spec.global_sd_order), 2)
         # The unique SD from Node1/Node2 (bool_) should come before float32
         # because Node1 is encountered first.
-        from thrml.block_management import _hash_pytree
+        from thrml_boost.block_management import _hash_pytree
         hashed_order = spec.global_sd_order
         hashed_bool = _hash_pytree(shared)
         hashed_float = _hash_pytree(jax.ShapeDtypeStruct((), jnp.float32))

@@ -3,7 +3,7 @@ import jax
 from jax import numpy as jnp
 from jaxtyping import Array, Bool, Key
 
-from thrml.block_sampling import (
+from thrml_boost.block_sampling import (
     Block,
     BlockGibbsSpec,
     BlockSamplingProgram,
@@ -11,11 +11,11 @@ from thrml.block_sampling import (
     SuperBlock,
     sample_with_observation,
 )
-from thrml.factor import FactorSamplingProgram
-from thrml.models.discrete_ebm import SpinEBMFactor, SpinGibbsConditional
-from thrml.models.ebm import AbstractFactorizedEBM, EBMFactor
-from thrml.observers import MomentAccumulatorObserver
-from thrml.pgm import AbstractNode
+from thrml_boost.factor import FactorSamplingProgram
+from thrml_boost.models.discrete_ebm import SpinEBMFactor, SpinGibbsConditional
+from thrml_boost.models.ebm import AbstractFactorizedEBM, EBMFactor
+from thrml_boost.observers import MomentAccumulatorObserver
+from thrml_boost.pgm import AbstractNode
 
 Edge = tuple[AbstractNode, AbstractNode]
 

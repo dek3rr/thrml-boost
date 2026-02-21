@@ -3,7 +3,7 @@ import jax
 import jax.numpy as jnp
 from jaxtyping import PyTree
 
-from thrml.block_management import Block
+from thrml_boost.block_management import Block
 
 
 class InteractionGroup(eqx.Module):

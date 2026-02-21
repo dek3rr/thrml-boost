@@ -4,10 +4,10 @@ from typing import Sequence
 import equinox as eqx
 from jaxtyping import Array
 
-from thrml.block_management import Block
-from thrml.block_sampling import BlockGibbsSpec, BlockSamplingProgram
-from thrml.conditional_samplers import AbstractConditionalSampler
-from thrml.interaction import InteractionGroup
+from thrml_boost.block_management import Block
+from thrml_boost.block_sampling import BlockGibbsSpec, BlockSamplingProgram
+from thrml_boost.conditional_samplers import AbstractConditionalSampler
+from thrml_boost.interaction import InteractionGroup
 
 
 class AbstractFactor(eqx.Module):
