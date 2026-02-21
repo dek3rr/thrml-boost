@@ -1,21 +1,18 @@
 name: Unit testing
 
-# Controls when the workflow will run
 on:
-  # Triggers the workflow on push or pull request events but only for the specified branches
   push:
-     branches:
-       - main
+    branches:
+      - main
+      - dev
   pull_request:
-     branches:
-       - main
-    # Every day (EOD)
+    branches:
+      - main
+      - dev
   schedule:
-  - cron: "0 0 * * *"
-  # Allows you to run this workflow manually from the Actions tab
+    - cron: "0 0 * * *"
   workflow_dispatch:
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   unittest:
     runs-on: ${{ matrix.os }}
@@ -26,16 +23,14 @@ jobs:
         os: [ubuntu-latest]
         python-version: ["3.10", "3.11"]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up python ${{ matrix.python-version }}
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Run unit test
-        run: |
-          pip install .[testing]
+      - name: Install dependencies
+        run: pip install .[testing]
       - name: Checks with pre-commit
         uses: pre-commit/action@v3.0.1
-      - name: Run unit test
-        run: |
-          pytest -v tests/
+      - name: Run unit tests
+        run: pytest -v -m "not slow" tests/

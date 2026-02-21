@@ -1,16 +1,14 @@
 name: Testing Coverage
 
-# Controls when the workflow will run
 on:
-  # Triggers the workflow on push or pull request events but only for the specified branches
   push:
-     branches:
-       - main
+    branches:
+      - main
+      - dev
   pull_request:
-     branches:
-       - main
-
-  # Allows you to run this workflow manually from the Actions tab
+    branches:
+      - main
+      - dev
   workflow_dispatch:
 
 jobs:
@@ -23,15 +21,15 @@ jobs:
         os: [ubuntu-latest]
         python-version: ["3.10"]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
       - name: Run coverage
         run: |
           pip install .[testing]
-          coverage3 run --source thrml --parallel-mode -m pytest tests/
+          coverage3 run --source thrml_boost --parallel-mode -m pytest -m "not slow" tests/
           coverage3 combine
           coverage3 html
           coverage3 report --fail-under=90

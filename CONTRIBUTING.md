@@ -1,41 +1,65 @@
 ## Developing
 
-To get started, you'll need to create a virtual environment and install the requirements:
+Clone the repo and set up a virtual environment:
 
 ```bash
-# Create a virtual environment
+git clone https://github.com/dek3rr/thrml-boost.git
+cd thrml-boost
+```
+
+Then install with development dependencies:
+
+```bash
+# Using pip
 python -m venv venv
-
-# Activate the virtual environment
-source venv/bin/activate
-
-# Install the package with development dependencies
+source venv/bin/activate  # Windows: venv\Scripts\activate
 pip install -e ".[development,testing,examples]"
 
-# Install pre-commit hooks
-pre-commit install
-```
-
-Or using `uv`:
-
-```bash
-# Create a virtual environment
+# Or using uv
 uv venv venv
-
-# Activate the virtual environment
 source venv/bin/activate
-
-# Install the package with development dependencies
 uv pip install -e ".[development,testing,examples]"
+```
 
-# Install pre-commit hooks
+Install pre-commit hooks:
+
+```bash
 pre-commit install
 ```
 
-The pre-commit hooks will automatically run code formatting and linting tools (ruff, black, isort, pyright) on every commit to ensure consistent style.
+The pre-commit hooks will automatically run `ruff` (formatting + linting) and `pyright` (type checking) on every commit.
 
-If you want to skip pre-commit (for a WIP commit), you can use the `--no-verify` flag:
+To skip hooks for a WIP commit:
 
 ```bash
-git commit --no-verify -m "Your commit message"
+git commit --no-verify -m "wip: your message"
+```
+
+## Running tests
+
+```bash
+# All fast tests
+pytest -v -m "not slow" tests/
+
+# Everything including the slow MNIST test
+pytest -v tests/
+```
+
+## Branching
+
+- `main` — stable, always passing CI
+- `dev` — active development, merge into main when ready
+- Feature branches off `dev`: `feat/your-feature`, `fix/your-fix`
+
+## Commit style
+
+We use [Conventional Commits](https://www.conventionalcommits.org/):
+
+```
+feat: add new sampling strategy
+fix: correct ragged block handling in hinton_init
+perf: thread global state through scan carry
+test: add vmap correctness tests for parallel tempering
+docs: update README installation instructions
+chore: bump ruff to v0.11.0
 ```
