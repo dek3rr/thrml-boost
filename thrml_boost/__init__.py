@@ -32,4 +32,4 @@ from .pgm import CategoricalNode as CategoricalNode
 from .pgm import SpinNode as SpinNode
 from .tempering import parallel_tempering as parallel_tempering
 
-__version__ = importlib.metadata.version("thrml")
+__version__ = importlib.metadata.version("thrml_boost")
