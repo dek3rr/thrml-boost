@@ -11,7 +11,7 @@ import jax
 import jax.numpy as jnp
 from jaxtyping import Array
 
-import thrml.pgm
+import thrml_boost.pgm
 from thrml_boost import block_management
 
 
