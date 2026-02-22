@@ -1,21 +1,21 @@
 # Conditional Samplers
 
-::: thrml-boost.AbstractConditionalSampler
+::: thrml_boost.AbstractConditionalSampler
     options:
         members:
             - sample
 
-::: thrml-boost.AbstractParametricConditionalSampler
+::: thrml_boost.AbstractParametricConditionalSampler
     options:
         members:
             - compute_parameters
 
-::: thrml-boost.BernoulliConditional
+::: thrml_boost.BernoulliConditional
     options:
         members: false
         inherited_members: false
 
-::: thrml-boost.SoftmaxConditional
+::: thrml_boost.SoftmaxConditional
     options:
         members: false
         inherited_members: false

@@ -2,22 +2,22 @@
 
 This module contains implementations of energy-based models.
 
-::: thrml-boost.models.AbstractEBM
+::: thrml_boost.models.AbstractEBM
     options:
         members:
             - energy
 
-::: thrml-boost.models.AbstractFactorizedEBM
+::: thrml_boost.models.AbstractFactorizedEBM
     options:
         members: false
 
-::: thrml-boost.models.FactorizedEBM
+::: thrml_boost.models.FactorizedEBM
     options:
         members:
             - __init__
             - energy
 
-::: thrml-boost.models.EBMFactor
+::: thrml_boost.models.EBMFactor
     options:
         members:
             - energy

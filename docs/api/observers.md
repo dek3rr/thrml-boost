@@ -1,17 +1,17 @@
 
 # Sampling Observers
 
-::: thrml-boost.AbstractObserver
+::: thrml_boost.AbstractObserver
     options:
         members:
             - init
 
-::: thrml-boost.StateObserver
+::: thrml_boost.StateObserver
     options:
         members:
             - __init__
 
-::: thrml-boost.MomentAccumulatorObserver
+::: thrml_boost.MomentAccumulatorObserver
     options:
         members:
             - __init__

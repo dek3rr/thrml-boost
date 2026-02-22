@@ -54,7 +54,7 @@ Sampling a small Ising chain with two‑color block Gibbs:
 import jax
 import jax.numpy as jnp
 from thrml import SpinNode, Block, SamplingSchedule, sample_states
-from thrml-boost.models import IsingEBM, IsingSamplingProgram, hinton_init
+from thrml_boost.models import IsingEBM, IsingSamplingProgram, hinton_init
 
 nodes = [SpinNode() for _ in range(5)]
 edges = [(nodes[i], nodes[i+1]) for i in range(4)]

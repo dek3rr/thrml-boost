@@ -1,3 +1,3 @@
 # Parallel Tempering
 
-::: thrml-boost.parallel_tempering
+::: thrml_boost.parallel_tempering

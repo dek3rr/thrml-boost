@@ -4,6 +4,7 @@ All original tests are preserved. Added:
 - TestBlockSpecOrdering: verifies global_sd_order is deterministic and
   insertion-order-preserving (the dict.fromkeys fix vs the old set comprehension).
 """
+
 import unittest
 
 import equinox as eqx
@@ -15,15 +16,15 @@ import thrml_boost.pgm
 from thrml_boost import block_management
 
 
-class Node1(thrml-boost.pgm.AbstractNode):
+class Node1(thrml_boost.pgm.AbstractNode):
     pass
 
 
-class Node2(thrml-boost.pgm.AbstractNode):
+class Node2(thrml_boost.pgm.AbstractNode):
     pass
 
 
-class Node3(thrml-boost.pgm.AbstractNode):
+class Node3(thrml_boost.pgm.AbstractNode):
     pass
 
 
@@ -103,15 +104,9 @@ class TestBlocks(unittest.TestCase):
         for label, (spec, block_state, _) in self.configs.items():
             with self.subTest(msg=f"Testing empty_state with {label}"):
                 batch_shape = (10, 2)
-                empty_state = block_management.make_empty_block_state(
-                    spec.blocks, spec.node_shape_struct, batch_shape
-                )
-                empty_state = jax.tree.map(
-                    lambda x: jax.ShapeDtypeStruct(x.shape, x.dtype), empty_state
-                )
-                b_state = jax.tree.map(
-                    lambda x: jax.ShapeDtypeStruct(x.shape, x.dtype), block_state
-                )
+                empty_state = block_management.make_empty_block_state(spec.blocks, spec.node_shape_struct, batch_shape)
+                empty_state = jax.tree.map(lambda x: jax.ShapeDtypeStruct(x.shape, x.dtype), empty_state)
+                b_state = jax.tree.map(lambda x: jax.ShapeDtypeStruct(x.shape, x.dtype), block_state)
                 eqx.tree_equal(empty_state, b_state)
 
 
@@ -159,10 +154,13 @@ class TestBlockCompat(unittest.TestCase):
         t2 = Template2(5, jnp.zeros((*self.batch_shape, 3, 4), dtype=jnp.float32))
         self.good_state_2 = Template1(
             t2,
-            jnp.zeros((
-                *self.batch_shape,
-                3,
-            ), dtype=jnp.int8),
+            jnp.zeros(
+                (
+                    *self.batch_shape,
+                    3,
+                ),
+                dtype=jnp.int8,
+            ),
             19.9,
         )
 
@@ -199,15 +197,19 @@ class TestBlockCompat(unittest.TestCase):
 
     def test_good_state(self):
         block_management.verify_block_state(
-            self.blocks, [self.good_state_1, self.good_state_2, self.good_state_3],
-            self.node_sd_map, block_axis=-1,
+            self.blocks,
+            [self.good_state_1, self.good_state_2, self.good_state_3],
+            self.node_sd_map,
+            block_axis=-1,
         )
 
     def test_wrong_state_len(self):
         with self.assertRaises(RuntimeError) as error:
             block_management.verify_block_state(
-                self.blocks, [self.good_state_1, self.good_state_2],
-                self.node_sd_map, block_axis=-1,
+                self.blocks,
+                [self.good_state_1, self.good_state_2],
+                self.node_sd_map,
+                block_axis=-1,
             )
         self.assertIn("of states not equal", str(error.exception))
 
@@ -215,8 +217,10 @@ class TestBlockCompat(unittest.TestCase):
         bad_state = self.good_state_3.astype(jnp.bool)
         with self.assertRaises(RuntimeError) as error:
             block_management.verify_block_state(
-                self.blocks, [self.good_state_1, self.good_state_2, bad_state],
-                self.node_sd_map, block_axis=-1,
+                self.blocks,
+                [self.good_state_1, self.good_state_2, bad_state],
+                self.node_sd_map,
+                block_axis=-1,
             )
         self.assertIn("type", str(error.exception))
 
@@ -224,8 +228,10 @@ class TestBlockCompat(unittest.TestCase):
         bad_state = jnp.zeros((*self.batch_shape, 4, 7), dtype=jnp.float32)
         with self.assertRaises(RuntimeError) as error:
             block_management.verify_block_state(
-                self.blocks, [self.good_state_1, self.good_state_2, bad_state],
-                self.node_sd_map, block_axis=-1,
+                self.blocks,
+                [self.good_state_1, self.good_state_2, bad_state],
+                self.node_sd_map,
+                block_axis=-1,
             )
         self.assertIn("block length", str(error.exception))
 
@@ -281,7 +287,7 @@ class TestBlockSpecOrdering(unittest.TestCase):
         shared = jax.ShapeDtypeStruct((), jnp.bool_)
         node_types = {
             Node1: shared,
-            Node2: shared,   # duplicate — same object
+            Node2: shared,  # duplicate — same object
             Node3: jax.ShapeDtypeStruct((), jnp.float32),
         }
         spec = self._make_spec(node_types)
@@ -291,6 +297,7 @@ class TestBlockSpecOrdering(unittest.TestCase):
         # The unique SD from Node1/Node2 (bool_) should come before float32
         # because Node1 is encountered first.
         from thrml_boost.block_management import _hash_pytree
+
         hashed_order = spec.global_sd_order
         hashed_bool = _hash_pytree(shared)
         hashed_float = _hash_pytree(jax.ShapeDtypeStruct((), jnp.float32))
