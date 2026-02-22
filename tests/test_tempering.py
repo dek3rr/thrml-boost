@@ -13,8 +13,7 @@ import jax.numpy as jnp
 import pytest
 
 from thrml_boost import Block, SpinNode, make_empty_block_state
-from thrml_boost.block_management import BlockSpec
-from thrml_boost.block_sampling import SamplingSchedule, _run_blocks, sample_states
+from thrml_boost.block_sampling import _run_blocks
 from thrml_boost.models import IsingEBM, IsingSamplingProgram
 from thrml_boost.tempering import parallel_tempering
 
@@ -22,6 +21,7 @@ from thrml_boost.tempering import parallel_tempering
 # ---------------------------------------------------------------------------
 # Shared helpers
 # ---------------------------------------------------------------------------
+
 
 def _tiny_ising(n_temps: int = 2, betas=None):
     """2×2 torus Ising, two-coloured free blocks, zero weights so all
@@ -55,6 +55,7 @@ def _tiny_ising(n_temps: int = 2, betas=None):
 # Tests
 # ---------------------------------------------------------------------------
 
+
 def test_parallel_tempering_smoke():
     """Two chains, zero energy — every swap must be accepted."""
     _, _, free_blocks, ebms, programs, init_state = _tiny_ising(n_temps=2)
@@ -63,8 +64,13 @@ def test_parallel_tempering_smoke():
     @jax.jit
     def run(key):
         return parallel_tempering(
-            key, ebms, programs, init_states, clamp_state=[],
-            n_rounds=2, gibbs_steps_per_round=1,
+            key,
+            ebms,
+            programs,
+            init_states,
+            clamp_state=[],
+            n_rounds=2,
+            gibbs_steps_per_round=1,
         )
 
     final_states, sampler_states, stats = run(jax.random.key(0))
@@ -92,8 +98,13 @@ def test_three_chains_smoke():
     @jax.jit
     def run(key):
         return parallel_tempering(
-            key, ebms, programs, init_states, clamp_state=[],
-            n_rounds=4, gibbs_steps_per_round=1,
+            key,
+            ebms,
+            programs,
+            init_states,
+            clamp_state=[],
+            n_rounds=4,
+            gibbs_steps_per_round=1,
         )
 
     _, _, stats = run(jax.random.key(7))
@@ -119,8 +130,13 @@ def test_output_state_format():
     @jax.jit
     def run(key, init_states):
         return parallel_tempering(
-            key, ebms, programs, init_states, [],
-            n_rounds=2, gibbs_steps_per_round=2,
+            key,
+            ebms,
+            programs,
+            init_states,
+            [],
+            n_rounds=2,
+            gibbs_steps_per_round=2,
         )
 
     final_states, sampler_states, stats = run(jax.random.key(1), init_states)
@@ -152,8 +168,13 @@ def test_four_chains_pair_counting():
     @jax.jit
     def run(key):
         return parallel_tempering(
-            key, ebms, programs, init_states, [],
-            n_rounds=6, gibbs_steps_per_round=1,
+            key,
+            ebms,
+            programs,
+            init_states,
+            [],
+            n_rounds=6,
+            gibbs_steps_per_round=1,
         )
 
     _, _, stats = run(jax.random.key(42))
@@ -172,8 +193,13 @@ def test_zero_rounds():
     init_b = [jnp.zeros((len(b),), dtype=jnp.bool_) for b in free_blocks]
 
     final_states, _, stats = parallel_tempering(
-        jax.random.key(0), ebms, programs, [init_a, init_b], [],
-        n_rounds=0, gibbs_steps_per_round=1,
+        jax.random.key(0),
+        ebms,
+        programs,
+        [init_a, init_b],
+        [],
+        n_rounds=0,
+        gibbs_steps_per_round=1,
     )
 
     # States should be identical to inputs
@@ -203,8 +229,13 @@ def test_single_chain_matches_run_blocks():
     @jax.jit
     def run_pt(key, init_states):
         return parallel_tempering(
-            key, [ebm_single], [prog_single], init_states, [],
-            n_rounds=1, gibbs_steps_per_round=3,
+            key,
+            [ebm_single],
+            [prog_single],
+            init_states,
+            [],
+            n_rounds=1,
+            gibbs_steps_per_round=3,
         )
 
     final_pt, _, _ = run_pt(key, init_states)
@@ -251,7 +282,14 @@ def test_mismatched_programs_raises():
             jax.random.key(0),
             [ebms[0], ebm_alt],
             [programs[0], prog_alt],
-            [init_state, [jnp.zeros((2,), jnp.bool_), jnp.zeros((2,), jnp.bool_), jnp.zeros((2,), jnp.bool_)]],
+            [
+                init_state,
+                [
+                    jnp.zeros((2,), jnp.bool_),
+                    jnp.zeros((2,), jnp.bool_),
+                    jnp.zeros((2,), jnp.bool_),
+                ],
+            ],
             [],
             n_rounds=1,
             gibbs_steps_per_round=1,
@@ -273,8 +311,8 @@ def test_nonzero_energy_acceptance():
     # Strong ferromagnetic coupling
     weights = jnp.ones(3) * 2.0
 
-    ebm_cold = IsingEBM(nodes, edges, biases, weights, jnp.array(5.0))   # low T
-    ebm_hot = IsingEBM(nodes, edges, biases, weights, jnp.array(0.1))    # high T
+    ebm_cold = IsingEBM(nodes, edges, biases, weights, jnp.array(5.0))  # low T
+    ebm_hot = IsingEBM(nodes, edges, biases, weights, jnp.array(0.1))  # high T
 
     free_blocks = [Block(nodes[::2]), Block(nodes[1::2])]
     programs = [

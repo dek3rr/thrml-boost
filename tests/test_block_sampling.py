@@ -102,7 +102,9 @@ class TestPlusMinus(unittest.TestCase):
             [Block([plus_nodes[0], plus_nodes[0], plus_nodes[1]])],
         )
         memory_interaction_group = InteractionGroup(
-            MemoryInteraction(jnp.ones(len(free_nodes))), Block(free_nodes), [Block(free_nodes)]
+            MemoryInteraction(jnp.ones(len(free_nodes))),
+            Block(free_nodes),
+            [Block(free_nodes)],
         )
 
         block_spec = BlockGibbsSpec(
@@ -130,27 +132,46 @@ class TestPlusMinus(unittest.TestCase):
         outputs = []
         for block in [0, 1]:
             outputs.append(
-                sample_single_block(self.key, self.state_free, self.state_clamped, self.program, block, None)[0]
+                sample_single_block(
+                    self.key,
+                    self.state_free,
+                    self.state_clamped,
+                    self.program,
+                    block,
+                    None,
+                )[0]
             )
 
-        first_output = self.state_free[0][0] - jnp.sum(self.minus_weights[:2] * self.state_clamped[0][2:])
+        first_output = self.state_free[0][0] - jnp.sum(
+            self.minus_weights[:2] * self.state_clamped[0][2:]
+        )
         second_output = (
             self.state_free[1][0]
             - self.minus_weights[-1] * self.state_clamped[0][-1]
             + self.plus_weights[0] * self.state_clamped[0][0]
         )
-        third_output = self.state_free[1][1] + jnp.sum(self.plus_weights[1:] * self.state_clamped[0][:2])
+        third_output = self.state_free[1][1] + jnp.sum(
+            self.plus_weights[1:] * self.state_clamped[0][:2]
+        )
 
         self.assertTrue(np.allclose(outputs[0], [first_output], rtol=1e-6))
-        self.assertTrue(np.allclose(outputs[1], [second_output, third_output], rtol=1e-6))
+        self.assertTrue(
+            np.allclose(outputs[1], [second_output, third_output], rtol=1e-6)
+        )
 
     def test_sample_blocks(self):
-        sample_blocks(self.key, self.state_free, self.state_clamped, self.program, [None, None])
+        sample_blocks(
+            self.key, self.state_free, self.state_clamped, self.program, [None, None]
+        )
 
     def test_sample_states(self):
         schedule = SamplingSchedule(5, 5, 5)
         sample_states(
-            self.key, self.program, schedule, self.state_free, self.state_clamped,
+            self.key,
+            self.program,
+            schedule,
+            self.state_free,
+            self.state_clamped,
             self.program.gibbs_spec.free_blocks,
         )
 
@@ -159,11 +180,23 @@ class TestPlusMinus(unittest.TestCase):
         wrong_state_clamped = [jnp.zeros((4,), dtype=jnp.bool)]
 
         with self.assertRaises(RuntimeError) as error:
-            _ = sample_blocks(self.key, wrong_state_free, self.state_clamped, self.program, [None, None])
+            _ = sample_blocks(
+                self.key,
+                wrong_state_free,
+                self.state_clamped,
+                self.program,
+                [None, None],
+            )
         self.assertIn("type", str(error.exception))
 
         with self.assertRaises(RuntimeError) as error:
-            _ = sample_blocks(self.key, self.state_free, wrong_state_clamped, self.program, [None, None])
+            _ = sample_blocks(
+                self.key,
+                self.state_free,
+                wrong_state_clamped,
+                self.program,
+                [None, None],
+            )
         self.assertIn("type", str(error.exception))
 
 
@@ -243,12 +276,15 @@ class TestPyTreeState(unittest.TestCase):
         res, _ = sample_single_block(key, init_state, [], prog, 0, None)
 
         self.assertTrue(jnp.allclose(init_state[0].cat_counter + 1, res.cat_counter))
-        self.assertTrue(jnp.allclose(init_state[0].float_counter + 1, res.float_counter))
+        self.assertTrue(
+            jnp.allclose(init_state[0].float_counter + 1, res.float_counter)
+        )
 
 
 # ---------------------------------------------------------------------------
 # New tests for _run_blocks global_state return and per_block_interactions
 # ---------------------------------------------------------------------------
+
 
 class TestRunBlocksGlobalState(unittest.TestCase):
     """_run_blocks now returns a 3-tuple (state, sampler_states, global_state).
@@ -268,13 +304,22 @@ class TestRunBlocksGlobalState(unittest.TestCase):
             [],
             {ContinousScalarNode: jax.ShapeDtypeStruct((), jnp.float32)},
         )
-        prog = BlockSamplingProgram(spec, [PlusMinusSampler(), PlusMinusSampler()], [interaction])
+        prog = BlockSamplingProgram(
+            spec, [PlusMinusSampler(), PlusMinusSampler()], [interaction]
+        )
         init_state = [jnp.ones((2,), jnp.float32), jnp.ones((2,), jnp.float32)]
         return prog, init_state
 
     def test_returns_three_tuple(self):
         prog, init_state = self._make_simple_program()
-        result = _run_blocks(jax.random.key(0), prog, init_state, [], n_iters=2, sampler_states=[None, None])
+        result = _run_blocks(
+            jax.random.key(0),
+            prog,
+            init_state,
+            [],
+            n_iters=2,
+            sampler_states=[None, None],
+        )
         self.assertEqual(len(result), 3, "Expected _run_blocks to return a 3-tuple")
 
     def test_global_state_consistent_with_final_state(self):
@@ -284,20 +329,33 @@ class TestRunBlocksGlobalState(unittest.TestCase):
         # within a jitted context. Call it directly here; it will be compiled
         # on first call anyway via equinox's implicit tracing.
         final_state, _, returned_global = _run_blocks(
-            jax.random.key(0), prog, init_state, [], n_iters=3, sampler_states=[None, None]
+            jax.random.key(0),
+            prog,
+            init_state,
+            [],
+            n_iters=3,
+            sampler_states=[None, None],
         )
 
         expected_global = block_state_to_global(final_state, prog.gibbs_spec)
 
         self.assertEqual(len(returned_global), len(expected_global))
         for a, b in zip(returned_global, expected_global):
-            self.assertTrue(jnp.allclose(a, b), "Returned global_state inconsistent with final state")
+            self.assertTrue(
+                jnp.allclose(a, b),
+                "Returned global_state inconsistent with final state",
+            )
 
     def test_zero_iters_returns_init_global(self):
         """n_iters=0 early-return path must also return a valid global_state."""
         prog, init_state = self._make_simple_program()
         final_state, _, returned_global = _run_blocks(
-            jax.random.key(0), prog, init_state, [], n_iters=0, sampler_states=[None, None]
+            jax.random.key(0),
+            prog,
+            init_state,
+            [],
+            n_iters=0,
+            sampler_states=[None, None],
         )
 
         expected_global = block_state_to_global(init_state, prog.gibbs_spec)
@@ -313,12 +371,16 @@ class TestPerBlockInteractionsOverride(unittest.TestCase):
         nodes = [ContinousScalarNode() for _ in range(2)]
         key = jax.random.key(9)
 
-        self.weights_a = jax.random.normal(key, (len(nodes),)) + 5.0   # far from zero
+        self.weights_a = jax.random.normal(key, (len(nodes),)) + 5.0  # far from zero
         key, _ = jax.random.split(key)
-        self.weights_b = -self.weights_a                                 # opposite sign
+        self.weights_b = -self.weights_a  # opposite sign
 
-        int_a = InteractionGroup(PlusInteraction(self.weights_a), Block(nodes), [Block(nodes)])
-        int_b = InteractionGroup(PlusInteraction(self.weights_b), Block(nodes), [Block(nodes)])
+        int_a = InteractionGroup(
+            PlusInteraction(self.weights_a), Block(nodes), [Block(nodes)]
+        )
+        int_b = InteractionGroup(
+            PlusInteraction(self.weights_b), Block(nodes), [Block(nodes)]
+        )
 
         spec = BlockGibbsSpec(
             [Block(nodes)],
@@ -337,7 +399,12 @@ class TestPerBlockInteractionsOverride(unittest.TestCase):
             self.key, self.init_state, [], self.prog_b, block=0, sampler_state=None
         )
         result_override, _ = sample_single_block(
-            self.key, self.init_state, [], self.prog_a, block=0, sampler_state=None,
+            self.key,
+            self.init_state,
+            [],
+            self.prog_a,
+            block=0,
+            sampler_state=None,
             per_block_interactions=self.prog_b.per_block_interactions,
         )
 
@@ -349,12 +416,19 @@ class TestPerBlockInteractionsOverride(unittest.TestCase):
             self.key, self.init_state, [], self.prog_a, block=0, sampler_state=None
         )
         result_override, _ = sample_single_block(
-            self.key, self.init_state, [], self.prog_a, block=0, sampler_state=None,
+            self.key,
+            self.init_state,
+            [],
+            self.prog_a,
+            block=0,
+            sampler_state=None,
             per_block_interactions=self.prog_b.per_block_interactions,
         )
 
-        self.assertFalse(jnp.allclose(result_prog_a, result_override),
-                         "Expected different results for opposite-sign weights")
+        self.assertFalse(
+            jnp.allclose(result_prog_a, result_override),
+            "Expected different results for opposite-sign weights",
+        )
 
     def test_override_in_run_blocks(self):
         """_run_blocks with per_block_interactions override gives same final
@@ -366,7 +440,12 @@ class TestPerBlockInteractionsOverride(unittest.TestCase):
             self.key, self.prog_b, self.init_state, [], n_iters, ss
         )
         state_override, _, _ = _run_blocks(
-            self.key, self.prog_a, self.init_state, [], n_iters, ss,
+            self.key,
+            self.prog_a,
+            self.init_state,
+            [],
+            n_iters,
+            ss,
             per_block_interactions=self.prog_b.per_block_interactions,
         )
 

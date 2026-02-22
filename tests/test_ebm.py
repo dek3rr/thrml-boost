@@ -56,6 +56,7 @@ class TestEnergyBlockSpecFastPath(unittest.TestCase):
     def test_gibbs_spec_passes_isinstance_check(self):
         """BlockGibbsSpec is a BlockSpec subclass, so it should hit the fast path."""
         from thrml_boost.block_management import BlockSpec
+
         node_sd = {SpinNode: jax.ShapeDtypeStruct((), jnp.bool_)}
         gibbs_spec = BlockGibbsSpec([self.block], [], node_sd)
         self.assertIsInstance(gibbs_spec, BlockSpec)
@@ -68,6 +69,7 @@ class TestEnergyBlockSpecFastPath(unittest.TestCase):
         """energy() should be JIT-able when called through eqx.filter_jit,
         which correctly treats non-array leaves (BlockSpec, nodes) as static."""
         import equinox as eqx
+
         node_sd = {SpinNode: jax.ShapeDtypeStruct((), jnp.bool_)}
         block_spec = BlockSpec([self.block], node_sd)
 

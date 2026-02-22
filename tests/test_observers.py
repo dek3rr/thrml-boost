@@ -7,6 +7,7 @@ Covers:
 - MomentAccumulatorObserver: dtype parameter propagates to accumulators
 - MomentAccumulatorObserver: accumulation is numerically equivalent both paths
 """
+
 import types
 import unittest
 
@@ -68,6 +69,7 @@ class TestMomentObserver(unittest.TestCase):
         _accumulate_dtype will be float32. The test checks the stored dtype
         matches whatever JAX actually produces."""
         import jax.dtypes as jdt
+
         observer = MomentAccumulatorObserver([[(self.spin,)]], dtype=jnp.float64)
 
         expected = jdt.canonicalize_dtype(jnp.float64)
@@ -88,15 +90,17 @@ class TestMomentObserver(unittest.TestCase):
 
         # Path 1: let the observer recompute global state internally
         with jax.numpy_dtype_promotion("standard"):
-            carry_no_gs, _ = observer(
-                self.program, state_free, [], carry, jnp.array(0)
-            )
+            carry_no_gs, _ = observer(self.program, state_free, [], carry, jnp.array(0))
 
         # Path 2: pass precomputed global state
         global_state = block_state_to_global(state_free, self.program.gibbs_spec)
         with jax.numpy_dtype_promotion("standard"):
             carry_with_gs, _ = observer(
-                self.program, state_free, [], carry, jnp.array(0),
+                self.program,
+                state_free,
+                [],
+                carry,
+                jnp.array(0),
                 global_state=global_state,
             )
 
@@ -125,13 +129,15 @@ class TestStateObserver(unittest.TestCase):
         observer = StateObserver([self.block])
         state_free = [jnp.array([True, True, False, True], dtype=jnp.bool_)]
 
-        _, samples_no_gs = observer(
-            self.program, state_free, [], None, jnp.array(0)
-        )
+        _, samples_no_gs = observer(self.program, state_free, [], None, jnp.array(0))
 
         global_state = block_state_to_global(state_free, self.program.gibbs_spec)
         _, samples_with_gs = observer(
-            self.program, state_free, [], None, jnp.array(0),
+            self.program,
+            state_free,
+            [],
+            None,
+            jnp.array(0),
             global_state=global_state,
         )
 
@@ -171,9 +177,7 @@ class TestMomentAccumulation(unittest.TestCase):
         for val, spin in [(True, 1), (False, -1), (True, 1)]:
             state_free = [jnp.array([val], dtype=jnp.bool_)]
             with jax.numpy_dtype_promotion("standard"):
-                carry, _ = observer(
-                    self.program, state_free, [], carry, jnp.array(0)
-                )
+                carry, _ = observer(self.program, state_free, [], carry, jnp.array(0))
 
         self.assertAlmostEqual(float(carry[0][0]), 1.0, places=5)
 
@@ -189,9 +193,7 @@ class TestMomentAccumulation(unittest.TestCase):
         for _ in range(n_steps):
             state_free = [jnp.array([True], dtype=jnp.bool_)]
             with jax.numpy_dtype_promotion("standard"):
-                carry, _ = observer(
-                    self.program, state_free, [], carry, jnp.array(0)
-                )
+                carry, _ = observer(self.program, state_free, [], carry, jnp.array(0))
 
         # (+1)^2 * n_steps = n_steps
         self.assertAlmostEqual(float(carry[0][0]), float(n_steps), places=5)
