@@ -12,17 +12,14 @@ theme:
           accent: amber
     icon:
         repo: fontawesome/brands/github
-    logo: "_static/logo/logo.svg"
-    favicon: "_static/favicon.png"
-    custom_dir: "docs/_overrides"
 
-site_name: THRML
-site_description: The documentation for the THRML software library.
-site_author: Extropic AI
-site_url: https://extropic-ai.github.io/thrml
+site_name: thrml-boost
+site_description: The documentation for the thrml-boost library.
+site_author: thrml-boost contributors
+site_url: ""
 
-repo_url: https://github.com/extropic-ai/thrml
-repo_name: extropic-ai/thrml
+repo_url: https://github.com/dek3rr/thrml-boost
+repo_name: thrml-boost
 edit_uri: ""
 
 strict: false
@@ -57,7 +54,6 @@ plugins:
         include:
             - ".htaccess"
         exclude:
-            - "_overrides"
             - "examples/.ipynb_checkpoints/"
             - "examples/MNIST"
             - "examples/bert_checkpoint.eqx"
@@ -69,6 +65,7 @@ plugins:
             - jax.extend.core.ClosedJaxpr
             - jax.Device
             - jax.sharding.Sharding
+            - numpy.dtype
     - mkdocstrings:
         handlers:
             python:

@@ -175,11 +175,15 @@ def _swap_pass_stacked(
         )
 
         # Scatter updated states back. Static int indices → pair of static scatters.
-        stacked_states = [stacked_states[b].at[i].set(new_i[b]).at[j].set(new_j[b]) for b in range(n_free_blocks)]
+        stacked_states = [
+            stacked_states[b].at[i].set(new_i[b]).at[j].set(new_j[b])
+            for b in range(n_free_blocks)
+        ]
 
         if not all_ss_none:
             stacked_ss = [
-                stacked_ss[b].at[i].set(stacked_ss[b][j]).at[j].set(stacked_ss[b][i]) for b in range(n_free_blocks)
+                stacked_ss[b].at[i].set(stacked_ss[b][j]).at[j].set(stacked_ss[b][i])
+                for b in range(n_free_blocks)
             ]
 
         attempt_counts = attempt_counts.at[pair].set(1)
@@ -237,8 +241,13 @@ def parallel_tempering(
     base_free = len(base_spec.free_blocks)
     base_clamped = len(base_spec.clamped_blocks)
     for prog in programs[1:]:
-        if len(prog.gibbs_spec.free_blocks) != base_free or len(prog.gibbs_spec.clamped_blocks) != base_clamped:
-            raise ValueError("All programs must share the same block structure (free + clamped blocks).")
+        if (
+            len(prog.gibbs_spec.free_blocks) != base_free
+            or len(prog.gibbs_spec.clamped_blocks) != base_clamped
+        ):
+            raise ValueError(
+                "All programs must share the same block structure (free + clamped blocks)."
+            )
 
     clamp_state = clamp_state or []
     n_chains = len(ebms)
@@ -246,7 +255,9 @@ def parallel_tempering(
 
     states = [list(s) for s in init_states]
     sampler_states = (
-        [list(s) for s in sampler_states] if sampler_states is not None else [_init_sampler_states(p) for p in programs]
+        [list(s) for s in sampler_states]
+        if sampler_states is not None
+        else [_init_sampler_states(p) for p in programs]
     )
 
     # Detect whether all sampler states are None (covers all built-in samplers).
@@ -258,7 +269,10 @@ def parallel_tempering(
     # Convert to chain-stacked representation
     # -------------------------------------------------------------------------
     # stacked_states[b]: shape (n_chains, n_nodes_b, *node_shape)
-    stacked_states = [jnp.stack([states[c][b] for c in range(n_chains)], axis=0) for b in range(n_free_blocks)]
+    stacked_states = [
+        jnp.stack([states[c][b] for c in range(n_chains)], axis=0)
+        for b in range(n_free_blocks)
+    ]
 
     if all_ss_none:
         stacked_ss = [None] * n_free_blocks
@@ -276,7 +290,9 @@ def parallel_tempering(
     # are kept from programs[0] and broadcast via vmap in_axes=None.
     stacked_pbi = [
         [
-            _stack_pbi_across_chains([programs[c].per_block_interactions[b][g] for c in range(n_chains)])
+            _stack_pbi_across_chains(
+                [programs[c].per_block_interactions[b][g] for c in range(n_chains)]
+            )
             for g in range(len(programs[0].per_block_interactions[b]))
         ]
         for b in range(n_free_blocks)
@@ -330,7 +346,9 @@ def parallel_tempering(
             )
             return new_state, new_ss
 
-        ss_in_axes = jax.tree.map(lambda x: 0 if isinstance(x, jax.Array) else None, stacked_ss)
+        ss_in_axes = jax.tree.map(
+            lambda x: 0 if isinstance(x, jax.Array) else None, stacked_ss
+        )
         _run_all_chains_with_ss = jax.vmap(
             _run_one_chain_with_ss,
             in_axes=(0, [0] * n_free_blocks, pbi_in_axes, ss_in_axes),
@@ -347,10 +365,14 @@ def parallel_tempering(
         # stacked_pbi is a constant captured in the closure; not part of carry.
         if all_ss_none:
             assert _run_all_chains_no_ss is not None
-            stacked_states = _run_all_chains_no_ss(gibbs_keys, stacked_states, stacked_pbi)
+            stacked_states = _run_all_chains_no_ss(
+                gibbs_keys, stacked_states, stacked_pbi
+            )
         else:
             assert _run_all_chains_with_ss is not None
-            stacked_states, stacked_ss = _run_all_chains_with_ss(gibbs_keys, stacked_states, stacked_pbi, stacked_ss)
+            stacked_states, stacked_ss = _run_all_chains_with_ss(
+                gibbs_keys, stacked_states, stacked_pbi, stacked_ss
+            )
 
         # --- Swap step: alternating even/odd pairs via lax.cond ---
         def do_even(args):
@@ -398,14 +420,19 @@ def parallel_tempering(
             one_round, init_carry, jnp.arange(n_rounds)
         )
 
-    states = [[stacked_states[b][c] for b in range(n_free_blocks)] for c in range(n_chains)]
+    states = [
+        [stacked_states[b][c] for b in range(n_free_blocks)] for c in range(n_chains)
+    ]
 
     if all_ss_none:
         sampler_states = [[None] * n_free_blocks for _ in range(n_chains)]
     else:
         # Rebind to a typed local so Pyright knows every element is non-None.
         stacked_ss_arrays: list[jax.Array] = [s for s in stacked_ss if s is not None]
-        sampler_states = [[stacked_ss_arrays[b][c] for b in range(n_free_blocks)] for c in range(n_chains)]
+        sampler_states = [
+            [stacked_ss_arrays[b][c] for b in range(n_free_blocks)]
+            for c in range(n_chains)
+        ]
 
     acceptance_rate = jnp.where(attempted > 0, accepted / attempted, 0.0)
     stats = {

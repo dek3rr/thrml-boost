@@ -169,7 +169,9 @@ class BlockSpec:
                 should be a pytree of `jax.ShapeDtypeStruct`s.
         """
         self.node_shape_struct = dict(node_shape_dtypes)
-        self.node_shape_dtypes = {i: _hash_pytree(j) for i, j in node_shape_dtypes.items()}
+        self.node_shape_dtypes = {
+            i: _hash_pytree(j) for i, j in node_shape_dtypes.items()
+        }
 
         self.blocks = blocks
 
@@ -184,9 +186,13 @@ class BlockSpec:
                 raise ValueError("Encountered an empty block in BlockSpec.")
 
             if block.node_type not in node_shape_dtypes:
-                raise ValueError(f"Block with node type {block.node_type} not found in node_shape_dtypes.")
+                raise ValueError(
+                    f"Block with node type {block.node_type} not found in node_shape_dtypes."
+                )
 
-        self.all_block_sds = [self.node_shape_dtypes[block.node_type] for block in blocks]
+        self.all_block_sds = [
+            self.node_shape_dtypes[block.node_type] for block in blocks
+        ]
 
         block_to_global_slice_spec = [[] for _ in self.global_sd_order]
 
@@ -201,7 +207,9 @@ class BlockSpec:
             block_to_global_slice_spec[sd_ind].append(block_idx)
             for k, node in enumerate(block.nodes):
                 if node in node_global_location_map:
-                    raise RuntimeError("A node should not show up twice in the blocks input to BlockSpec.")
+                    raise RuntimeError(
+                        "A node should not show up twice in the blocks input to BlockSpec."
+                    )
                 node_global_location_map[node] = (sd_ind, start_ind + k)
         self.block_to_global_slice_spec = block_to_global_slice_spec
         self.node_global_location_map = node_global_location_map
@@ -218,7 +226,9 @@ def _stack(*args):
         return args[0]
 
 
-def block_state_to_global(block_state: list[_State], spec: BlockSpec) -> list[_GlobalState]:
+def block_state_to_global(
+    block_state: list[_State], spec: BlockSpec
+) -> list[_GlobalState]:
     """
     Convert block-local state to the global stacked representation.
 
@@ -298,7 +308,9 @@ def scatter_block_to_global(
     return new_global
 
 
-def get_node_locations(nodes: Block, spec: BlockSpec) -> tuple[int, Int[Array, " nodes"]]:
+def get_node_locations(
+    nodes: Block, spec: BlockSpec
+) -> tuple[int, Int[Array, " nodes"]]:
     """
     Locate a contiguous set of nodes inside the global state.
 
@@ -386,7 +398,9 @@ def make_empty_block_state(
             )
         else:
             this_state = jax.tree.map(
-                lambda x: jnp.zeros(shape=(*batch_shape, len(block), *x.shape), dtype=x.dtype),
+                lambda x: jnp.zeros(
+                    shape=(*batch_shape, len(block), *x.shape), dtype=x.dtype
+                ),
                 types,
             )
         state.append(this_state)
@@ -426,7 +440,9 @@ def _check_pytree_compat(
             vshape, vdtype = val_leaf.shape, val_leaf.dtype
             sshape, sdtype = spec_leaf.shape, spec_leaf.dtype
 
-            val_shape_without_batch = () if not len(sshape) else vshape[-(len(sshape)) :]
+            val_shape_without_batch = (
+                () if not len(sshape) else vshape[-(len(sshape)) :]
+            )
 
             if val_shape_without_batch != sshape:
                 raise RuntimeError("Shape of data mismatched with spec")
@@ -444,7 +460,10 @@ def _check_pytree_compat(
 
 
 def verify_block_state(
-    blocks: list[Block], states: list[_State], node_shape_dtypes: _Node_SD, block_axis: Optional[int] = None
+    blocks: list[Block],
+    states: list[_State],
+    node_shape_dtypes: _Node_SD,
+    block_axis: Optional[int] = None,
 ) -> None:
     """
     Check that a state is what it should be given some blocks and node shape/dtypes.

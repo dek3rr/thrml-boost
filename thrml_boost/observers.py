@@ -95,8 +95,12 @@ class StateObserver(AbstractObserver):
         """Simply returns the state of the blocks that are being logged to be recorded by the sampler."""
         if global_state is None:
             # Fallback when called directly from user code without a precomputed global state.
-            global_state = block_state_to_global(state_free + state_clamped, program.gibbs_spec)
-        sampled_state = from_global_state(global_state, program.gibbs_spec, self.blocks_to_sample)
+            global_state = block_state_to_global(
+                state_free + state_clamped, program.gibbs_spec
+            )
+        sampled_state = from_global_state(
+            global_state, program.gibbs_spec, self.blocks_to_sample
+        )
         return None, sampled_state
 
 
@@ -213,14 +217,18 @@ class MomentAccumulatorObserver(AbstractObserver):
             flat_to_type_slices_list.append(type_slice)
 
         self.flat_nodes_list = flat_nodes_list
-        self.flat_to_full_moment_slices = [jnp.array(s, dtype=int) for s in flat_to_full_moment_slices]
+        self.flat_to_full_moment_slices = [
+            jnp.array(s, dtype=int) for s in flat_to_full_moment_slices
+        ]
         self.blocks_to_sample = blocks_to_sample
         self.flat_to_type_slices_list = flat_to_type_slices_list
 
         # Precompute a single concatenated scatter index so __call__ can build
         # flat_state with one .at[].set() instead of one per node type.
         self._flat_scatter_index = (
-            jnp.concatenate(flat_to_type_slices_list) if flat_to_type_slices_list else jnp.array([], dtype=int)
+            jnp.concatenate(flat_to_type_slices_list)
+            if flat_to_type_slices_list
+            else jnp.array([], dtype=int)
         )
         self._flat_scatter_sizes = [len(s) for s in flat_to_type_slices_list]
         self._flat_state_size = len(flat_nodes_list)
@@ -237,9 +245,13 @@ class MomentAccumulatorObserver(AbstractObserver):
         """Accumulate the moments via `carry`. Does not return anything for the sampler to write down."""
         if global_state is None:
             # Fallback when called directly from user code without a precomputed global state.
-            global_state = block_state_to_global(state_free + state_clamped, program.gibbs_spec)
+            global_state = block_state_to_global(
+                state_free + state_clamped, program.gibbs_spec
+            )
 
-        sampled_state = from_global_state(global_state, program.gibbs_spec, self.blocks_to_sample)
+        sampled_state = from_global_state(
+            global_state, program.gibbs_spec, self.blocks_to_sample
+        )
         sampled_state = list(self.f_transform(sampled_state, self.blocks_to_sample))
 
         # Single scatter instead of one .at[].set() per node type.
@@ -259,4 +271,7 @@ class MomentAccumulatorObserver(AbstractObserver):
 
     def init(self) -> list[Array]:
         """Initialize the moment accumulators."""
-        return [jnp.zeros(x.shape[0], dtype=self._accumulate_dtype) for x in self.flat_to_full_moment_slices]
+        return [
+            jnp.zeros(x.shape[0], dtype=self._accumulate_dtype)
+            for x in self.flat_to_full_moment_slices
+        ]

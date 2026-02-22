@@ -16,8 +16,12 @@ from .block_sampling import sample_blocks as sample_blocks
 from .block_sampling import sample_single_block as sample_single_block
 from .block_sampling import sample_states as sample_states
 from .block_sampling import sample_with_observation as sample_with_observation
-from .conditional_samplers import AbstractConditionalSampler as AbstractConditionalSampler
-from .conditional_samplers import AbstractParametricConditionalSampler as AbstractParametricConditionalSampler
+from .conditional_samplers import (
+    AbstractConditionalSampler as AbstractConditionalSampler,
+)
+from .conditional_samplers import (
+    AbstractParametricConditionalSampler as AbstractParametricConditionalSampler,
+)
 from .conditional_samplers import BernoulliConditional as BernoulliConditional
 from .conditional_samplers import SoftmaxConditional as SoftmaxConditional
 from .factor import AbstractFactor as AbstractFactor

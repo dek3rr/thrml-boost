@@ -48,7 +48,14 @@ class IsingEBM(AbstractFactorizedEBM):
     weights: Array
     beta: Array
 
-    def __init__(self, nodes: list[AbstractNode], edges: list[Edge], biases: Array, weights: Array, beta: Array):
+    def __init__(
+        self,
+        nodes: list[AbstractNode],
+        edges: list[Edge],
+        biases: Array,
+        weights: Array,
+        beta: Array,
+    ):
         sd_map = {nodes[0].__class__: jax.ShapeDtypeStruct((), jnp.bool_)}
         super().__init__(sd_map)
         self.nodes = nodes
@@ -62,7 +69,8 @@ class IsingEBM(AbstractFactorizedEBM):
         return [
             SpinEBMFactor([Block(self.nodes)], self.beta * self.biases),
             SpinEBMFactor(
-                [Block([x[0] for x in self.edges]), Block([x[1] for x in self.edges])], self.beta * self.weights
+                [Block([x[0] for x in self.edges]), Block([x[1] for x in self.edges])],
+                self.beta * self.weights,
             ),
         ]
 
@@ -70,7 +78,9 @@ class IsingEBM(AbstractFactorizedEBM):
 class IsingSamplingProgram(FactorSamplingProgram):
     """A very thin wrapper on FactorSamplingProgram that specializes it to the case of an Ising Model."""
 
-    def __init__(self, ebm: IsingEBM, free_blocks: list[SuperBlock], clamped_blocks: list[Block]):
+    def __init__(
+        self, ebm: IsingEBM, free_blocks: list[SuperBlock], clamped_blocks: list[Block]
+    ):
         samp = SpinGibbsConditional()
         spec = BlockGibbsSpec(free_blocks, clamped_blocks, ebm.node_shape_dtypes)
         super().__init__(spec, [samp for _ in spec.free_blocks], ebm.factors, [])
@@ -100,8 +110,12 @@ class IsingTrainingSpec(eqx.Module):
         schedule_negative: SamplingSchedule,
     ):
         self.ebm = ebm
-        self.program_positive = IsingSamplingProgram(ebm, positive_sampling_blocks, data_blocks + conditioning_blocks)
-        self.program_negative = IsingSamplingProgram(ebm, negative_sampling_blocks, conditioning_blocks)
+        self.program_positive = IsingSamplingProgram(
+            ebm, positive_sampling_blocks, data_blocks + conditioning_blocks
+        )
+        self.program_negative = IsingSamplingProgram(
+            ebm, negative_sampling_blocks, conditioning_blocks
+        )
         self.schedule_positive = schedule_positive
         self.schedule_negative = schedule_negative
 
@@ -146,7 +160,9 @@ def hinton_init(
         indices = jnp.array([node_map[n] for n in block], dtype=jnp.int32)
         block_biases = model.biases[indices]  # (block_size,)
         probs = jax.nn.sigmoid(model.beta * block_biases)
-        sample = jax.random.bernoulli(k, p=probs, shape=(*batch_shape, len(block))).astype(jnp.bool_)
+        sample = jax.random.bernoulli(
+            k, p=probs, shape=(*batch_shape, len(block))
+        ).astype(jnp.bool_)
         result.append(sample)
 
     return result
@@ -186,7 +202,9 @@ def estimate_moments(
     observer = MomentAccumulatorObserver(moment_spec, _spin_transform)
     init_mem = observer.init()
 
-    moments, _ = sample_with_observation(key, program, schedule, init_state, clamped_data, init_mem, observer)
+    moments, _ = sample_with_observation(
+        key, program, schedule, init_state, clamped_data, init_mem, observer
+    )
 
     if first_moment_nodes:
         node_sums, edge_sums = moments
@@ -244,7 +262,9 @@ def estimate_kl_grad(
     """
     key_pos, key_neg = jax.random.split(key, 2)
 
-    cond_batched_pos = jax.tree.map(lambda x: jnp.broadcast_to(x, (data[0].shape[0], *x.shape)), conditioning_values)
+    cond_batched_pos = jax.tree.map(
+        lambda x: jnp.broadcast_to(x, (data[0].shape[0], *x.shape)), conditioning_values
+    )
 
     n_chains_pos, batch_size = init_state_positive[0].shape[:2]
     keys_pos = jax.random.split(key_pos, (n_chains_pos, batch_size))
@@ -252,7 +272,13 @@ def estimate_kl_grad(
     moms_b_pos, moms_w_pos = jax.vmap(
         lambda k_out, i_out: jax.vmap(
             lambda k, i, c: estimate_moments(
-                k, bias_nodes, weight_edges, training_spec.program_positive, training_spec.schedule_positive, i, c
+                k,
+                bias_nodes,
+                weight_edges,
+                training_spec.program_positive,
+                training_spec.schedule_positive,
+                i,
+                c,
             )
         )(k_out, i_out, data + cond_batched_pos)
     )(keys_pos, init_state_positive)
@@ -274,9 +300,11 @@ def estimate_kl_grad(
 
     float_type = training_spec.ebm.beta.dtype
     grad_b = -training_spec.ebm.beta * (
-        jnp.mean(moms_b_pos, axis=(0, 1), dtype=float_type) - jnp.mean(moms_b_neg, axis=0, dtype=float_type)
+        jnp.mean(moms_b_pos, axis=(0, 1), dtype=float_type)
+        - jnp.mean(moms_b_neg, axis=0, dtype=float_type)
     )
     grad_w = -training_spec.ebm.beta * (
-        jnp.mean(moms_w_pos, axis=(0, 1), dtype=float_type) - jnp.mean(moms_w_neg, axis=0, dtype=float_type)
+        jnp.mean(moms_w_pos, axis=(0, 1), dtype=float_type)
+        - jnp.mean(moms_w_neg, axis=0, dtype=float_type)
     )
     return grad_w, grad_b, (moms_b_pos, moms_w_pos), (moms_b_neg, moms_w_neg)

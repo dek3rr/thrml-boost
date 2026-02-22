@@ -47,7 +47,9 @@ class TestFactor(unittest.TestCase):
         self.weights_good = jnp.zeros((self.fac_size, 1))
 
     def test_good(self):
-        _ = DiscreteEBMFactor(self.bin_nodes_good, self.cat_nodes_good, self.weights_good)
+        _ = DiscreteEBMFactor(
+            self.bin_nodes_good, self.cat_nodes_good, self.weights_good
+        )
 
     def test_wrong_n_cat(self):
         weights_bad = jnp.zeros((self.fac_size, 1, 1))
@@ -58,7 +60,9 @@ class TestFactor(unittest.TestCase):
 
     def test_duplicated_type(self):
         with self.assertRaises(RuntimeError) as error:
-            _ = DiscreteEBMFactor(self.bin_nodes_good, self.bin_nodes_good, self.weights_good)
+            _ = DiscreteEBMFactor(
+                self.bin_nodes_good, self.bin_nodes_good, self.weights_good
+            )
 
         self.assertIn("categorical and spin", str(error.exception))
 
@@ -71,7 +75,9 @@ class TestSamplerType(unittest.TestCase):
 
         weights = jnp.zeros((1, 3), dtype=jnp.float32)
 
-        self.fac = DiscreteEBMFactor([Block([x]) for x in nodes[:-1]], [Block([nodes[-1]])], weights)
+        self.fac = DiscreteEBMFactor(
+            [Block([x]) for x in nodes[:-1]], [Block([nodes[-1]])], weights
+        )
 
         self.free_blocks = [Block([nodes[0]])]
         self.clamped_blocks = [Block([nodes[1]]), Block([nodes[2]])]
@@ -98,7 +104,10 @@ class TestSamplerType(unittest.TestCase):
         sample_single_block(self.key, state_free, state_clamped, prog, 0, None)
 
     def test_bad_bin(self):
-        node_sd = {SpinNode: jax.ShapeDtypeStruct(shape=(), dtype=jnp.float32), CategoricalNode: self.good_cat_type}
+        node_sd = {
+            SpinNode: jax.ShapeDtypeStruct(shape=(), dtype=jnp.float32),
+            CategoricalNode: self.good_cat_type,
+        }
 
         spec = BlockGibbsSpec(self.free_blocks, self.clamped_blocks, node_sd)
 
@@ -116,7 +125,10 @@ class TestSamplerType(unittest.TestCase):
         self.assertIn("bool", str(error.exception))
 
     def test_bad_cat(self):
-        node_sd = {SpinNode: self.good_bin_type, CategoricalNode: jax.ShapeDtypeStruct(shape=(), dtype=jnp.int8)}
+        node_sd = {
+            SpinNode: self.good_bin_type,
+            CategoricalNode: jax.ShapeDtypeStruct(shape=(), dtype=jnp.int8),
+        }
 
         spec = BlockGibbsSpec(self.free_blocks, self.clamped_blocks, node_sd)
 
@@ -141,7 +153,9 @@ class TestSquare(unittest.TestCase):
         block_len = 4
         n_cat = 3
 
-        self.blocks = [Block([CategoricalNode() for _ in range(block_len)]) for _ in range(n_cat)]
+        self.blocks = [
+            Block([CategoricalNode() for _ in range(block_len)]) for _ in range(n_cat)
+        ]
 
         self.good_weights = jnp.zeros((block_len, 5, 5, 5))
 
@@ -176,7 +190,9 @@ class TestSampling(unittest.TestCase):
 
         key, subkey = jax.random.split(key, 2)
         triplet_weight = jax.random.normal(subkey, (1,))
-        t_fac = SpinEBMFactor([Block([nodes[2]]), Block([nodes[3]]), Block([extra_node])], triplet_weight)
+        t_fac = SpinEBMFactor(
+            [Block([nodes[2]]), Block([nodes[3]]), Block([extra_node])], triplet_weight
+        )
 
         ebm = FactorizedEBM([b_fac, w_fac, t_fac])
 
@@ -188,13 +204,17 @@ class TestSampling(unittest.TestCase):
 
         samp = SpinGibbsConditional()
 
-        prog = FactorSamplingProgram(gibbs_spec, [samp, samp], [b_fac, w_fac, t_fac], [])
+        prog = FactorSamplingProgram(
+            gibbs_spec, [samp, samp], [b_fac, w_fac, t_fac], []
+        )
 
         clamp_vals = [jnp.array([False, True], dtype=bool)]
 
         sched = SamplingSchedule(5, 10000, 5)
 
-        empirical, exact = sample_and_compare_distribution(key, ebm, prog, clamp_vals, sched, 0)
+        empirical, exact = sample_and_compare_distribution(
+            key, ebm, prog, clamp_vals, sched, 0
+        )
 
         error = jnp.max(jnp.abs((empirical - exact))) / jnp.max(jnp.abs(exact))
 
@@ -220,7 +240,9 @@ class TestSampling(unittest.TestCase):
 
         key, subkey = jax.random.split(key, 2)
         triplet_weight = jax.random.normal(subkey, (1, n_cats, n_cats, n_cats))
-        t_fac = SquareCategoricalEBMFactor([Block([nodes[2]]), Block([nodes[3]]), Block([extra_node])], triplet_weight)
+        t_fac = SquareCategoricalEBMFactor(
+            [Block([nodes[2]]), Block([nodes[3]]), Block([extra_node])], triplet_weight
+        )
 
         ebm = FactorizedEBM(
             [
@@ -238,13 +260,17 @@ class TestSampling(unittest.TestCase):
 
         samp = CategoricalGibbsConditional(n_cats)
 
-        prog = FactorSamplingProgram(gibbs_spec, [samp, samp], [b_fac, w_fac, t_fac], [])
+        prog = FactorSamplingProgram(
+            gibbs_spec, [samp, samp], [b_fac, w_fac, t_fac], []
+        )
 
         clamp_vals = [jnp.array([1, 1], dtype=jnp.uint8)]
 
         sched = SamplingSchedule(5, 10000, 5)
 
-        empirical, exact = sample_and_compare_distribution(key, ebm, prog, clamp_vals, sched, n_cats)
+        empirical, exact = sample_and_compare_distribution(
+            key, ebm, prog, clamp_vals, sched, n_cats
+        )
 
         error = jnp.max(jnp.abs((empirical - exact))) / jnp.max(jnp.abs(exact))
 
@@ -270,12 +296,16 @@ class TestSampling(unittest.TestCase):
 
         key, subkey = jax.random.split(key, 2)
         weights = jax.random.normal(subkey, (len(bin_nodes), n_cats))
-        weight_fac = DiscreteEBMFactor([Block(bin_nodes)], [Block(cat_nodes[:-1])], weights)
+        weight_fac = DiscreteEBMFactor(
+            [Block(bin_nodes)], [Block(cat_nodes[:-1])], weights
+        )
 
         key, subkey = jax.random.split(key, 2)
         triple_weights = jax.random.normal(subkey, (1, n_cats))
         triple_weight_fac = SquareDiscreteEBMFactor(
-            [Block([bin_nodes[-1]]), Block([bin_nodes[-2]])], [Block([cat_nodes[-1]])], triple_weights
+            [Block([bin_nodes[-1]]), Block([bin_nodes[-2]])],
+            [Block([cat_nodes[-1]])],
+            triple_weights,
         )
 
         free_blocks = [
@@ -297,9 +327,13 @@ class TestSampling(unittest.TestCase):
         samp_bin = SpinGibbsConditional()
         samp_cat = CategoricalGibbsConditional(n_cats)
 
-        prog = FactorSamplingProgram(gibbs_spec, [samp_bin, samp_cat, samp_bin, samp_cat, samp_cat], factors, [])
+        prog = FactorSamplingProgram(
+            gibbs_spec, [samp_bin, samp_cat, samp_bin, samp_cat, samp_cat], factors, []
+        )
 
-        empirical, exact = sample_and_compare_distribution(key, ebm, prog, [], sched, n_cats)
+        empirical, exact = sample_and_compare_distribution(
+            key, ebm, prog, [], sched, n_cats
+        )
 
         error = jnp.max(jnp.abs((empirical - exact))) / jnp.max(jnp.abs(exact))
 
@@ -346,7 +380,9 @@ class TestInteractions(unittest.TestCase):
             self.assertEqual(len(interaction.tail_nodes[i].nodes), 12)
         self.assertEqual(interaction.interaction.weights.shape[0], 12)
 
-        def validate(node, other_nodes, w, head_block: Block, tail_blocks: list[Block], weights):
+        def validate(
+            node, other_nodes, w, head_block: Block, tail_blocks: list[Block], weights
+        ):
             if node in head_block.nodes:
                 idx = head_block.nodes.index(node)
                 if weights[idx] == w:
@@ -356,9 +392,30 @@ class TestInteractions(unittest.TestCase):
         for i, head in enumerate(interaction.head_nodes):
             other = (interaction.tail_nodes[0][i], interaction.tail_nodes[1][i])
             a = [
-                validate(head, other, interaction.interaction.weights[i], block_1, (block_2, block_3), weights),
-                validate(head, other, interaction.interaction.weights[i], block_2, (block_1, block_3), weights),
-                validate(head, other, interaction.interaction.weights[i], block_3, (block_1, block_2), weights),
+                validate(
+                    head,
+                    other,
+                    interaction.interaction.weights[i],
+                    block_1,
+                    (block_2, block_3),
+                    weights,
+                ),
+                validate(
+                    head,
+                    other,
+                    interaction.interaction.weights[i],
+                    block_2,
+                    (block_1, block_3),
+                    weights,
+                ),
+                validate(
+                    head,
+                    other,
+                    interaction.interaction.weights[i],
+                    block_3,
+                    (block_1, block_2),
+                    weights,
+                ),
             ]
             self.assertEqual(sum(a), 1)
 
@@ -438,7 +495,9 @@ class TestBlockSample(unittest.TestCase):
 
         block_len = 20
 
-        blocks = [Block([CategoricalNode() for _ in range(block_len)]) for i in range(3)]
+        blocks = [
+            Block([CategoricalNode() for _ in range(block_len)]) for i in range(3)
+        ]
 
         weights = jax.random.normal(key, (block_len, 3, 3, 3))
 
@@ -446,14 +505,20 @@ class TestBlockSample(unittest.TestCase):
 
         samp = CategoricalGibbsConditional(n_cats)
 
-        free_state = jax.random.randint(key, (block_len,), minval=0, maxval=n_cats, dtype=jnp.uint8)
+        free_state = jax.random.randint(
+            key, (block_len,), minval=0, maxval=n_cats, dtype=jnp.uint8
+        )
 
         clamped_state = []
 
         for i in range(2):
             key, subkey = jax.random.split(key, 2)
 
-            clamped_state.append(jax.random.randint(subkey, (block_len,), minval=0, maxval=n_cats, dtype=jnp.uint8))
+            clamped_state.append(
+                jax.random.randint(
+                    subkey, (block_len,), minval=0, maxval=n_cats, dtype=jnp.uint8
+                )
+            )
 
         key, subkey = jax.random.split(key, 2)
 
@@ -464,25 +529,39 @@ class TestBlockSample(unittest.TestCase):
 
         # just manually enumerate each possible permutation and test that we get the right answer
 
-        weight_sl_1 = jnp.squeeze(jnp.take_along_axis(jnp.take_along_axis(weights, sl_1, -2), sl_2, -1), (-1, -2))
+        weight_sl_1 = jnp.squeeze(
+            jnp.take_along_axis(jnp.take_along_axis(weights, sl_1, -2), sl_2, -1),
+            (-1, -2),
+        )
         spec_1 = BlockGibbsSpec([blocks[0]], blocks[1:])
         prog_1 = FactorSamplingProgram(spec_1, [samp], [factor], [])
-        samps_1 = sample_single_block(subkey, [free_state], clamped_state, prog_1, 0, None)
+        samps_1 = sample_single_block(
+            subkey, [free_state], clamped_state, prog_1, 0, None
+        )
         true_samps_1 = jax.random.categorical(k, weight_sl_1, axis=-1)
 
         self.assertTrue(np.all(np.equal(samps_1[0], true_samps_1)))
 
-        weight_sl_2 = jnp.squeeze(jnp.take_along_axis(jnp.take_along_axis(weights, sl_1, 1), sl_2, -1), (-1, 1))
+        weight_sl_2 = jnp.squeeze(
+            jnp.take_along_axis(jnp.take_along_axis(weights, sl_1, 1), sl_2, -1),
+            (-1, 1),
+        )
         spec_2 = BlockGibbsSpec([blocks[1]], [blocks[0], blocks[-1]])
         prog_2 = FactorSamplingProgram(spec_2, [samp], [factor], [])
-        samps_2 = sample_single_block(subkey, [free_state], clamped_state, prog_2, 0, None)
+        samps_2 = sample_single_block(
+            subkey, [free_state], clamped_state, prog_2, 0, None
+        )
         true_samps_2 = jax.random.categorical(k, weight_sl_2, axis=-1)
         self.assertTrue(np.all(np.equal(samps_2[0], true_samps_2)))
 
-        weight_sl_3 = jnp.squeeze(jnp.take_along_axis(jnp.take_along_axis(weights, sl_1, 1), sl_2, 2), (1, 2))
+        weight_sl_3 = jnp.squeeze(
+            jnp.take_along_axis(jnp.take_along_axis(weights, sl_1, 1), sl_2, 2), (1, 2)
+        )
         spec_3 = BlockGibbsSpec([blocks[2]], [blocks[0], blocks[1]])
         prog_3 = FactorSamplingProgram(spec_3, [samp], [factor], [])
-        samps_3 = sample_single_block(subkey, [free_state], clamped_state, prog_3, 0, None)
+        samps_3 = sample_single_block(
+            subkey, [free_state], clamped_state, prog_3, 0, None
+        )
         true_samps_3 = jax.random.categorical(k, weight_sl_3, axis=-1)
         self.assertTrue(np.all(np.equal(samps_3[0], true_samps_3)))
 
@@ -505,7 +584,8 @@ class TestBlockSample(unittest.TestCase):
         for i in range(50):
             key, subkey = jax.random.split(key, 2)
             b_fac_1 = SpinEBMFactor(
-                [Block([binary_free_nodes[0]]), Block([binary_clamped_nodes[0]])], jax.random.normal(subkey, (1,))
+                [Block([binary_free_nodes[0]]), Block([binary_clamped_nodes[0]])],
+                jax.random.normal(subkey, (1,)),
             )
 
             key, subkey = jax.random.split(key, 2)
@@ -517,7 +597,11 @@ class TestBlockSample(unittest.TestCase):
 
             key, subkey = jax.random.split(key, 2)
             cat_fac_1 = CategoricalEBMFactor(
-                [Block([cat_clamped_nodes[0]]), Block([cat_clamped_nodes[1]]), Block([cat_free_nodes[0]])],
+                [
+                    Block([cat_clamped_nodes[0]]),
+                    Block([cat_clamped_nodes[1]]),
+                    Block([cat_free_nodes[0]]),
+                ],
                 jax.random.normal(subkey, (1, n_cats, n_cats, n_cats)),
             )
 
@@ -561,7 +645,10 @@ class TestBlockSample(unittest.TestCase):
 
             weights_bin = jnp.array(
                 [
-                    (2 * clamp_state[0][0].astype(jnp.int8) - 1).astype(b_fac_1.weights[0].dtype) * b_fac_1.weights[0],
+                    (2 * clamp_state[0][0].astype(jnp.int8) - 1).astype(
+                        b_fac_1.weights[0].dtype
+                    )
+                    * b_fac_1.weights[0],
                     b_fac_2.weights[0, clamp_state[1][0], clamp_state[1][1]],
                 ]
             )
@@ -571,16 +658,24 @@ class TestBlockSample(unittest.TestCase):
             weights_cat = jnp.array(
                 [
                     cat_fac_1.weights[0, clamp_state[1][0], clamp_state[1][1], :],
-                    (2 * clamp_state[0][0].astype(jnp.int8) - 1).astype(cat_fac_2.weights[0].dtype)
-                    * (2 * clamp_state[0][1].astype(jnp.int8) - 1).astype(cat_fac_2.weights[0].dtype)
+                    (2 * clamp_state[0][0].astype(jnp.int8) - 1).astype(
+                        cat_fac_2.weights[0].dtype
+                    )
+                    * (2 * clamp_state[0][1].astype(jnp.int8) - 1).astype(
+                        cat_fac_2.weights[0].dtype
+                    )
                     * cat_fac_2.weights[0],
                 ]
             )
 
             actual_samps_cat = jax.random.categorical(k, weights_cat)
 
-            samples_bin = sample_single_block(subkey, free_state, clamp_state, prog, 0, None)[0]
-            samples_cat = sample_single_block(subkey, free_state, clamp_state, prog, 1, None)[0]
+            samples_bin = sample_single_block(
+                subkey, free_state, clamp_state, prog, 0, None
+            )[0]
+            samples_cat = sample_single_block(
+                subkey, free_state, clamp_state, prog, 1, None
+            )[0]
 
             self.assertTrue(np.all(np.equal(samples_bin, actual_samps_bin)))
             self.assertTrue(np.all(np.equal(samples_cat, actual_samps_cat)))
@@ -613,7 +708,10 @@ class TestEnergy(unittest.TestCase):
         e = ebm.energy(state, blocks)
 
         true_energy = -jnp.sum(
-            weights * jnp.prod(2 * jnp.stack(state, axis=-1).astype(jnp.int8) - 1, axis=-1).astype(weights.dtype)
+            weights
+            * jnp.prod(
+                2 * jnp.stack(state, axis=-1).astype(jnp.int8) - 1, axis=-1
+            ).astype(weights.dtype)
         )
 
         self.assertTrue(np.allclose(e, true_energy, rtol=1e-6))
@@ -626,7 +724,9 @@ class TestEnergy(unittest.TestCase):
 
         key = jax.random.key(443)
 
-        blocks = [Block([CategoricalNode() for _ in range(chain_len)]) for _ in range(3)]
+        blocks = [
+            Block([CategoricalNode() for _ in range(chain_len)]) for _ in range(3)
+        ]
 
         key, subkey = jax.random.split(key, 2)
 
@@ -640,7 +740,11 @@ class TestEnergy(unittest.TestCase):
 
         for _ in range(3):
             key, subkey = jax.random.split(key, 2)
-            state.append(jax.random.randint(subkey, (chain_len,), minval=0, maxval=n_cats, dtype=jnp.uint8))
+            state.append(
+                jax.random.randint(
+                    subkey, (chain_len,), minval=0, maxval=n_cats, dtype=jnp.uint8
+                )
+            )
 
         e = ebm.energy(state, blocks)
 
@@ -648,7 +752,11 @@ class TestEnergy(unittest.TestCase):
 
         true_energy = -jnp.sum(
             jnp.take_along_axis(
-                jnp.take_along_axis(jnp.take_along_axis(weights, sl_states[-1], axis=1), sl_states[0], axis=2),
+                jnp.take_along_axis(
+                    jnp.take_along_axis(weights, sl_states[-1], axis=1),
+                    sl_states[0],
+                    axis=2,
+                ),
                 sl_states[1],
                 axis=3,
             )
@@ -664,7 +772,9 @@ class TestEnergy(unittest.TestCase):
 
         key = jax.random.key(443)
 
-        cat_blocks = [Block([CategoricalNode() for _ in range(chain_len)]) for _ in range(2)]
+        cat_blocks = [
+            Block([CategoricalNode() for _ in range(chain_len)]) for _ in range(2)
+        ]
         bin_blocks = [Block([SpinNode() for _ in range(chain_len)])]
 
         key, subkey = jax.random.split(key, 2)
@@ -679,7 +789,11 @@ class TestEnergy(unittest.TestCase):
 
         for _ in range(2):
             key, subkey = jax.random.split(key, 2)
-            state.append(jax.random.randint(subkey, (chain_len,), minval=0, maxval=n_cats, dtype=jnp.uint8))
+            state.append(
+                jax.random.randint(
+                    subkey, (chain_len,), minval=0, maxval=n_cats, dtype=jnp.uint8
+                )
+            )
 
         state.append(jax.random.bernoulli(subkey, 0.5, (chain_len,)))
 
@@ -699,7 +813,12 @@ class TestEnergy(unittest.TestCase):
         true_energy = -jnp.sum(
             (2 * state[-1].astype(jnp.int8) - 1).astype(jnp.float32)
             * jnp.squeeze(
-                jnp.take_along_axis(jnp.take_along_axis(weights, sl_states[-1], axis=1), sl_states[0], axis=2), (-2, -1)
+                jnp.take_along_axis(
+                    jnp.take_along_axis(weights, sl_states[-1], axis=1),
+                    sl_states[0],
+                    axis=2,
+                ),
+                (-2, -1),
             )
         )
 
@@ -759,27 +878,48 @@ class TestEquivalence(unittest.TestCase):
 
         key = jax.random.key(2232)
 
-        categorical_weight_matrix = jax.random.normal(key, (len(edge_groups[0]), n_cats, n_cats))
+        categorical_weight_matrix = jax.random.normal(
+            key, (len(edge_groups[0]), n_cats, n_cats)
+        )
 
         vec_a = jnp.array([1, 1], dtype=categorical_weight_matrix.dtype)
         vec_b = jnp.array([-1, 1], dtype=categorical_weight_matrix.dtype)
 
-        first_spin_bias = 1 / 4 * jnp.einsum("...ij, i, j -> ...", categorical_weight_matrix, vec_b, vec_a)
-        second_spin_bias = 1 / 4 * jnp.einsum("...ij, i, j -> ...", categorical_weight_matrix, vec_a, vec_b)
-        spin_weight = 1 / 4 * jnp.einsum("...ij, i, j -> ...", categorical_weight_matrix, vec_b, vec_b)
+        first_spin_bias = (
+            1
+            / 4
+            * jnp.einsum("...ij, i, j -> ...", categorical_weight_matrix, vec_b, vec_a)
+        )
+        second_spin_bias = (
+            1
+            / 4
+            * jnp.einsum("...ij, i, j -> ...", categorical_weight_matrix, vec_a, vec_b)
+        )
+        spin_weight = (
+            1
+            / 4
+            * jnp.einsum("...ij, i, j -> ...", categorical_weight_matrix, vec_b, vec_b)
+        )
 
-        cat_factor = CategoricalEBMFactor([Block(x) for x in edge_groups], categorical_weight_matrix)
+        cat_factor = CategoricalEBMFactor(
+            [Block(x) for x in edge_groups], categorical_weight_matrix
+        )
 
         spin_bias_factor = SpinEBMFactor(
-            [Block(edge_groups[0] + edge_groups[1])], jnp.concatenate([first_spin_bias, second_spin_bias])
+            [Block(edge_groups[0] + edge_groups[1])],
+            jnp.concatenate([first_spin_bias, second_spin_bias]),
         )
 
         spin_weight_factor = SpinEBMFactor([Block(x) for x in edge_groups], spin_weight)
 
         free_blocks = [Block(x) for x in color_groups]
 
-        spec_binary = BlockGibbsSpec(free_blocks, [], {Node: jax.ShapeDtypeStruct((), jnp.bool)})
-        spec_cat = BlockGibbsSpec(free_blocks, [], {Node: jax.ShapeDtypeStruct((), jnp.uint8)})
+        spec_binary = BlockGibbsSpec(
+            free_blocks, [], {Node: jax.ShapeDtypeStruct((), jnp.bool)}
+        )
+        spec_cat = BlockGibbsSpec(
+            free_blocks, [], {Node: jax.ShapeDtypeStruct((), jnp.uint8)}
+        )
 
         samp_binary = SpinGibbsConditional()
         samp_cat = CategoricalGibbsConditional(2)
@@ -791,10 +931,15 @@ class TestEquivalence(unittest.TestCase):
             init_states.append(jax.random.bernoulli(subkey, 0.5, (len(block.nodes),)))
 
         prog_binary = FactorSamplingProgram(
-            spec_binary, [samp_binary, samp_binary], [spin_bias_factor, spin_weight_factor], []
+            spec_binary,
+            [samp_binary, samp_binary],
+            [spin_bias_factor, spin_weight_factor],
+            [],
         )
 
-        prog_cat = FactorSamplingProgram(spec_cat, [samp_cat, samp_cat], [cat_factor], [])
+        prog_cat = FactorSamplingProgram(
+            spec_cat, [samp_cat, samp_cat], [cat_factor], []
+        )
 
         schedule = SamplingSchedule(5, 25000, 5)
 
@@ -823,9 +968,13 @@ class TestEquivalence(unittest.TestCase):
 
         fake_cat_samples = jnp.empty((samples_cat[0].shape[0], 0), dtype=jnp.uint8)
 
-        counts_bin = count_samples(all_states, cat_states, samples_bin[0], fake_cat_samples)
+        counts_bin = count_samples(
+            all_states, cat_states, samples_bin[0], fake_cat_samples
+        )
 
-        counts_cat = count_samples(all_states, cat_states, samples_cat[0].astype(jnp.bool), fake_cat_samples)
+        counts_cat = count_samples(
+            all_states, cat_states, samples_cat[0].astype(jnp.bool), fake_cat_samples
+        )
 
         error = jnp.max(jnp.abs(counts_bin - counts_cat)) / jnp.max(jnp.abs(counts_bin))
 
@@ -873,7 +1022,9 @@ class TestHeteroGrid(unittest.TestCase):
             if isinstance(edge[0], SpinNode) and isinstance(edge[1], SpinNode):
                 bb_edges[0].append(edge[0])
                 bb_edges[1].append(edge[1])
-            elif isinstance(edge[0], CategoricalNode) and isinstance(edge[1], CategoricalNode):
+            elif isinstance(edge[0], CategoricalNode) and isinstance(
+                edge[1], CategoricalNode
+            ):
                 cc_edges[0].append(edge[0])
                 cc_edges[1].append(edge[1])
             elif isinstance(edge[0], SpinNode):
@@ -886,14 +1037,19 @@ class TestHeteroGrid(unittest.TestCase):
         key = jax.random.key(seed)
 
         key, subkey = jax.random.split(key, 2)
-        bb_fac = SpinEBMFactor([Block(x) for x in bb_edges], jax.random.normal(subkey, (len(bb_edges[0]),)))
+        bb_fac = SpinEBMFactor(
+            [Block(x) for x in bb_edges], jax.random.normal(subkey, (len(bb_edges[0]),))
+        )
         key, subkey = jax.random.split(key, 2)
         cc_fac = CategoricalEBMFactor(
-            [Block(x) for x in cc_edges], jax.random.normal(subkey, (len(cc_edges[0]), n_cats, n_cats))
+            [Block(x) for x in cc_edges],
+            jax.random.normal(subkey, (len(cc_edges[0]), n_cats, n_cats)),
         )
         key, subkey = jax.random.split(key, 2)
         bc_fac = DiscreteEBMFactor(
-            [Block(bc_edges[0])], [Block(bc_edges[1])], jax.random.normal(subkey, (len(cc_edges[0]), n_cats))
+            [Block(bc_edges[0])],
+            [Block(bc_edges[1])],
+            jax.random.normal(subkey, (len(cc_edges[0]), n_cats)),
         )
 
         ebm = FactorizedEBM([bb_fac, cc_fac, bc_fac])
@@ -914,7 +1070,9 @@ class TestHeteroGrid(unittest.TestCase):
 
         sched = SamplingSchedule(0, 50000, 5)
 
-        empirical, exact = sample_and_compare_distribution(key, ebm, prog, [], sched, n_cats)
+        empirical, exact = sample_and_compare_distribution(
+            key, ebm, prog, [], sched, n_cats
+        )
 
         error = jnp.max(jnp.abs((empirical - exact))) / jnp.max(jnp.abs(exact))
 
@@ -946,7 +1104,10 @@ class TestBigGrid(unittest.TestCase):
 
             key = jax.random.key(424)
             key, subkey = jax.random.split(key, 2)
-            fac = SpinEBMFactor([Block(x) for x in edge_groups], jax.random.normal(subkey, (len(edge_groups[0]),)))
+            fac = SpinEBMFactor(
+                [Block(x) for x in edge_groups],
+                jax.random.normal(subkey, (len(edge_groups[0]),)),
+            )
 
             ebm = FactorizedEBM([fac])
 
@@ -961,7 +1122,9 @@ class TestBigGrid(unittest.TestCase):
             samp = SpinGibbsConditional()
 
             start_time = time.time()
-            _ = FactorSamplingProgram(spec, [samp for _ in spec.free_blocks], ebm.factors, [])
+            _ = FactorSamplingProgram(
+                spec, [samp for _ in spec.free_blocks], ebm.factors, []
+            )
             end_time = time.time()
 
             times.append(end_time - start_time)

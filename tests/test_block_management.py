@@ -81,14 +81,18 @@ class TestBlocks(unittest.TestCase):
         for label, node_dict in self.node_type_dicts.items():
             spec = block_management.BlockSpec(self.blocks, node_dict)
             all_types = [type_list for type_list in node_dict.values()]
-            block_state = block_management.make_empty_block_state(self.blocks, node_dict)
+            block_state = block_management.make_empty_block_state(
+                self.blocks, node_dict
+            )
             self.configs[label] = (spec, block_state, all_types)
 
     def test_shape_transforms(self):
         for label, (spec, block_state, _) in self.configs.items():
             with self.subTest(msg=f"Testing shape_transforms with {label}"):
                 global_state = block_management.block_state_to_global(block_state, spec)
-                re_block = block_management.from_global_state(global_state, spec, spec.blocks)
+                re_block = block_management.from_global_state(
+                    global_state, spec, spec.blocks
+                )
                 self.assertTrue(eqx.tree_equal(block_state, re_block))
 
     def test_node_lookup(self):
@@ -96,7 +100,9 @@ class TestBlocks(unittest.TestCase):
             with self.subTest(msg=f"Testing node_lookup with {label}"):
                 global_state = block_management.block_state_to_global(block_state, spec)
                 for block, state in zip(spec.blocks, block_state):
-                    type_inds, arr_inds = block_management.get_node_locations(block, spec)
+                    type_inds, arr_inds = block_management.get_node_locations(
+                        block, spec
+                    )
                     vals = jax.tree.map(lambda x: x[arr_inds], global_state[type_inds])
                     self.assertTrue(eqx.tree_equal(vals, state))
 
@@ -104,9 +110,15 @@ class TestBlocks(unittest.TestCase):
         for label, (spec, block_state, _) in self.configs.items():
             with self.subTest(msg=f"Testing empty_state with {label}"):
                 batch_shape = (10, 2)
-                empty_state = block_management.make_empty_block_state(spec.blocks, spec.node_shape_struct, batch_shape)
-                empty_state = jax.tree.map(lambda x: jax.ShapeDtypeStruct(x.shape, x.dtype), empty_state)
-                b_state = jax.tree.map(lambda x: jax.ShapeDtypeStruct(x.shape, x.dtype), block_state)
+                empty_state = block_management.make_empty_block_state(
+                    spec.blocks, spec.node_shape_struct, batch_shape
+                )
+                empty_state = jax.tree.map(
+                    lambda x: jax.ShapeDtypeStruct(x.shape, x.dtype), empty_state
+                )
+                b_state = jax.tree.map(
+                    lambda x: jax.ShapeDtypeStruct(x.shape, x.dtype), block_state
+                )
                 eqx.tree_equal(empty_state, b_state)
 
 
@@ -128,8 +140,12 @@ class TestBlockCompat(unittest.TestCase):
         self.batch_shape = (4, 2, 10)
 
         temp_2_sd = Template2(1, jax.ShapeDtypeStruct(shape=(4,), dtype=jnp.float32))
-        self.temp_1_sd = Template1(temp_2_sd, jax.ShapeDtypeStruct(shape=(), dtype=jnp.int8), 4.3)
-        self.temp_2_good = Template2(3, jnp.zeros((*self.batch_shape, 4), dtype=jnp.float32))
+        self.temp_1_sd = Template1(
+            temp_2_sd, jax.ShapeDtypeStruct(shape=(), dtype=jnp.int8), 4.3
+        )
+        self.temp_2_good = Template2(
+            3, jnp.zeros((*self.batch_shape, 4), dtype=jnp.float32)
+        )
 
         self.block_1 = block_management.Block([Node1() for _ in range(5)])
         self.block_2 = block_management.Block([Node2() for _ in range(3)])
@@ -167,18 +183,24 @@ class TestBlockCompat(unittest.TestCase):
         self.good_state_3 = jnp.zeros((*self.batch_shape, 9, 7), dtype=jnp.float32)
 
     def test_good(self):
-        temp_1_good = Template1(self.temp_2_good, jnp.zeros(self.batch_shape, dtype=jnp.int8), 7.1)
+        temp_1_good = Template1(
+            self.temp_2_good, jnp.zeros(self.batch_shape, dtype=jnp.int8), 7.1
+        )
         batch_shape = block_management._check_pytree_compat(self.temp_1_sd, temp_1_good)
         self.assertEqual(batch_shape, self.batch_shape)
 
     def test_bad_dtype(self):
-        temp_1_bad = Template1(self.temp_2_good, jnp.zeros(self.batch_shape, dtype=jnp.float32), 10.2)
+        temp_1_bad = Template1(
+            self.temp_2_good, jnp.zeros(self.batch_shape, dtype=jnp.float32), 10.2
+        )
         with self.assertRaises(RuntimeError) as error:
             _ = block_management._check_pytree_compat(self.temp_1_sd, temp_1_bad)
         self.assertIn("type", str(error.exception))
 
     def test_bad_shape(self):
-        temp_1_bad = Template1(self.temp_2_good, jnp.zeros((*self.batch_shape, 1), dtype=jnp.int8), 11.9)
+        temp_1_bad = Template1(
+            self.temp_2_good, jnp.zeros((*self.batch_shape, 1), dtype=jnp.int8), 11.9
+        )
         with self.assertRaises(RuntimeError) as error:
             _ = block_management._check_pytree_compat(self.temp_1_sd, temp_1_bad)
         self.assertIn("shape", str(error.exception))
@@ -239,7 +261,9 @@ class TestBlockCompat(unittest.TestCase):
 class TestDuplicate(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.good_blocks = [block_management.Block([Node1() for _ in range(3)]) for _ in range(2)]
+        self.good_blocks = [
+            block_management.Block([Node1() for _ in range(3)]) for _ in range(2)
+        ]
         self.node_sd = {Node1: jax.ShapeDtypeStruct}
 
     def test_good(self):
@@ -247,7 +271,9 @@ class TestDuplicate(unittest.TestCase):
 
     def test_duplicate(self):
         with self.assertRaises(RuntimeError) as error:
-            _ = block_management.BlockSpec(self.good_blocks + self.good_blocks, self.node_sd)
+            _ = block_management.BlockSpec(
+                self.good_blocks + self.good_blocks, self.node_sd
+            )
         self.assertIn("show up twice", str(error.exception))
 
 

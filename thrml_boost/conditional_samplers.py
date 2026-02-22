@@ -95,7 +95,11 @@ class AbstractParametricConditionalSampler(AbstractConditionalSampler):
 
     @abc.abstractmethod
     def sample_given_parameters(
-        self, key: Key, parameters: PyTree, sampler_state: _SamplerState, output_sd: PyTree[jax.ShapeDtypeStruct]
+        self,
+        key: Key,
+        parameters: PyTree,
+        sampler_state: _SamplerState,
+        output_sd: PyTree[jax.ShapeDtypeStruct],
     ) -> tuple[_State, _SamplerState]:
         """Produce a sample given the parameters of the distribution, passed in as the `parameters` argument."""
         pass
@@ -144,7 +148,11 @@ class BernoulliConditional(AbstractParametricConditionalSampler):
         pass
 
     def sample_given_parameters(
-        self, key: Key, parameters: PyTree, sampler_state: None, output_sd: PyTree[jax.ShapeDtypeStruct]
+        self,
+        key: Key,
+        parameters: PyTree,
+        sampler_state: None,
+        output_sd: PyTree[jax.ShapeDtypeStruct],
     ) -> tuple[_State, None]:
         r"""Sample from a spin-valued bernoulli distribution given the parameter $\gamma$. In THRML,
         1 is represented by the boolean value `True` and -1 is represented by `False`."""
@@ -178,7 +186,13 @@ class SoftmaxConditional(AbstractParametricConditionalSampler):
         pass
 
     def sample_given_parameters(
-        self, key: Key, parameters: PyTree, sampler_state: None, output_sd: PyTree[jax.ShapeDtypeStruct]
+        self,
+        key: Key,
+        parameters: PyTree,
+        sampler_state: None,
+        output_sd: PyTree[jax.ShapeDtypeStruct],
     ) -> tuple[_State, None]:
         """Sample from a softmax distribution given the parameter vector $\theta$."""
-        return jax.random.categorical(key, parameters, axis=-1).astype(output_sd.dtype), sampler_state
+        return jax.random.categorical(key, parameters, axis=-1).astype(
+            output_sd.dtype
+        ), sampler_state

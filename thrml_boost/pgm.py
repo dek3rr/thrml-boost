@@ -24,7 +24,10 @@ class _CounterMeta(abc.ABCMeta):
         # todo: make sure this is sufficient to distinguish and be unique for JAX
         if not isinstance(other, type):
             raise NotImplementedError
-        return (cls.__module__, cls.__qualname__) < (other.__module__, other.__qualname__)
+        return (cls.__module__, cls.__qualname__) < (
+            other.__module__,
+            other.__qualname__,
+        )
 
 
 class _UniqueID(metaclass=_CounterMeta):
