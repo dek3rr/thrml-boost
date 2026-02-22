@@ -67,7 +67,6 @@ plugins:
             - jax.sharding.Sharding
             - numpy.dtype
             - jax.numpy.float32
-            - jax.numpy.dtype
     - mkdocstrings:
         handlers:
             python:
