@@ -15,15 +15,15 @@ import thrml_boost.pgm
 from thrml_boost import block_management
 
 
-class Node1(thrml.pgm.AbstractNode):
+class Node1(thrml-boost.pgm.AbstractNode):
     pass
 
 
-class Node2(thrml.pgm.AbstractNode):
+class Node2(thrml-boost.pgm.AbstractNode):
     pass
 
 
-class Node3(thrml.pgm.AbstractNode):
+class Node3(thrml-boost.pgm.AbstractNode):
     pass
 
 
