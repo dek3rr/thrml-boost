@@ -1,6 +1,6 @@
 # Interaction Groups
 
-::: thrml.InteractionGroup
+::: thrml-boost.InteractionGroup
     options:
         members:
             - __init__

@@ -2,42 +2,42 @@
 
 This module contains implementations of discrete energy-based models.
 
-::: thrml.models.DiscreteEBMFactor
+::: thrml-boost.models.DiscreteEBMFactor
     options:
         members:
             - energy
             - to_interaction_groups
 
-::: thrml.models.DiscreteEBMInteraction
+::: thrml-boost.models.DiscreteEBMInteraction
     options:
         members: False
 
-::: thrml.models.SquareDiscreteEBMFactor
+::: thrml-boost.models.SquareDiscreteEBMFactor
     options:
         members:
             - to_interaction_groups
 
-::: thrml.models.SpinEBMFactor
+::: thrml-boost.models.SpinEBMFactor
     options:
         members: false
         inherited_members: false
 
-::: thrml.models.CategoricalEBMFactor
+::: thrml-boost.models.CategoricalEBMFactor
     options:
         members: false
         inherited_members: false
 
-::: thrml.models.SquareCategoricalEBMFactor
+::: thrml-boost.models.SquareCategoricalEBMFactor
     options:
         members: false
         inherited_members: false
 
-::: thrml.models.SpinGibbsConditional
+::: thrml-boost.models.SpinGibbsConditional
     options:
         members:
             - compute_parameters
 
-::: thrml.models.CategoricalGibbsConditional
+::: thrml-boost.models.CategoricalGibbsConditional
     options:
         members:
             - compute_parameters

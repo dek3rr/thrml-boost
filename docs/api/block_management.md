@@ -1,20 +1,20 @@
 # Block Management
 
-::: thrml.Block
+::: thrml-boost.Block
     options:
         members: false
 
-::: thrml.BlockSpec
+::: thrml-boost.BlockSpec
     options:
         members:
             - __init__
 
-::: thrml.block_state_to_global
+::: thrml-boost.block_state_to_global
 
-::: thrml.get_node_locations
+::: thrml-boost.get_node_locations
 
-::: thrml.from_global_state
+::: thrml-boost.from_global_state
 
-::: thrml.make_empty_block_state
+::: thrml-boost.make_empty_block_state
 
-::: thrml.verify_block_state
+::: thrml-boost.verify_block_state

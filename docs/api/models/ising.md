@@ -2,23 +2,23 @@
 
 This module contains implementations of Ising models and spin systems.
 
-::: thrml.models.IsingEBM
+::: thrml-boost.models.IsingEBM
     options:
         members:
             - __init__
 
-::: thrml.models.IsingSamplingProgram
+::: thrml-boost.models.IsingSamplingProgram
     options:
         members:
             - __init__
 
-::: thrml.models.IsingTrainingSpec
+::: thrml-boost.models.IsingTrainingSpec
     options:
         members:
             - __init__
 
-::: thrml.models.hinton_init
+::: thrml-boost.models.hinton_init
 
-::: thrml.models.estimate_moments
+::: thrml-boost.models.estimate_moments
 
-::: thrml.models.estimate_kl_grad
+::: thrml-boost.models.estimate_kl_grad

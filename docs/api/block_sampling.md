@@ -1,23 +1,23 @@
 # Block Sampling
 
-::: thrml.BlockGibbsSpec
+::: thrml-boost.BlockGibbsSpec
     options:
         members:
             - __init__
 
-::: thrml.BlockSamplingProgram
+::: thrml-boost.BlockSamplingProgram
     options:
         members:
             - __init__
 
-::: thrml.SamplingSchedule
+::: thrml-boost.SamplingSchedule
     options:
         members: false
 
-::: thrml.sample_blocks
+::: thrml-boost.sample_blocks
 
-::: thrml.sample_single_block
+::: thrml-boost.sample_single_block
 
-::: thrml.sample_with_observation
+::: thrml-boost.sample_with_observation
 
-::: thrml.sample_states
+::: thrml-boost.sample_states
