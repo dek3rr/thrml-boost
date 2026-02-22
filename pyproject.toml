@@ -11,7 +11,6 @@ authors = [
 
 urls = { repository = "https://github.com/dek3rr/thrml-boost" }
 
-[project]
 dependencies = [
     "equinox>=0.11.2",
     "jaxtyping>=0.2.23",
