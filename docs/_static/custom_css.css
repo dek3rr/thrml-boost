@@ -6,11 +6,11 @@
 }
 
 :root {
-  --color-extropic-orange: #ff6a13;
-  --color-extropic-orange-bright: #D67516;
-  --color-extropic-orange-highlight: rgba(255, 106, 19, 0.15);
-  --color-extropic-gray: #707473;
-  --color-extropic-gray-dark: #757A79;
+  --color-thrml-accent: #ff6a13;
+  --color-thrml-accent-bright: #D67516;
+  --color-thrml-accent-highlight: rgba(255, 106, 19, 0.15);
+  --color-thrml-gray: #707473;
+  --color-thrml-gray-dark: #757A79;
   color-scheme: dark;
 }
 
@@ -21,10 +21,10 @@
 }
 
 [data-md-color-scheme="default"] {
-    --md-typeset-a-color: var(--color-extropic-orange) !important;
+    --md-typeset-a-color: var(--color-thrml-accent) !important;
 }
 [data-md-color-scheme="slate"] {
-    --md-typeset-a-color: var(--color-extropic-orange) !important;
+    --md-typeset-a-color: var(--color-thrml-accent) !important;
 }
 
 html {
@@ -121,7 +121,7 @@ html {
 
 .md-typeset h3 {
     font-size: 1.3rem;
-    color: var(--color-extropic-gray);
+    color: var(--color-thrml-gray);
 }
 
 .md-typeset h4 {
@@ -173,33 +173,6 @@ h5.doc-heading, h6.heading {
     overflow: auto;
 }
 
-.md-footer {
-  position: relative;
-  overflow: visible;
-  min-height: 120px;
-}
-
-.md-footer .footer-video {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  height: 120px;
-}
-
-.md-footer .footer-video video {
-  width: 100%;
-  height: 120px;
-  object-fit: cover;
-  object-position: center;
-  opacity: 0.25;
-}
-
-.md-footer > * {
-  position: relative;
-  z-index: 1;
-}
-
 .md-typeset :not(pre) > code {
   background-color: rgba(144, 48, 1, 0.3) !important;
   color: #ffb400 !important;
@@ -217,6 +190,7 @@ h5.doc-heading, h6.heading {
   border-radius: 6px;
 }
 
+/* Syntax highlighting */
 .highlight .hll, .codehilite .hll { background-color: rgba(255, 180, 0, 0.2) }
 .highlight .c, .codehilite .c { color: #ff8400 }
 .highlight .err, .codehilite .err { color: #ff8400 }
@@ -291,7 +265,7 @@ h5.doc-heading, h6.heading {
 }
 
 .md-typeset blockquote {
-  border-left: 4px solid var(--color-extropic-orange);
+  border-left: 4px solid var(--color-thrml-accent);
   background-color: rgba(255, 106, 19, 0.08);
   padding: 1rem 1.5rem;
   border-radius: 0 6px 6px 0;
