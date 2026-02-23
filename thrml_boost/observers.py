@@ -94,7 +94,6 @@ class StateObserver(AbstractObserver):
     ) -> tuple[None, PyTree]:
         """Simply returns the state of the blocks that are being logged to be recorded by the sampler."""
         if global_state is None:
-            # Fallback when called directly from user code without a precomputed global state.
             global_state = block_state_to_global(
                 state_free + state_clamped, program.gibbs_spec
             )
@@ -138,6 +137,9 @@ class MomentAccumulatorObserver(AbstractObserver):
         arrays, used to build `flat_state` in a single scatter call.
     - `_flat_scatter_sizes`: number of entries contributed by each node type, used to
         split the concatenated sampled state before scattering.
+    - `_flat_value_order`: precomputed ``argsort(_flat_scatter_index)``; used in
+        ``__call__`` to permute the concatenated sampled values into flat-node
+        order without allocating a zeros array.
     - `_accumulate_dtype`: dtype for the accumulator, fixed at construction time.
     """
 
@@ -148,6 +150,7 @@ class MomentAccumulatorObserver(AbstractObserver):
     f_transform: Callable
     _flat_scatter_index: Array  # shape: (total_flat_nodes,)
     _flat_scatter_sizes: list[int]  # len == number of node types
+    _flat_value_order: Array  # shape: (total_flat_nodes,) — argsort of scatter index
     _flat_state_size: int
     _accumulate_dtype: jnp.dtype
 
@@ -185,13 +188,12 @@ class MomentAccumulatorObserver(AbstractObserver):
         self.f_transform = f_transform
         self._accumulate_dtype = jnp.zeros(0, dtype=dtype).dtype
 
-        flat_nodes_list = []
-        node_to_flat_idx = {}
-        flat_to_full_moment_slices = []
-        nodes_by_type = defaultdict(list)
-        flat_to_type_slices = defaultdict(list)
+        # --- Pass 1: deduplicate nodes and build moment index slices --------
+        flat_nodes_list: list[AbstractNode] = []
+        node_to_flat_idx: dict[AbstractNode, int] = {}
+        flat_to_full_moment_slices: list[np.ndarray] = []
 
-        for i, moment in enumerate(moment_spec):
+        for moment in moment_spec:
             shape = (len(moment), len(moment[0]))
             moment_slice = np.zeros(shape, dtype=int)
 
@@ -203,18 +205,29 @@ class MomentAccumulatorObserver(AbstractObserver):
                         node_to_flat_idx[node] = idx
                         flat_nodes_list.append(node)
                     moment_slice[j, k] = idx
-                    nodes_by_type[node.__class__].append(node)
-                    flat_to_type_slices[node.__class__].append(node_to_flat_idx[node])
 
             flat_to_full_moment_slices.append(moment_slice)
 
-        blocks_to_sample = []
-        flat_to_type_slices_list = []
+        # --- Pass 2: build blocks_to_sample and type slices from the
+        #     deduplicated flat_nodes_list. Each node appears exactly once,
+        #     so blocks_to_sample is correctly sized and _flat_scatter_index
+        #     is a true permutation (no duplicate target indices). ----------
+        nodes_by_type: dict[type, list[AbstractNode]] = defaultdict(list)
+        flat_to_type_slices: dict[type, list[int]] = defaultdict(list)
+
+        for idx, node in enumerate(flat_nodes_list):
+            node_type = node.__class__
+            nodes_by_type[node_type].append(node)
+            flat_to_type_slices[node_type].append(idx)
+
+        blocks_to_sample: list[Block] = []
+        flat_to_type_slices_list: list[jnp.ndarray] = []
 
         for node_type, nodes in nodes_by_type.items():
             blocks_to_sample.append(Block(nodes))
-            type_slice = jnp.array(flat_to_type_slices[node_type], dtype=int)
-            flat_to_type_slices_list.append(type_slice)
+            flat_to_type_slices_list.append(
+                jnp.array(flat_to_type_slices[node_type], dtype=int)
+            )
 
         self.flat_nodes_list = flat_nodes_list
         self.flat_to_full_moment_slices = [
@@ -223,8 +236,7 @@ class MomentAccumulatorObserver(AbstractObserver):
         self.blocks_to_sample = blocks_to_sample
         self.flat_to_type_slices_list = flat_to_type_slices_list
 
-        # Precompute a single concatenated scatter index so __call__ can build
-        # flat_state with one .at[].set() instead of one per node type.
+        # Precompute scatter index and its inverse (argsort).
         self._flat_scatter_index = (
             jnp.concatenate(flat_to_type_slices_list)
             if flat_to_type_slices_list
@@ -232,6 +244,14 @@ class MomentAccumulatorObserver(AbstractObserver):
         )
         self._flat_scatter_sizes = [len(s) for s in flat_to_type_slices_list]
         self._flat_state_size = len(flat_nodes_list)
+
+        # _flat_value_order[i] gives the position in the concatenated sampled
+        # values that should land at flat position i. This turns __call__ into
+        # a pure gather (no zeros + scatter).
+        if self._flat_scatter_index.size > 0:
+            self._flat_value_order = jnp.argsort(self._flat_scatter_index)
+        else:
+            self._flat_value_order = jnp.array([], dtype=int)
 
     def __call__(
         self,
@@ -244,7 +264,6 @@ class MomentAccumulatorObserver(AbstractObserver):
     ) -> tuple[list[Array], PyTree]:
         """Accumulate the moments via `carry`. Does not return anything for the sampler to write down."""
         if global_state is None:
-            # Fallback when called directly from user code without a precomputed global state.
             global_state = block_state_to_global(
                 state_free + state_clamped, program.gibbs_spec
             )
@@ -254,13 +273,10 @@ class MomentAccumulatorObserver(AbstractObserver):
         )
         sampled_state = list(self.f_transform(sampled_state, self.blocks_to_sample))
 
-        # Single scatter instead of one .at[].set() per node type.
+        # Concatenate all sampled values (ordered by type-block), then permute
+        # into flat-node order via a precomputed argsort — no zeros allocation.
         flat_values = jnp.concatenate([jnp.ravel(s) for s in sampled_state])
-        flat_state = (
-            jnp.zeros(self._flat_state_size, dtype=self._accumulate_dtype)
-            .at[self._flat_scatter_index]
-            .set(flat_values.astype(self._accumulate_dtype))
-        )
+        flat_state = flat_values.astype(self._accumulate_dtype)[self._flat_value_order]
 
         def accumulate_moment(mem_entry, sl):
             update = jnp.prod(flat_state[sl], axis=1)
