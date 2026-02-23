@@ -114,6 +114,19 @@ def _tree_slice(x, sl):
     return x
 
 
+def _build_output_sd(block: Block, template_sd: PyTree) -> PyTree:
+    """Resize a template ShapeDtypeStruct pytree for *block*'s node count."""
+
+    def _resize(leaf):
+        if isinstance(leaf, jax.ShapeDtypeStruct):
+            return jax.ShapeDtypeStruct(
+                (len(block.nodes), *leaf.shape), leaf.dtype
+            )
+        return leaf
+
+    return jax.tree.map(_resize, template_sd)
+
+
 class BlockSamplingProgram(eqx.Module):
     """A PGM block-sampling program.
 
@@ -139,6 +152,7 @@ class BlockSamplingProgram(eqx.Module):
         required to update each block
     - `_block_sd_inds`: precomputed sd_index for each free block (avoids recomputing inside scan)
     - `_block_positions`: precomputed node positions in global state for each free block (avoids recomputing inside scan)
+    - `_block_output_sds`: precomputed output ShapeDtypeStruct pytree for each free block
     """
 
     gibbs_spec: BlockGibbsSpec
@@ -151,6 +165,7 @@ class BlockSamplingProgram(eqx.Module):
     # calling get_node_locations inside the traced scan body.
     _block_sd_inds: list[int]
     _block_positions: list[Array]
+    _block_output_sds: list[PyTree]
 
     def __init__(
         self,
@@ -279,15 +294,19 @@ class BlockSamplingProgram(eqx.Module):
         self.per_block_interaction_global_inds = per_block_interaction_global_inds
         self.per_block_interaction_global_slices = per_block_interaction_global_slices
 
-        # Precompute scatter indices per free block to keep _run_blocks scan-body pure.
+        # Precompute scatter indices and output SDs per free block.
         block_sd_inds = []
         block_positions = []
+        block_output_sds = []
         for block in gibbs_spec.free_blocks:
             sd_ind, positions = get_node_locations(block, gibbs_spec)
             block_sd_inds.append(sd_ind)
             block_positions.append(positions)
+            template_sd = gibbs_spec.node_shape_struct[block.node_type]
+            block_output_sds.append(_build_output_sd(block, template_sd))
         self._block_sd_inds = block_sd_inds
         self._block_positions = block_positions
+        self._block_output_sds = block_output_sds
 
 
 _State: TypeAlias = PyTree[Shaped[Array, "nodes ?*state"], "_State"]
@@ -350,19 +369,7 @@ def sample_single_block(
             )
         all_interaction_states.append(this_interaction_states)
 
-    this_block = program.gibbs_spec.free_blocks[block]
-
-    node_type = this_block.node_type
-    template_sd = program.gibbs_spec.node_shape_struct[node_type]
-
-    def _resize_sd(leaf):
-        if isinstance(leaf, jax.ShapeDtypeStruct):
-            return jax.ShapeDtypeStruct(
-                (len(this_block.nodes), *leaf.shape), leaf.dtype
-            )
-        return leaf
-
-    sd_to_pass = jax.tree.map(_resize_sd, template_sd)
+    sd_to_pass = program._block_output_sds[block]
 
     block_interactions = (
         per_block_interactions[block]
@@ -404,10 +411,7 @@ def sample_blocks(
     - Updated free-block state list and sampler-state list.
     """
     if __debug__:
-        sds = {
-            node_type: jax.tree.unflatten(*sd)
-            for node_type, sd in program.gibbs_spec.node_shape_dtypes.items()
-        }
+        sds = program.gibbs_spec.node_shape_struct
         verify_block_state(program.gibbs_spec.free_blocks, state_free, sds, -1)
         verify_block_state(program.gibbs_spec.clamped_blocks, clamp_state, sds, -1)
 
@@ -492,9 +496,11 @@ def _run_blocks(
         keys = jax.random.split(_key, len(program.gibbs_spec.free_blocks))
 
         for sampling_group in program.gibbs_spec.sampling_order:
-            state_updates = {}
+            # Collect all updates for this group before writing back.
+            new_states = {}
+            new_sampler_states = {}
             for i in sampling_group:
-                state_updates[i], sampler_state[i] = sample_single_block(
+                new_states[i], new_sampler_states[i] = sample_single_block(
                     keys[i],
                     state_free,
                     state_clamp,
@@ -504,15 +510,24 @@ def _run_blocks(
                     global_state,
                     per_block_interactions=pbi,
                 )
-            for i, new_state in state_updates.items():
-                state_free[i] = new_state
+
+            # Apply updates functionally.
+            state_free = [
+                new_states[i] if i in new_states else state_free[i]
+                for i in range(len(state_free))
+            ]
+            sampler_state = [
+                new_sampler_states[i] if i in new_sampler_states else sampler_state[i]
+                for i in range(len(sampler_state))
+            ]
+            for i in new_states:
                 sd_ind = block_sd_inds[i]
                 positions = block_positions[i]
                 new_global = list(global_state)
                 new_global[sd_ind] = jax.tree.map(
                     lambda g, s: g.at[positions].set(s),
                     global_state[sd_ind],
-                    new_state,
+                    new_states[i],
                 )
                 global_state = new_global
 
@@ -573,7 +588,7 @@ def sample_with_observation(
     """
     sampler_states = [s.init() for s in program.samplers]
 
-    key, subkey = jax.random.split(key, 2)
+    key, subkey = jax.random.split(key)
     warmup_state, warmup_sampler_states, warmup_global = _run_blocks(
         subkey,
         program,
