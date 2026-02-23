@@ -57,7 +57,7 @@ class InteractionGroup(eqx.Module):
         def _get_dim(x):
             return (
                 (-1 if not len(x.shape) else x.shape[0])
-                if isinstance(x, jnp.ndarray)
+                if eqx.is_array(x)
                 else interaction_size
             )
 
