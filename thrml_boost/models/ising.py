@@ -39,7 +39,6 @@ class IsingEBM(AbstractFactorizedEBM):
     - `edges`: the edges that have an associated weight (i.e $S_2$)
     - `weights`: the weight associated with each pair of nodes in `edges`.
     - `beta`: the scalar temperature parameter for the model.
-
     """
 
     nodes: list[AbstractNode]
@@ -47,6 +46,13 @@ class IsingEBM(AbstractFactorizedEBM):
     edges: list[Edge]
     weights: Array
     beta: Array
+
+    # NOTE: .factors is intentionally a @property, NOT cached.
+    # eqx.filter_value_and_grad replaces self.weights/self.biases with
+    # tracers; caching beta*weights at __init__ time would freeze
+    # concrete values and break gradient flow. The Block/SpinEBMFactor
+    # construction overhead is acceptable — it's Python-level and doesn't
+    # add XLA ops.
 
     def __init__(
         self,
