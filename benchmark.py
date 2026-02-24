@@ -19,7 +19,6 @@ Usage:
 
 import argparse
 import time
-from typing import Any
 
 import jax
 import jax.numpy as jnp
@@ -27,24 +26,20 @@ import numpy as np
 
 jax.config.update("jax_enable_x64", False)
 
-import thrml_boost
-from thrml_boost import (
+import thrml_boost  # noqa: E402
+from thrml_boost import (  # noqa: E402
     Block,
-    BlockSpec,
-    SpinNode,
     SamplingSchedule,
     sample_states,
     sample_with_observation,
     MomentAccumulatorObserver,
-    StateObserver,
 )
-from thrml_boost.models import (
+from thrml_boost.models import (  # noqa: E402
     IsingEBM,
     IsingSamplingProgram,
     hinton_init,
 )
-from thrml_boost.tempering import parallel_tempering
-from thrml_boost.block_sampling import _run_blocks, sample_blocks
+from thrml_boost.tempering import parallel_tempering  # noqa: E402
 
 try:
     import thrml
@@ -352,7 +347,7 @@ def bench_energy(L: int, n_evals: int, num_runs: int):
     print(f"  → fast-path speedup: {res_b['avg_s'] / res_s['avg_s']:.2f}×")
 
     # ── JIT'd: the compile-time cost of tracing with/without spec ──
-    print(f"\n  JIT'd:")
+    print("\n  JIT'd:")
 
     @jax.jit
     def jit_energy_blocks(s):
@@ -463,7 +458,7 @@ def bench_moments(L: int, n_warmup: int, n_samples: int, num_runs: int):
         print(
             f"\n  → float32 vs float64: {res_f64['avg_s'] / res_f32['avg_s']:.2f}× faster"
         )
-        print(f"    (on GPU this gap widens to ~4× due to float64 emulation)")
+        print("    (on GPU this gap widens to ~4× due to float64 emulation)")
 
 
 # ═════════════════════════════════════════════════════════════════
