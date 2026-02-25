@@ -119,9 +119,7 @@ def _build_output_sd(block: Block, template_sd: PyTree) -> PyTree:
 
     def _resize(leaf):
         if isinstance(leaf, jax.ShapeDtypeStruct):
-            return jax.ShapeDtypeStruct(
-                (len(block.nodes), *leaf.shape), leaf.dtype
-            )
+            return jax.ShapeDtypeStruct((len(block.nodes), *leaf.shape), leaf.dtype)
         return leaf
 
     return jax.tree.map(_resize, template_sd)

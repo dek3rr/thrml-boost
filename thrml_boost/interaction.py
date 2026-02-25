@@ -1,6 +1,5 @@
 import equinox as eqx
 import jax
-import jax.numpy as jnp
 from jaxtyping import PyTree
 
 from thrml_boost.block_management import Block
