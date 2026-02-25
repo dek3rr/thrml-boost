@@ -1,0 +1,1787 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="The documentation for the thrml-boost library.">
+      
+      
+        <meta name="author" content="thrml-boost contributors">
+      
+      
+      
+        <link rel="prev" href="../00_probabilistic_computing/">
+      
+      
+        <link rel="next" href="../02_spin_models/">
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.7">
+    
+    
+      
+        <title>All of THRML - thrml-boost</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.8608ea7d.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="../../assets/_hippogriffe.css">
+    
+      <link rel="stylesheet" href="../../_static/custom_css.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="black" data-md-color-accent="amber">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#all-of-thrml" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="thrml-boost" class="md-header__button md-logo" aria-label="thrml-boost" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            thrml-boost
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              All of THRML
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="black" data-md-color-accent="amber"  aria-hidden="true"  type="radio" name="__palette" id="__palette_0">
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/dek3rr/thrml-boost" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    thrml-boost
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="thrml-boost" class="md-nav__button md-logo" aria-label="thrml-boost" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    thrml-boost
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/dek3rr/thrml-boost" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    thrml-boost
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../00_probabilistic_computing/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Getting Started with THRML
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    Examples
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Examples
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    All of THRML
+    
+  </span>
+  
+
+      </a>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../02_spin_models/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Spin Models in THRML
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../03_parallel_tempering/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Parallel Tempering with THRML-Boost
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    API Reference
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            API Reference
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/pgm/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Graphical Model Components
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/block_management/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Block Management
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/interaction/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Interaction Groups
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/factor/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Factors
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/conditional_samplers/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Conditional Samplers
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/block_sampling/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Block Sampling
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/observers/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Sampling Observers
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/tempering/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Parallel Tempering
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_9" id="__nav_4_9_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Models
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_9">
+            <span class="md-nav__icon md-icon"></span>
+            Models
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/models/ebm/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Energy-Based Models
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/models/discrete_ebm/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Discrete Energy-Based Models
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/models/ising/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Ising Models
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    Further details
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            Further details
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Architecture
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="all-of-thrml">All of THRML<a class="headerlink" href="#all-of-thrml" title="Permanent link">¤</a></h1>
+<p>THRML is a simple library for simulating probabilistic computers on GPUs. </p>
+<p>Concretely, THRML provides tools for GPU accelerating block sampling algorithms on sparse, heterogeneous probabilistic graphical models (PGMs) like the ones that Extropic hardware runs. The primary function of THRML is to be a scaffold that makes it much easier to implement any desired block sampling algorithm than it would be to do so from scratch. As such, this notebook will walk you through the main set of tools that THRML exposes that you can use in your own explorations. </p>
+<p>We will demonstrate the capabilities of THRML by using it to implement the Gibbs sampling algorithm for a Gaussian PGM.</p>
+<p>Gibbs sampling is obviously not a practical numerical method for Gaussian sampling in most cases, and should probably instead be handled using the <a href="https://en.wikipedia.org/wiki/Cholesky_decomposition">Cholesky decomposition</a>. We implement it here solely for the purposes of demonstrating THRML, which in reality will be used to attack more complex problems that can't be treated analytically.</p>
+<p>Specifically, in the first part of this example we will consider a PGM that embodies the Gaussian distribution</p>
+<div class="arithmatex">\[P(x) \propto e^{-E_G(x)}\]</div>
+<p>Where the energy function <span class="arithmatex">\(E_G(x)\)</span> is,</p>
+<div class="arithmatex">\[E_G(x) = \frac{1}{2} \left(x - \mu \right)^T A \left( x - \mu \right) \]</div>
+<p>and <span class="arithmatex">\(A = \Sigma^{-1}\)</span>, where <span class="arithmatex">\(\Sigma\)</span> is the covariance matrix of the distribution.</p>
+<p>We can expand this and write the energy function as a sum of terms,</p>
+<div class="arithmatex">\[E_G(x) + C = \frac{1}{2} \sum_i A_{ii} \: x_i^2 + \sum_{j&gt;i} A_{ij} \: x_i \: x_j + \sum_i b_i \: x_i\]</div>
+<p>Where <span class="arithmatex">\(C\)</span> is a constant independent of <span class="arithmatex">\(x\)</span>, and <span class="arithmatex">\(b = -\mu^T A\)</span> is a biasing vector.</p>
+<p>This form makes the graphical interpretation of the problem clear. Each of the variables <span class="arithmatex">\(x_i\)</span>  can be represented by a node, and the nonzero matrix elements of <span class="arithmatex">\(A\)</span> define edges between the nodes. </p>
+<p>We will use the Gibbs sampling algorithm to draw samples from our Gaussian distribution. To do this, we first identify the distribution of each <span class="arithmatex">\(x_i\)</span> conditioned on the rest of the graph,</p>
+<div class="arithmatex">\[P(x_i | x_{nb(i)}) \propto e^{-E_i (x_i ,x_{nb(i)})}\]</div>
+<div class="arithmatex">\[E_i (x_i ,x_{nb(i)}) = \frac{1}{2} A_{ii} \: x_i^2 + x_i \left( \sum_{j \in nb(i)} \: A_{ij} \: x_j + b_i \right)\]</div>
+<p>where <span class="arithmatex">\(nb(i)\)</span> indicates the neighbours of node i, which in this case is all j such that <span class="arithmatex">\(A_{ij} \neq 0\)</span>. This form makes it clear that Gibbs sampling is local, i.e the state of each node is updated using only information about nodes that it is directly connected to.</p>
+<p>We can write this in a different form that makes it obvious that the conditional is Gaussian,</p>
+<div class="arithmatex">\[E_i (x_i ,x_{nb(i)}) + D = \frac{1}{2} (x_i - m_i) A_{ii} (x_i - m_i) \]</div>
+<div class="arithmatex">\[ m_i = - \left( \sum_{j \in nb(i)} \frac{A_{ij}}{A_{ii}} x_j + \frac{b_i}{A_{ii}} \right) \]</div>
+<p>where <span class="arithmatex">\(D\)</span> is a constant independent of <span class="arithmatex">\(x_i\)</span>.</p>
+<p>The Gibbs sampling algorithm works by iteratively updating each of the <span class="arithmatex">\(x_i\)</span> according to this conditional distribution. In chromatic Gibbs sampling, nodes that belong to the same color group are updated in parallel. This "blocked" version is what we will implement here.</p>
+<p>With the math out of the way, we can proceed with the implementation of our sampling algorithm using THRML. First, let's get some imports out of the way:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">random</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">defaultdict</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Hashable</span><span class="p">,</span> <span class="n">Mapping</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">equinox</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">eqx</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">jax</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">jax.numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jnp</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">networkx</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nx</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">jaxtyping</span><span class="w"> </span><span class="kn">import</span> <span class="n">Array</span><span class="p">,</span> <span class="n">Key</span><span class="p">,</span> <span class="n">PyTree</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.decomposition</span><span class="w"> </span><span class="kn">import</span> <span class="n">PCA</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.preprocessing</span><span class="w"> </span><span class="kn">import</span> <span class="n">StandardScaler</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">thrml_boost.block_management</span><span class="w"> </span><span class="kn">import</span> <span class="n">Block</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">thrml_boost.block_sampling</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">BlockGibbsSpec</span><span class="p">,</span>
+    <span class="n">BlockSamplingProgram</span><span class="p">,</span>
+    <span class="n">sample_states</span><span class="p">,</span>
+    <span class="n">sample_with_observation</span><span class="p">,</span>
+    <span class="n">SamplingSchedule</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">thrml_boost.conditional_samplers</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">_SamplerState</span><span class="p">,</span>
+    <span class="n">_State</span><span class="p">,</span>
+    <span class="n">AbstractConditionalSampler</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">thrml_boost.factor</span><span class="w"> </span><span class="kn">import</span> <span class="n">AbstractFactor</span><span class="p">,</span> <span class="n">FactorSamplingProgram</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">thrml_boost.interaction</span><span class="w"> </span><span class="kn">import</span> <span class="n">InteractionGroup</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">thrml_boost.models.discrete_ebm</span><span class="w"> </span><span class="kn">import</span> <span class="n">SpinEBMFactor</span><span class="p">,</span> <span class="n">SpinGibbsConditional</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">thrml_boost.observers</span><span class="w"> </span><span class="kn">import</span> <span class="n">MomentAccumulatorObserver</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">thrml_boost.pgm</span><span class="w"> </span><span class="kn">import</span> <span class="n">AbstractNode</span>
+</code></pre></div>
+<p>Next, we will define our graph. In THRML, nodes that represent random variables with different data types (binary, categorical, continuous, etc.) are identified using distinct classes that inherit from <code>AbstractNode</code>. For our problem we only have one type of node, which we will define now,</p>
+<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">ContinuousNode</span><span class="p">(</span><span class="n">AbstractNode</span><span class="p">):</span>
+    <span class="k">pass</span>
+</code></pre></div>
+<p>We will now use the existing python graph library NetworkX to construct a grid graph of our nodes.</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">generate_grid_graph</span><span class="p">(</span>
+    <span class="o">*</span><span class="n">side_lengths</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span>
+    <span class="nb">tuple</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="n">ContinuousNode</span><span class="p">],</span> <span class="nb">list</span><span class="p">[</span><span class="n">ContinuousNode</span><span class="p">]],</span>
+    <span class="nb">tuple</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="n">ContinuousNode</span><span class="p">],</span> <span class="nb">list</span><span class="p">[</span><span class="n">ContinuousNode</span><span class="p">]],</span>
+    <span class="n">nx</span><span class="o">.</span><span class="n">Graph</span><span class="p">,</span>
+<span class="p">]:</span>
+    <span class="n">G</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">grid_graph</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="n">side_lengths</span><span class="p">,</span> <span class="n">periodic</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="n">coord_to_node</span> <span class="o">=</span> <span class="p">{</span><span class="n">coord</span><span class="p">:</span> <span class="n">ContinuousNode</span><span class="p">()</span> <span class="k">for</span> <span class="n">coord</span> <span class="ow">in</span> <span class="n">G</span><span class="o">.</span><span class="n">nodes</span><span class="p">}</span>
+    <span class="n">nx</span><span class="o">.</span><span class="n">relabel_nodes</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="n">coord_to_node</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">coord</span><span class="p">,</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">coord_to_node</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">G</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">node</span><span class="p">][</span><span class="s2">&quot;coords&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">coord</span>
+
+    <span class="c1"># an aperiodic grid is always 2-colorable</span>
+    <span class="n">bicol</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">bipartite</span><span class="o">.</span><span class="n">color</span><span class="p">(</span><span class="n">G</span><span class="p">)</span>
+    <span class="n">color0</span> <span class="o">=</span> <span class="p">[</span><span class="n">n</span> <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">bicol</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">c</span> <span class="o">==</span> <span class="mi">0</span><span class="p">]</span>
+    <span class="n">color1</span> <span class="o">=</span> <span class="p">[</span><span class="n">n</span> <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">bicol</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">c</span> <span class="o">==</span> <span class="mi">1</span><span class="p">]</span>
+
+    <span class="n">u</span><span class="p">,</span> <span class="n">v</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">G</span><span class="o">.</span><span class="n">edges</span><span class="p">()))</span>
+
+    <span class="k">return</span> <span class="p">(</span><span class="n">bicol</span><span class="p">,</span> <span class="n">color0</span><span class="p">,</span> <span class="n">color1</span><span class="p">),</span> <span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">),</span> <span class="n">G</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">plot_grid_graph</span><span class="p">(</span>
+    <span class="n">G</span><span class="p">:</span> <span class="n">nx</span><span class="o">.</span><span class="n">Graph</span><span class="p">,</span>
+    <span class="n">bicol</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="n">Hashable</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span>
+    <span class="n">ax</span><span class="p">:</span> <span class="n">plt</span><span class="o">.</span><span class="n">Axes</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">node_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">300</span><span class="p">,</span>
+    <span class="n">colors</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;black&quot;</span><span class="p">,</span> <span class="s2">&quot;orange&quot;</span><span class="p">),</span>
+    <span class="o">**</span><span class="n">draw_kwargs</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="n">pos</span> <span class="o">=</span> <span class="p">{</span><span class="n">n</span><span class="p">:</span> <span class="n">G</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">n</span><span class="p">][</span><span class="s2">&quot;coords&quot;</span><span class="p">][:</span><span class="mi">2</span><span class="p">]</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">G</span><span class="o">.</span><span class="n">nodes</span><span class="p">}</span>
+
+    <span class="n">node_colors</span> <span class="o">=</span> <span class="p">[</span><span class="n">colors</span><span class="p">[</span><span class="n">bicol</span><span class="p">[</span><span class="n">n</span><span class="p">]]</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">G</span><span class="o">.</span><span class="n">nodes</span><span class="p">]</span>
+
+    <span class="n">nx</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span>
+        <span class="n">G</span><span class="p">,</span>
+        <span class="n">pos</span><span class="o">=</span><span class="n">pos</span><span class="p">,</span>
+        <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span>
+        <span class="n">node_color</span><span class="o">=</span><span class="n">node_colors</span><span class="p">,</span>
+        <span class="n">node_size</span><span class="o">=</span><span class="n">node_size</span><span class="p">,</span>
+        <span class="n">edgecolors</span><span class="o">=</span><span class="s2">&quot;k&quot;</span><span class="p">,</span>
+        <span class="n">linewidths</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span>
+        <span class="n">width</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+        <span class="n">with_labels</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">draw_kwargs</span><span class="p">,</span>
+    <span class="p">)</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><span class="n">colors</span><span class="p">,</span> <span class="n">edges</span><span class="p">,</span> <span class="n">g</span> <span class="o">=</span> <span class="n">generate_grid_graph</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+
+<span class="n">all_nodes</span> <span class="o">=</span> <span class="n">colors</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">colors</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+
+<span class="n">node_map</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">all_nodes</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">all_nodes</span><span class="p">)))))</span>
+
+<span class="n">fig</span><span class="p">,</span> <span class="n">axs</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
+
+<span class="n">plot_grid_graph</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">colors</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">axs</span><span class="p">)</span>
+</code></pre></div>
+<p><img alt="img" src="../_data/fa450670e3d74332b410d42d7b2f382a.png" /></p>
+<p>The blue and orange nodes are the two color groups for our grid graph. Any nodes that are the same color will be sampled simultaneously during block sampling.</p>
+<p>With the graph in hand, we can fully define the distribution we want to sample from by choosing a corresponding inverse covariance matrix and mean vector,</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Fixed RNG seed for reproducibility</span>
+<span class="n">seed</span> <span class="o">=</span> <span class="mi">4242</span>
+<span class="n">key</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">key</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
+
+<span class="c1"># diagonal elements of the inverse covariance matrix</span>
+<span class="n">key</span><span class="p">,</span> <span class="n">subkey</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="n">cov_inv_diag</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">subkey</span><span class="p">,</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">all_nodes</span><span class="p">),),</span> <span class="n">minval</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">maxval</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+
+<span class="c1"># add an off-diagonal element to the inverse covariance matrix for each edge in the graph</span>
+<span class="n">key</span><span class="p">,</span> <span class="n">subkey</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="c1"># make sure the covaraince matrix is PSD</span>
+<span class="n">cov_inv_off_diag</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span>
+    <span class="n">subkey</span><span class="p">,</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">edges</span><span class="p">[</span><span class="mi">0</span><span class="p">]),),</span> <span class="n">minval</span><span class="o">=-</span><span class="mf">0.25</span><span class="p">,</span> <span class="n">maxval</span><span class="o">=</span><span class="mf">0.25</span>
+<span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">construct_inv_cov</span><span class="p">(</span>
+    <span class="n">diag</span><span class="p">:</span> <span class="n">Array</span><span class="p">,</span>
+    <span class="n">all_edges</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="n">ContinuousNode</span><span class="p">],</span> <span class="nb">list</span><span class="p">[</span><span class="n">ContinuousNode</span><span class="p">]],</span>
+    <span class="n">off_diag</span><span class="p">:</span> <span class="n">Array</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="n">inv_cov</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">diag</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">n1</span><span class="p">,</span> <span class="n">n2</span><span class="p">,</span> <span class="n">cov</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">all_edges</span><span class="p">,</span> <span class="n">off_diag</span><span class="p">):</span>
+        <span class="n">inv_cov</span><span class="p">[</span><span class="n">node_map</span><span class="p">[</span><span class="n">n1</span><span class="p">],</span> <span class="n">node_map</span><span class="p">[</span><span class="n">n2</span><span class="p">]]</span> <span class="o">=</span> <span class="n">cov</span>
+        <span class="n">inv_cov</span><span class="p">[</span><span class="n">node_map</span><span class="p">[</span><span class="n">n2</span><span class="p">],</span> <span class="n">node_map</span><span class="p">[</span><span class="n">n1</span><span class="p">]]</span> <span class="o">=</span> <span class="n">cov</span>
+
+    <span class="k">return</span> <span class="n">inv_cov</span>
+
+
+<span class="c1"># construct a matrix representation of the inverse covariance matrix for convenience</span>
+<span class="n">inv_cov_mat</span> <span class="o">=</span> <span class="n">construct_inv_cov</span><span class="p">(</span><span class="n">cov_inv_diag</span><span class="p">,</span> <span class="n">edges</span><span class="p">,</span> <span class="n">cov_inv_off_diag</span><span class="p">)</span>
+
+<span class="n">inv_cov_mat_jax</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">inv_cov_mat</span><span class="p">)</span>
+
+<span class="c1"># mean vector</span>
+<span class="n">key</span><span class="p">,</span> <span class="n">subkey</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="n">mean_vec</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">subkey</span><span class="p">,</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">all_nodes</span><span class="p">),))</span>
+
+<span class="c1"># bias vector</span>
+<span class="n">b_vec</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">jnp</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">&quot;ij, i -&gt; j&quot;</span><span class="p">,</span> <span class="n">inv_cov_mat</span><span class="p">,</span> <span class="n">mean_vec</span><span class="p">)</span>
+</code></pre></div>
+<p>Now we can construct a program to sample from the distribution we just defined. All block sampling routines follow more or less the same set of steps</p>
+<ol>
+<li>Divide your graph into two sets of blocks. The first set, the "free" blocks, will be updated during sampling. The second set, the "clamped" blocks, will have their nodes fixed to a constant value during sampling. This is often useful. For example, in the case of EBM sampling, this clamping allows for sampling from a distribution conditioned on the clamped nodes.</li>
+<li>Iteratively update the states of your free blocks. This means:<ol>
+<li>Initialize the state of each of the free nodes </li>
+<li>Update the state of each of the free nodes according to some rule. The update rule for each node is some function that takes in a set of parameters and the states of some subset of the other nodes in the graph, and returns an updated state for the node.</li>
+<li>Make some observation of the current state of the program. This might mean simply writing down the state of some subset of the nodes, or it might mean computing some more complex observable.</li>
+<li>Repeat steps 2 and 3 until a statisfactory number of observations have been made</li>
+</ol>
+</li>
+</ol>
+<p>THRML lets you run any version of this procedure that you want while writing minimal amounts of new code. We have to define 3 main things to accomplish this:</p>
+<ol>
+<li>A block specification: a division of our problem graph into free and clamped blocks</li>
+<li>A set of interactions: these allow us to specify what information is required to compute the conditional updates for each node in our graph.</li>
+<li>Conditional sampling rules: these specify how to update the state of each node in our graph given the interactions that are applicable to that node</li>
+</ol>
+<p>First, we will define a block spec for our problem. In our case, we simply want to sample each color group in sequence, and we won't be clamping any of the nodes,</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># a Block is just a list of nodes that are all the same type</span>
+<span class="c1"># forcing the nodes in a Block to be of the same type is important for parallelization</span>
+<span class="n">free_blocks</span> <span class="o">=</span> <span class="p">[</span><span class="n">Block</span><span class="p">(</span><span class="n">colors</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="n">Block</span><span class="p">(</span><span class="n">colors</span><span class="p">[</span><span class="mi">2</span><span class="p">])]</span>
+
+<span class="c1"># we won&#39;t be clamping anything here, but in principle this could be a list of Blocks just like above</span>
+<span class="n">clamped_blocks</span> <span class="o">=</span> <span class="p">[]</span>
+
+<span class="c1"># every node in the program has to be assigned a shape and datatype (or PyTree thereof).</span>
+<span class="c1"># this is so THRML can build an internal &quot;global&quot; representation of the state of the sampling program using a small number of jax arrays</span>
+<span class="n">node_shape_dtypes</span> <span class="o">=</span> <span class="p">{</span><span class="n">ContinuousNode</span><span class="p">:</span> <span class="n">jax</span><span class="o">.</span><span class="n">ShapeDtypeStruct</span><span class="p">((),</span> <span class="n">jnp</span><span class="o">.</span><span class="n">float32</span><span class="p">)}</span>
+
+<span class="c1"># our block specification</span>
+<span class="n">spec</span> <span class="o">=</span> <span class="n">BlockGibbsSpec</span><span class="p">(</span><span class="n">free_blocks</span><span class="p">,</span> <span class="n">clamped_blocks</span><span class="p">,</span> <span class="n">node_shape_dtypes</span><span class="p">)</span>
+</code></pre></div>
+<p>Now the interactions. Our PGM is of the undirected variety, which means that it can be described naturally using the language of <a href="https://en.wikipedia.org/wiki/Factor_graph">Factor Graphs</a>. Deep knowledge of factor graphs and their nomenclature isn't necessary to use THRML; in this context, a Factor is simply an interaction between a set of variables that has no natural direction. </p>
+<p>Factor graphs can be viewed as hypergraphs where each factor represents a hyperedge connecting multiple variables. Hyperedges in factor graphs can connect any number of variables, allowing for natural representation of higher-order interactions. For example, a three-way interaction term like <span class="arithmatex">\(x_1 x_2 x_3\)</span> in an energy function corresponds to a single hyperedge (factor) connecting three variable nodes. </p>
+<p>A nice thing about the Factor formalism is that in the context of Gibbs sampling, the conditional update rule for the <span class="arithmatex">\(i^{th}\)</span> node depends only on factors that involve <span class="arithmatex">\(x_i\)</span>. This means that given a set of factors for a graph, if we want to update the state of a given node, we only need to consider a small subset of all of the factors that are local to that node. </p>
+<p>In our case, our energy function can we written as a sum of a bunch of terms, each of which is associated with a factor. There are three distinct types of term in this sum, each of which is associated with a different type of factor:</p>
+<ol>
+<li><span class="arithmatex">\(A_{ii} \: x_i^2\)</span></li>
+<li><span class="arithmatex">\(b_i \: x_i\)</span></li>
+<li><span class="arithmatex">\(A_{ij} \: x_i \: x_j\)</span></li>
+</ol>
+<p>Each of these factors contributes to our conditional update rule in a different and consistent way. As such, in the context of algorithms like Gibbs sampling, Factors are defined by their ability to produce a set of directed interactions that effect the different nodes they involve in potentially different ways. In the case of our Gaussian sampling problem, our factors generate interactions that are either:</p>
+<ol>
+<li>Linear: contribute terms to the energy function like <span class="arithmatex">\(c_i \: x_i\)</span>, where <span class="arithmatex">\(c_i\)</span> does not depend on the "head node" <span class="arithmatex">\(x_i\)</span> but may depend on some "tail nodes" <span class="arithmatex">\(x_{nb(i)}\)</span></li>
+<li>Quadratic: contribute terms to the energy function like <span class="arithmatex">\(d_i \: x_i^2\)</span>, where in our case <span class="arithmatex">\(d_i\)</span> is a constant independent of the state of the sampling program</li>
+</ol>
+<p>THRML implements these abstractions directly in code. </p>
+<p>The most primitive object is the <code>InteractionGroup</code>, which specifies what parametric and state information should be supplied to a given node to compute it's conditional update. An <code>InteractionGroup</code> is composed of a set of interaction parameters, a set of "head nodes", and sets of "tail nodes". The head nodes are the nodes whose conditional update is effected by the interaction, and the tail nodes specify which neighbouring node states are required to compute the conditional update.</p>
+<p>THRML also defines Factors via the <code>AbstractFactor</code> interface. In full generality, THRML defines a factor as anything that can be reduced to a set of <code>InteractionGroup</code>s. THRML also defines more specialized factors (like ones that define an energy), however we won't be using those here.</p>
+<p>We can use these objects to set up our sampling program,</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># these are just arrays that we can identify by type, will be useful later</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">LinearInteraction</span><span class="p">(</span><span class="n">eqx</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;An interaction of the form $c_i x_i$.&quot;&quot;&quot;</span>
+
+    <span class="n">weights</span><span class="p">:</span> <span class="n">Array</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">QuadraticInteraction</span><span class="p">(</span><span class="n">eqx</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;An interaction of the form $d_i x_i^2$.&quot;&quot;&quot;</span>
+
+    <span class="n">inverse_weights</span><span class="p">:</span> <span class="n">Array</span>
+
+
+<span class="c1"># now we can set up our three different types of factors</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">QuadraticFactor</span><span class="p">(</span><span class="n">AbstractFactor</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;A factor of the form $w \: x^2$&quot;&quot;&quot;</span>
+
+    <span class="c1"># 1/A_{ii}</span>
+    <span class="n">inverse_weights</span><span class="p">:</span> <span class="n">Array</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inverse_weights</span><span class="p">:</span> <span class="n">Array</span><span class="p">,</span> <span class="n">block</span><span class="p">:</span> <span class="n">Block</span><span class="p">):</span>
+        <span class="c1"># in general, a factor is initialized via a list of blocks</span>
+        <span class="c1"># these blocks should all have the same number of nodes, and represent groupings of nodes involved in the factor</span>
+        <span class="c1"># for example, if a Factor involved 3 nodes, we would initialize it with 3 parallel blocks of equal length</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">([</span><span class="n">block</span><span class="p">])</span>
+
+        <span class="c1"># this array has shape [n], where n is the number of nodes in block</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">inverse_weights</span> <span class="o">=</span> <span class="n">inverse_weights</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">to_interaction_groups</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">InteractionGroup</span><span class="p">]:</span>
+        <span class="c1"># based on our conditional update rule, we can see that we need this to generate a Quadratic interaction with no tail nodes (i.e this interaction has no dependence on the neighbours of x_i)</span>
+
+        <span class="c1"># we create an InteractionGroup that implements this interaction</span>
+
+        <span class="n">interaction</span> <span class="o">=</span> <span class="n">InteractionGroup</span><span class="p">(</span>
+            <span class="n">interaction</span><span class="o">=</span><span class="n">QuadraticInteraction</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inverse_weights</span><span class="p">),</span>
+            <span class="n">head_nodes</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">node_groups</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+            <span class="c1"># no tail nodes in this case</span>
+            <span class="n">tail_nodes</span><span class="o">=</span><span class="p">[],</span>
+        <span class="p">)</span>
+
+        <span class="k">return</span> <span class="p">[</span><span class="n">interaction</span><span class="p">]</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">LinearFactor</span><span class="p">(</span><span class="n">AbstractFactor</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;A factor of the form $w \: x$&quot;&quot;&quot;</span>
+
+    <span class="c1"># b_i</span>
+    <span class="n">weights</span><span class="p">:</span> <span class="n">Array</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">weights</span><span class="p">:</span> <span class="n">Array</span><span class="p">,</span> <span class="n">block</span><span class="p">:</span> <span class="n">Block</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">([</span><span class="n">block</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">weights</span> <span class="o">=</span> <span class="n">weights</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">to_interaction_groups</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">InteractionGroup</span><span class="p">]:</span>
+        <span class="c1"># follows the same pattern as previous, still no tail nodes</span>
+
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="n">InteractionGroup</span><span class="p">(</span>
+                <span class="n">interaction</span><span class="o">=</span><span class="n">LinearInteraction</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weights</span><span class="p">),</span>
+                <span class="n">head_nodes</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">node_groups</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                <span class="n">tail_nodes</span><span class="o">=</span><span class="p">[],</span>
+            <span class="p">)</span>
+        <span class="p">]</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">CouplingFactor</span><span class="p">(</span><span class="n">AbstractFactor</span><span class="p">):</span>
+    <span class="c1"># A_{ij}</span>
+    <span class="n">weights</span><span class="p">:</span> <span class="n">Array</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">weights</span><span class="p">:</span> <span class="n">Array</span><span class="p">,</span> <span class="n">blocks</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Block</span><span class="p">,</span> <span class="n">Block</span><span class="p">]):</span>
+        <span class="c1"># in this case our factor involves two nodes, so it is initialized with two blocks</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">blocks</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">weights</span> <span class="o">=</span> <span class="n">weights</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">to_interaction_groups</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">InteractionGroup</span><span class="p">]:</span>
+        <span class="c1"># this factor produces interactions that impact both sets of nodes that it touches</span>
+        <span class="c1"># i.e if this factor involves a term like w x_1 x_2, it should produce one interaction with weight w that has x_1 as a head node and x_2 as a tail node,</span>
+        <span class="c1"># and another interaction with weight w that has x_2 as a head node and x_1 as a tail node</span>
+
+        <span class="c1"># if we were sure that x_1 and x_2 were always the same type of node, the two interactions could be part of the same InteractionGroup</span>
+        <span class="c1"># we won&#39;t worry about that here though</span>
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="n">InteractionGroup</span><span class="p">(</span>
+                <span class="n">LinearInteraction</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weights</span><span class="p">),</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">node_groups</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">node_groups</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span>
+            <span class="p">),</span>
+            <span class="n">InteractionGroup</span><span class="p">(</span>
+                <span class="n">LinearInteraction</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weights</span><span class="p">),</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">node_groups</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">node_groups</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span>
+            <span class="p">),</span>
+        <span class="p">]</span>
+</code></pre></div>
+<p>Now the conditional update the rule. Here, we will define how the relevant interaction and state information should be used to produce an updated state in our iterative sampling algorithm.</p>
+<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">GaussianSampler</span><span class="p">(</span><span class="n">AbstractConditionalSampler</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">sample</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">key</span><span class="p">:</span> <span class="n">Key</span><span class="p">,</span>
+        <span class="n">interactions</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">PyTree</span><span class="p">],</span>
+        <span class="n">active_flags</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Array</span><span class="p">],</span>
+        <span class="n">states</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="n">_State</span><span class="p">]],</span>
+        <span class="n">sampler_state</span><span class="p">:</span> <span class="n">_SamplerState</span><span class="p">,</span>
+        <span class="n">output_sd</span><span class="p">:</span> <span class="n">PyTree</span><span class="p">[</span><span class="n">jax</span><span class="o">.</span><span class="n">ShapeDtypeStruct</span><span class="p">],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Array</span><span class="p">,</span> <span class="n">_SamplerState</span><span class="p">]:</span>
+        <span class="c1"># this is where the rubber meets the road in THRML</span>
+
+        <span class="c1"># this function gets called during block sampling, and must take in information about interactions and neighbour states and produce a state update</span>
+
+        <span class="c1"># interactions, active_flags, and states are three parallel lists.</span>
+
+        <span class="c1"># each item in interactions is a pytree, for which each array will have shape [n, k, ...].</span>
+        <span class="c1"># this is generated by THRML from the set of InteractionGroups that are used to create a sampling program</span>
+        <span class="c1"># n is the number of nodes that we are updating in parallel during this call to sample</span>
+        <span class="c1"># k is the maximum number of times any node in the block that is being updated shows up as a head node for this interaction</span>
+
+        <span class="c1"># each item in active_flags is a boolean array with shape [n, k].</span>
+        <span class="c1"># this is padding that is generated internally by THRML based on the graphical structure of the model,</span>
+        <span class="c1"># and serves to allow for heterogeneous graph sampling to be vectorized on accelerators that rely on homogeneous data structures</span>
+
+        <span class="c1"># each item in states is a list of Pytrees that represents the state of the tail nodes that are relevant to this interaction.</span>
+        <span class="c1"># for example, for an interaction with a single tail node that has a scalar dtype, states would be:</span>
+        <span class="c1"># [[n, k],]</span>
+
+        <span class="n">bias</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="n">output_sd</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">output_sd</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+        <span class="n">var</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="n">output_sd</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">output_sd</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+
+        <span class="c1"># loop through all of the available interactions and process them appropriately</span>
+
+        <span class="c1"># here we are simply implementing the math of our conditional update rule</span>
+
+        <span class="k">for</span> <span class="n">active</span><span class="p">,</span> <span class="n">interaction</span><span class="p">,</span> <span class="n">state</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">active_flags</span><span class="p">,</span> <span class="n">interactions</span><span class="p">,</span> <span class="n">states</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">interaction</span><span class="p">,</span> <span class="n">LinearInteraction</span><span class="p">):</span>
+                <span class="c1"># if there are tail nodes, contribute w * x_1 * x_2 * ..., otherwise contribute w</span>
+                <span class="n">state_prod</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="mf">1.0</span><span class="p">)</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">state</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">state_prod</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+                <span class="n">bias</span> <span class="o">-=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">interaction</span><span class="o">.</span><span class="n">weights</span> <span class="o">*</span> <span class="n">active</span> <span class="o">*</span> <span class="n">state_prod</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">interaction</span><span class="p">,</span> <span class="n">QuadraticInteraction</span><span class="p">):</span>
+                <span class="c1"># this just sets the variance of the output distribution</span>
+                <span class="c1"># there should never be any tail nodes</span>
+
+                <span class="n">var</span> <span class="o">=</span> <span class="n">active</span> <span class="o">*</span> <span class="n">interaction</span><span class="o">.</span><span class="n">inverse_weights</span>
+                <span class="n">var</span> <span class="o">=</span> <span class="n">var</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>  <span class="c1"># there should only ever be one</span>
+
+        <span class="k">return</span> <span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">var</span><span class="p">)</span> <span class="o">*</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">output_sd</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span> <span class="o">+</span> <span class="p">(</span>
+            <span class="n">bias</span> <span class="o">*</span> <span class="n">var</span>
+        <span class="p">),</span> <span class="n">sampler_state</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">init</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_SamplerState</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+</code></pre></div>
+<p>With all of the parts fully defined, we can now construct our sampling program</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># our three types of factor</span>
+<span class="n">lin_fac</span> <span class="o">=</span> <span class="n">LinearFactor</span><span class="p">(</span><span class="n">b_vec</span><span class="p">,</span> <span class="n">Block</span><span class="p">(</span><span class="n">all_nodes</span><span class="p">))</span>
+<span class="n">quad_fac</span> <span class="o">=</span> <span class="n">QuadraticFactor</span><span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="n">cov_inv_diag</span><span class="p">,</span> <span class="n">Block</span><span class="p">(</span><span class="n">all_nodes</span><span class="p">))</span>
+<span class="n">pair_quad_fac</span> <span class="o">=</span> <span class="n">CouplingFactor</span><span class="p">(</span><span class="n">cov_inv_off_diag</span><span class="p">,</span> <span class="p">(</span><span class="n">Block</span><span class="p">(</span><span class="n">edges</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">Block</span><span class="p">(</span><span class="n">edges</span><span class="p">[</span><span class="mi">1</span><span class="p">])))</span>
+
+<span class="c1"># an instance of our conditional sampler</span>
+<span class="n">sampler</span> <span class="o">=</span> <span class="n">GaussianSampler</span><span class="p">()</span>
+
+<span class="c1"># the sampling program itself. Combines the three main components we just built</span>
+<span class="n">prog</span> <span class="o">=</span> <span class="n">FactorSamplingProgram</span><span class="p">(</span>
+    <span class="n">gibbs_spec</span><span class="o">=</span><span class="n">spec</span><span class="p">,</span>
+    <span class="c1"># one sampler for every free block in gibbs_spec</span>
+    <span class="n">samplers</span><span class="o">=</span><span class="p">[</span><span class="n">sampler</span><span class="p">,</span> <span class="n">sampler</span><span class="p">],</span>
+    <span class="n">factors</span><span class="o">=</span><span class="p">[</span><span class="n">lin_fac</span><span class="p">,</span> <span class="n">quad_fac</span><span class="p">,</span> <span class="n">pair_quad_fac</span><span class="p">],</span>
+    <span class="n">other_interaction_groups</span><span class="o">=</span><span class="p">[],</span>
+<span class="p">)</span>
+</code></pre></div>
+<p><code>FactorSamplingProgram</code> is a thin wrapper on the more generic <code>BlockSamplingProgram</code>. All <code>FactorSamplingProgram</code> does is convert all of the factors passed in into <code>InteractionGroups</code> and then use them to create a `BlockSamplingProgram'. As such, prog is equivalent to prog_2 in the following:</p>
+<div class="highlight"><pre><span></span><code><span class="n">groups</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">fac</span> <span class="ow">in</span> <span class="p">[</span><span class="n">lin_fac</span><span class="p">,</span> <span class="n">quad_fac</span><span class="p">,</span> <span class="n">pair_quad_fac</span><span class="p">]:</span>
+    <span class="n">groups</span> <span class="o">+=</span> <span class="n">fac</span><span class="o">.</span><span class="n">to_interaction_groups</span><span class="p">()</span>
+
+<span class="n">prog_2</span> <span class="o">=</span> <span class="n">BlockSamplingProgram</span><span class="p">(</span>
+    <span class="n">gibbs_spec</span><span class="o">=</span><span class="n">spec</span><span class="p">,</span> <span class="n">samplers</span><span class="o">=</span><span class="p">[</span><span class="n">sampler</span><span class="p">,</span> <span class="n">sampler</span><span class="p">],</span> <span class="n">interaction_groups</span><span class="o">=</span><span class="n">groups</span>
+<span class="p">)</span>
+</code></pre></div>
+<p>Now we are finally ready to do some sampling! A sampling program in THRML simply repeatedly updates the state of each free block in the order they appear in the gibbs_spec. After every iteration of the sampling algorithm, we may observe the state and write down some information that is relevant to the problem we are trying to solve. For example, if we wanted to extract samples from some subset of the nodes of our PGM, after each iteration we could simply memorize some subset of the current state. This functionality is provided by observers in THRML.</p>
+<p>For the purposes of this example, it would be prudent to check that our sampling program is working correctly. To do this, we will compute estimators of some first and second moments and verify that they match up with expected values from the theory. We will use the built-in <code>MomentAccumulatorObserver</code> to accomplish this.</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># we will estimate the covariances for each pair of nodes connected by an edge and compare against theory</span>
+<span class="c1"># to do this we will need to estimate first moments and second moments</span>
+<span class="n">second_moments</span> <span class="o">=</span> <span class="p">[(</span><span class="n">e1</span><span class="p">,</span> <span class="n">e2</span><span class="p">)</span> <span class="k">for</span> <span class="n">e1</span><span class="p">,</span> <span class="n">e2</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">edges</span><span class="p">)]</span>
+<span class="n">first_moments</span> <span class="o">=</span> <span class="p">[[(</span><span class="n">x</span><span class="p">,)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">y</span><span class="p">]</span> <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">edges</span><span class="p">]</span>
+
+<span class="c1"># this will accumulate products of the node state specified by first_moments and second_moments</span>
+<span class="n">observer</span> <span class="o">=</span> <span class="n">MomentAccumulatorObserver</span><span class="p">(</span><span class="n">first_moments</span> <span class="o">+</span> <span class="p">[</span><span class="n">second_moments</span><span class="p">])</span>
+</code></pre></div>
+<p>Now all that is left to do is specify a few more details about how the sampling should proceed. </p>
+<div class="highlight"><pre><span></span><code><span class="c1"># how many parallel sampling chains will we run?</span>
+<span class="n">n_batches</span> <span class="o">=</span> <span class="mi">1000</span>
+
+
+<span class="n">schedule</span> <span class="o">=</span> <span class="n">SamplingSchedule</span><span class="p">(</span>
+    <span class="c1"># how many iterations to do before drawing the first sample</span>
+    <span class="n">n_warmup</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+    <span class="c1"># how many samples to draw in total</span>
+    <span class="n">n_samples</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span>
+    <span class="c1"># how many steps to take between samples</span>
+    <span class="n">steps_per_sample</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="c1"># construct the initial state of the iterative sampling algorithm</span>
+<span class="n">init_state</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">block</span> <span class="ow">in</span> <span class="n">spec</span><span class="o">.</span><span class="n">free_blocks</span><span class="p">:</span>
+    <span class="n">key</span><span class="p">,</span> <span class="n">subkey</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">init_state</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+        <span class="mf">0.1</span>
+        <span class="o">*</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span>
+            <span class="n">subkey</span><span class="p">,</span>
+            <span class="p">(</span>
+                <span class="n">n_batches</span><span class="p">,</span>
+                <span class="nb">len</span><span class="p">(</span><span class="n">block</span><span class="o">.</span><span class="n">nodes</span><span class="p">),</span>
+            <span class="p">),</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+
+<span class="c1"># RNG keys to use for each chain in the batch</span>
+<span class="n">keys</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">n_batches</span><span class="p">)</span>
+
+<span class="c1"># memory to hold our moment values</span>
+<span class="n">init_mem</span> <span class="o">=</span> <span class="n">observer</span><span class="o">.</span><span class="n">init</span><span class="p">()</span>
+</code></pre></div>
+<p>Now run the sampling:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># we use vmap to run a bunch of parallel sampling chains</span>
+<span class="n">moments</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">vmap</span><span class="p">(</span>
+    <span class="k">lambda</span> <span class="n">k</span><span class="p">,</span> <span class="n">s</span><span class="p">:</span> <span class="n">sample_with_observation</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">prog</span><span class="p">,</span> <span class="n">schedule</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="p">[],</span> <span class="n">init_mem</span><span class="p">,</span> <span class="n">observer</span><span class="p">)</span>
+<span class="p">)(</span><span class="n">keys</span><span class="p">,</span> <span class="n">init_state</span><span class="p">)</span>
+
+<span class="c1"># Take a mean over the batch axis and divide by the total number of samples</span>
+<span class="n">moments</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">tree</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">jnp</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="o">/</span> <span class="n">schedule</span><span class="o">.</span><span class="n">n_samples</span><span class="p">,</span> <span class="n">moments</span><span class="p">)</span>
+
+<span class="c1"># compute the covariance values from the moment data</span>
+<span class="n">covariances</span> <span class="o">=</span> <span class="n">moments</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="p">(</span><span class="n">moments</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">moments</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+</code></pre></div>
+<p>We can compare our covariance estimates to the real covariance matrix to see if we implemented our sampling routine correctly</p>
+<div class="highlight"><pre><span></span><code><span class="n">cov</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">inv_cov_mat</span><span class="p">)</span>
+
+<span class="n">node_map</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">all_nodes</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">all_nodes</span><span class="p">)))))</span>
+
+<span class="n">real_covs</span> <span class="o">=</span> <span class="p">[]</span>
+
+<span class="k">for</span> <span class="n">edge</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">edges</span><span class="p">):</span>
+    <span class="n">real_covs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cov</span><span class="p">[</span><span class="n">node_map</span><span class="p">[</span><span class="n">edge</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="n">node_map</span><span class="p">[</span><span class="n">edge</span><span class="p">[</span><span class="mi">1</span><span class="p">]]])</span>
+
+<span class="n">real_covs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">real_covs</span><span class="p">)</span>
+
+<span class="n">error</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">real_covs</span> <span class="o">-</span> <span class="n">covariances</span><span class="p">))</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">real_covs</span><span class="p">))</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">error</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">error</span> <span class="o">&lt;</span> <span class="mf">0.01</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>0.0045360937
+</code></pre></div>
+<p>We achieve a really small error because we computed a ton of samples. If you reduce either the batch size or the number of samples collected by each chain this number will go up.</p>
+<p>That is everything you need to know to implement any type of PGM block sampling routine you want in THRML. </p>
+<p>However, you don't always have to do everything completely from scratch! THRML exposes a limited set of higher-level functionality fine-tuned to sampling problems that Extropic really cares about. </p>
+<p>Next, we will use some of these higher-level functions to implement a more complicated type of model that can't be sampled from using analytical techniques. In particular, we will implement sampling from a deep Gaussian-Bernoulli EBM. This  type of model has the energy function</p>
+<div class="arithmatex">\[ E(x) = E_G(x) + E_{GB}(x, s) + E_B(s)\]</div>
+<p>where <span class="arithmatex">\(x\)</span> is a vector of continuous values and <span class="arithmatex">\(s\)</span> is a vector of <em>spins</em>, <span class="arithmatex">\(s_i \in \{-1, 1\}\)</span>.</p>
+<p><span class="arithmatex">\(E_G(x)\)</span> is the Gaussian energy function defined in the previous section. <span class="arithmatex">\(E_{GB}\)</span> is an energy function that represents the interaction between the continuous and spin-valued variables,</p>
+<div class="arithmatex">\[ E_{GB}(x, s) = \sum_{ (i, j) \in S_{GB}} W_{ij} \: y_i \: x_j \]</div>
+<p>where <span class="arithmatex">\(S_{GB}\)</span> is a set of edges connecting spin and continuous variables.</p>
+<p><span class="arithmatex">\(E_{B}\)</span> is the spin energy function,</p>
+<div class="arithmatex">\[ E_B(s) = \sum_i b_i \: s_i + \sum_{j &gt; i} J_{ij} s_i s_j\]</div>
+<p>Just for fun, lets use a more complicated graph topology for this problem. We will stick with a grid, but we will add skip-connections that allow for non-nearest-neighbour interactions. We can once again use NetworkX to make this graph,</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># first, define a new type of node</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">SpinNode</span><span class="p">(</span><span class="n">AbstractNode</span><span class="p">):</span>
+    <span class="k">pass</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><span class="c1"># now, build a random grid out of spin and continuous nodes</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">make_random_typed_grid</span><span class="p">(</span>
+    <span class="n">rows</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">cols</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">p_cont</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="n">rng</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">Random</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
+
+    <span class="c1"># every time we make a node, flip a coin to decide what type it should be</span>
+    <span class="n">grid</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">[</span><span class="n">ContinuousNode</span><span class="p">()</span> <span class="k">if</span> <span class="n">rng</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">&lt;</span> <span class="n">p_cont</span> <span class="k">else</span> <span class="n">SpinNode</span><span class="p">()</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">cols</span><span class="p">)]</span>
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span>
+    <span class="p">]</span>
+
+    <span class="c1"># Parity-based 2-coloring</span>
+    <span class="n">bicol</span> <span class="o">=</span> <span class="p">{</span><span class="n">grid</span><span class="p">[</span><span class="n">r</span><span class="p">][</span><span class="n">c</span><span class="p">]:</span> <span class="p">((</span><span class="n">r</span> <span class="o">+</span> <span class="n">c</span><span class="p">)</span> <span class="o">&amp;</span> <span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">cols</span><span class="p">)}</span>
+
+    <span class="c1"># Separate by color and type</span>
+    <span class="n">colors_by_type</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="mi">0</span><span class="p">:</span> <span class="p">{</span><span class="n">SpinNode</span><span class="p">:</span> <span class="p">[],</span> <span class="n">ContinuousNode</span><span class="p">:</span> <span class="p">[]},</span>
+        <span class="mi">1</span><span class="p">:</span> <span class="p">{</span><span class="n">SpinNode</span><span class="p">:</span> <span class="p">[],</span> <span class="n">ContinuousNode</span><span class="p">:</span> <span class="p">[]},</span>
+    <span class="p">}</span>
+    <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">rows</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">cols</span><span class="p">):</span>
+            <span class="n">n</span> <span class="o">=</span> <span class="n">grid</span><span class="p">[</span><span class="n">r</span><span class="p">][</span><span class="n">c</span><span class="p">]</span>
+            <span class="n">color</span> <span class="o">=</span> <span class="n">bicol</span><span class="p">[</span><span class="n">n</span><span class="p">]</span>
+            <span class="n">colors_by_type</span><span class="p">[</span><span class="n">color</span><span class="p">][</span><span class="nb">type</span><span class="p">(</span><span class="n">n</span><span class="p">)]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">grid</span><span class="p">,</span> <span class="n">colors_by_type</span>
+
+
+<span class="n">grid</span><span class="p">,</span> <span class="n">coloring</span> <span class="o">=</span> <span class="n">make_random_typed_grid</span><span class="p">(</span><span class="mi">30</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="n">seed</span><span class="p">)</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><span class="c1"># now generate the edges to implement our desired skip-connected grid</span>
+<span class="c1"># we will use only odd-length edges (1, 3, 5, ...) so that our 2-coloring remains valid</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">build_skip_graph_from_grid</span><span class="p">(</span>
+    <span class="n">grid</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="n">AbstractNode</span><span class="p">]],</span>
+    <span class="n">skips</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
+<span class="p">):</span>
+    <span class="n">rows</span><span class="p">,</span> <span class="n">cols</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">grid</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">grid</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+    <span class="c1"># Build graph &amp; annotate nodes with coords and type</span>
+    <span class="n">G</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">Graph</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">rows</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">cols</span><span class="p">):</span>
+            <span class="n">n</span> <span class="o">=</span> <span class="n">grid</span><span class="p">[</span><span class="n">r</span><span class="p">][</span><span class="n">c</span><span class="p">]</span>
+            <span class="n">G</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">c</span><span class="p">))</span>
+
+    <span class="c1"># Edges sorted by edge length</span>
+    <span class="n">u_all</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">v_all</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">skips</span><span class="p">:</span>
+        <span class="c1"># vertical: (r, c) -&gt; (r+k, c)</span>
+        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">rows</span> <span class="o">-</span> <span class="n">k</span><span class="p">):</span>
+            <span class="n">r2</span> <span class="o">=</span> <span class="n">r</span> <span class="o">+</span> <span class="n">k</span>
+            <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">cols</span><span class="p">):</span>
+                <span class="n">n1</span> <span class="o">=</span> <span class="n">grid</span><span class="p">[</span><span class="n">r</span><span class="p">][</span><span class="n">c</span><span class="p">]</span>
+                <span class="n">n2</span> <span class="o">=</span> <span class="n">grid</span><span class="p">[</span><span class="n">r2</span><span class="p">][</span><span class="n">c</span><span class="p">]</span>
+                <span class="n">u_all</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">n1</span><span class="p">)</span>
+                <span class="n">v_all</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">n2</span><span class="p">)</span>
+                <span class="n">G</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="n">n1</span><span class="p">,</span> <span class="n">n2</span><span class="p">)</span>
+
+        <span class="c1"># horizontal: (r, c) -&gt; (r, c+k)</span>
+        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">rows</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">cols</span> <span class="o">-</span> <span class="n">k</span><span class="p">):</span>
+                <span class="n">c2</span> <span class="o">=</span> <span class="n">c</span> <span class="o">+</span> <span class="n">k</span>
+                <span class="n">n1</span> <span class="o">=</span> <span class="n">grid</span><span class="p">[</span><span class="n">r</span><span class="p">][</span><span class="n">c</span><span class="p">]</span>
+                <span class="n">n2</span> <span class="o">=</span> <span class="n">grid</span><span class="p">[</span><span class="n">r</span><span class="p">][</span><span class="n">c2</span><span class="p">]</span>
+                <span class="n">u_all</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">n1</span><span class="p">)</span>
+                <span class="n">v_all</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">n2</span><span class="p">)</span>
+                <span class="n">G</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="n">n1</span><span class="p">,</span> <span class="n">n2</span><span class="p">,</span> <span class="n">skip</span><span class="o">=</span><span class="n">k</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="p">(</span><span class="n">u_all</span><span class="p">,</span> <span class="n">v_all</span><span class="p">),</span> <span class="n">G</span>
+
+
+<span class="n">edge_lengths</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">]</span>
+<span class="n">edges</span><span class="p">,</span> <span class="n">graph</span> <span class="o">=</span> <span class="n">build_skip_graph_from_grid</span><span class="p">(</span><span class="n">grid</span><span class="p">,</span> <span class="n">edge_lengths</span><span class="p">)</span>
+</code></pre></div>
+<p>Let's visualize this graph to understand what we just created. Since the graph is no longer planar, it will be cleanest to plot the local neighbourhood of particular nodes in our grid one at a time.</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">plot_node_neighbourhood</span><span class="p">(</span>
+    <span class="n">grid</span><span class="p">,</span>
+    <span class="n">G</span><span class="p">:</span> <span class="n">nx</span><span class="o">.</span><span class="n">Graph</span><span class="p">,</span>
+    <span class="n">center</span><span class="p">:</span> <span class="n">Hashable</span><span class="p">,</span>
+    <span class="n">hops</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">ax</span><span class="p">:</span> <span class="n">plt</span><span class="o">.</span><span class="n">Axes</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">rows</span><span class="p">,</span> <span class="n">cols</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">grid</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">grid</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">r</span><span class="p">,</span> <span class="n">c</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">center</span><span class="p">][</span><span class="s2">&quot;coords&quot;</span><span class="p">]</span>
+
+    <span class="c1"># make a rectangular subgrid</span>
+    <span class="n">r0</span><span class="p">,</span> <span class="n">r1</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">r</span> <span class="o">-</span> <span class="n">hops</span><span class="p">),</span> <span class="nb">min</span><span class="p">(</span><span class="n">rows</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">r</span> <span class="o">+</span> <span class="n">hops</span><span class="p">)</span>
+    <span class="n">c0</span><span class="p">,</span> <span class="n">c1</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">c</span> <span class="o">-</span> <span class="n">hops</span><span class="p">),</span> <span class="nb">min</span><span class="p">(</span><span class="n">cols</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">c</span> <span class="o">+</span> <span class="n">hops</span><span class="p">)</span>
+    <span class="n">rect_nodes</span> <span class="o">=</span> <span class="p">{</span><span class="n">grid</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">r0</span><span class="p">,</span> <span class="n">r1</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">c0</span><span class="p">,</span> <span class="n">c1</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)}</span>
+
+    <span class="c1"># collect the relevant edges by length</span>
+    <span class="n">edges_by_k</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">v</span><span class="p">,</span> <span class="n">ed</span> <span class="ow">in</span> <span class="n">G</span><span class="p">[</span><span class="n">center</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">k</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">ed</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;skip&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="n">edges_by_k</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">center</span><span class="p">,</span> <span class="n">v</span><span class="p">))</span>
+
+    <span class="c1"># draw edges as arcs</span>
+    <span class="n">max_k</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">edges_by_k</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span> <span class="n">default</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">curve_scale</span> <span class="o">=</span> <span class="mf">0.8</span>
+    <span class="n">edge_width</span> <span class="o">=</span> <span class="mf">1.0</span>
+    <span class="n">alpha</span> <span class="o">=</span> <span class="mf">1.0</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">rad_for_edge</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
+        <span class="n">r1</span><span class="p">,</span> <span class="n">c1</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">u</span><span class="p">][</span><span class="s2">&quot;coords&quot;</span><span class="p">]</span>
+        <span class="n">r2</span><span class="p">,</span> <span class="n">c2</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">v</span><span class="p">][</span><span class="s2">&quot;coords&quot;</span><span class="p">]</span>
+        <span class="n">base</span> <span class="o">=</span> <span class="n">curve_scale</span> <span class="o">*</span> <span class="p">(</span><span class="n">k</span> <span class="o">/</span> <span class="n">max_k</span><span class="p">)</span>
+        <span class="c1"># choose bend direction based on quadrant:</span>
+        <span class="k">if</span> <span class="n">c1</span> <span class="o">==</span> <span class="n">c2</span><span class="p">:</span>
+            <span class="n">sign</span> <span class="o">=</span> <span class="o">+</span><span class="mf">1.0</span> <span class="k">if</span> <span class="n">r2</span> <span class="o">&lt;</span> <span class="n">r1</span> <span class="k">else</span> <span class="o">-</span><span class="mf">1.0</span>  <span class="c1"># up vs down</span>
+        <span class="k">else</span><span class="p">:</span>  <span class="c1"># horizontal edge</span>
+            <span class="n">sign</span> <span class="o">=</span> <span class="o">+</span><span class="mf">1.0</span> <span class="k">if</span> <span class="n">c2</span> <span class="o">&gt;</span> <span class="n">c1</span> <span class="k">else</span> <span class="o">-</span><span class="mf">1.0</span>  <span class="c1"># right vs left</span>
+        <span class="k">return</span> <span class="n">sign</span> <span class="o">*</span> <span class="n">base</span>
+
+    <span class="c1"># positions for plotting</span>
+    <span class="n">pos</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">n</span><span class="p">:</span> <span class="p">(</span><span class="n">G</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">n</span><span class="p">][</span><span class="s2">&quot;coords&quot;</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">G</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">n</span><span class="p">][</span><span class="s2">&quot;coords&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">rect_nodes</span> <span class="o">|</span> <span class="p">{</span><span class="n">center</span><span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">edges_by_k</span><span class="p">)):</span>
+        <span class="k">for</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">edges_by_k</span><span class="p">[</span><span class="n">k</span><span class="p">]:</span>
+            <span class="n">nx</span><span class="o">.</span><span class="n">draw_networkx_edges</span><span class="p">(</span>
+                <span class="n">G</span><span class="p">,</span>
+                <span class="n">pos</span><span class="p">,</span>
+                <span class="n">edgelist</span><span class="o">=</span><span class="p">[(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">)],</span>
+                <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span>
+                <span class="n">edge_color</span><span class="o">=</span><span class="s2">&quot;gray&quot;</span><span class="p">,</span>
+                <span class="n">width</span><span class="o">=</span><span class="n">edge_width</span><span class="p">,</span>
+                <span class="n">alpha</span><span class="o">=</span><span class="n">alpha</span><span class="p">,</span>
+                <span class="n">arrows</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">arrowstyle</span><span class="o">=</span><span class="s2">&quot;-&quot;</span><span class="p">,</span>
+                <span class="n">connectionstyle</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;arc3,rad=</span><span class="si">{</span><span class="n">rad_for_edge</span><span class="p">(</span><span class="n">u</span><span class="p">,</span><span class="w"> </span><span class="n">v</span><span class="p">,</span><span class="w"> </span><span class="n">k</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
+
+    <span class="c1"># draw nodes</span>
+    <span class="n">cont_nodes</span> <span class="o">=</span> <span class="p">[</span><span class="n">n</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">rect_nodes</span> <span class="k">if</span> <span class="n">n</span><span class="o">.</span><span class="vm">__class__</span> <span class="o">==</span> <span class="n">ContinuousNode</span><span class="p">]</span>
+    <span class="n">spin_nodes</span> <span class="o">=</span> <span class="p">[</span><span class="n">n</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">rect_nodes</span> <span class="k">if</span> <span class="n">n</span><span class="o">.</span><span class="vm">__class__</span> <span class="o">==</span> <span class="n">SpinNode</span><span class="p">]</span>
+
+    <span class="n">node_size</span> <span class="o">=</span> <span class="mf">20.0</span>
+
+    <span class="n">nx</span><span class="o">.</span><span class="n">draw_networkx_nodes</span><span class="p">(</span>
+        <span class="n">G</span><span class="p">,</span>
+        <span class="n">pos</span><span class="p">,</span>
+        <span class="n">nodelist</span><span class="o">=</span><span class="n">cont_nodes</span><span class="p">,</span>
+        <span class="n">node_color</span><span class="o">=</span><span class="s2">&quot;black&quot;</span><span class="p">,</span>
+        <span class="n">node_shape</span><span class="o">=</span><span class="s2">&quot;s&quot;</span><span class="p">,</span>
+        <span class="n">node_size</span><span class="o">=</span><span class="n">node_size</span><span class="p">,</span>
+        <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">nx</span><span class="o">.</span><span class="n">draw_networkx_nodes</span><span class="p">(</span>
+        <span class="n">G</span><span class="p">,</span>
+        <span class="n">pos</span><span class="p">,</span>
+        <span class="n">nodelist</span><span class="o">=</span><span class="n">spin_nodes</span><span class="p">,</span>
+        <span class="n">node_color</span><span class="o">=</span><span class="s2">&quot;orange&quot;</span><span class="p">,</span>
+        <span class="n">node_shape</span><span class="o">=</span><span class="s2">&quot;o&quot;</span><span class="p">,</span>
+        <span class="n">node_size</span><span class="o">=</span><span class="n">node_size</span><span class="p">,</span>
+        <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span>
+    <span class="p">)</span>
+
+
+<span class="c1"># pick a few nodes in the grid to inspect</span>
+<span class="n">centers</span> <span class="o">=</span> <span class="p">[</span><span class="n">grid</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">7</span><span class="p">],</span> <span class="n">grid</span><span class="p">[</span><span class="mi">10</span><span class="p">][</span><span class="mi">10</span><span class="p">],</span> <span class="n">grid</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span>
+
+<span class="n">fig</span><span class="p">,</span> <span class="n">axs</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">nrows</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">ncols</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">centers</span><span class="p">),</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">centers</span><span class="p">)</span> <span class="o">*</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>
+
+
+<span class="k">for</span> <span class="n">ax</span><span class="p">,</span> <span class="n">center</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">axs</span><span class="p">,</span> <span class="n">centers</span><span class="p">):</span>
+    <span class="n">plot_node_neighbourhood</span><span class="p">(</span><span class="n">grid</span><span class="p">,</span> <span class="n">graph</span><span class="p">,</span> <span class="n">center</span><span class="p">,</span> <span class="nb">max</span><span class="p">(</span><span class="n">edge_lengths</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">ax</span><span class="p">)</span>
+</code></pre></div>
+<p><img alt="img" src="../_data/1c89de7fb7eb481da7e7b7a3702c0937.png" /></p>
+<p>This problem is clearly much more heterogeneous than what we were looking at before. Every node has a unique local neighbourhood, and is connected to a potentially different number of spin and continuous nodes. This makes working with this graph on an accelerator like a GPU tricky. As we will now see, THRML was specifically designed to handle this heterogeneity.</p>
+<p>With our graph in hand, let's set up our sampling program. We can re-use a lot of the work that we did in the simpler example. First, let's sort the nodes and edges by type. </p>
+<div class="highlight"><pre><span></span><code><span class="c1"># collect the different types of nodes</span>
+<span class="n">spin_nodes</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">cont_nodes</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">graph</span><span class="o">.</span><span class="n">nodes</span><span class="p">:</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">SpinNode</span><span class="p">):</span>
+        <span class="n">spin_nodes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">cont_nodes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+
+
+<span class="c1"># spin-spin interactions</span>
+<span class="n">ss_edges</span> <span class="o">=</span> <span class="p">[[],</span> <span class="p">[]]</span>
+
+<span class="c1"># continuous-continuous interactions</span>
+<span class="n">cc_edges</span> <span class="o">=</span> <span class="p">[[],</span> <span class="p">[]]</span>
+
+<span class="c1"># spin-continuous interactions</span>
+<span class="n">sc_edges</span> <span class="o">=</span> <span class="p">[[],</span> <span class="p">[]]</span>
+
+<span class="k">for</span> <span class="n">edge</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">edges</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">edge</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">SpinNode</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">edge</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">SpinNode</span><span class="p">):</span>
+        <span class="n">ss_edges</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">edge</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">ss_edges</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">edge</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">edge</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">ContinuousNode</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">edge</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">ContinuousNode</span><span class="p">):</span>
+        <span class="n">cc_edges</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">edge</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">cc_edges</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">edge</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">edge</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">SpinNode</span><span class="p">):</span>
+        <span class="n">sc_edges</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">edge</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">sc_edges</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">edge</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">sc_edges</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">edge</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">sc_edges</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">edge</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+</code></pre></div>
+<p>Now we can set up some interactions. For some of the factors, we will re-use our code from the first part of this example </p>
+<div class="highlight"><pre><span></span><code><span class="c1"># we will just randomize the weights</span>
+
+<span class="n">key</span><span class="p">,</span> <span class="n">subkey</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="n">cont_quad</span> <span class="o">=</span> <span class="n">QuadraticFactor</span><span class="p">(</span>
+    <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">subkey</span><span class="p">,</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">cont_nodes</span><span class="p">),),</span> <span class="n">minval</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">maxval</span><span class="o">=</span><span class="mi">3</span><span class="p">),</span>
+    <span class="n">Block</span><span class="p">(</span><span class="n">cont_nodes</span><span class="p">),</span>
+<span class="p">)</span>
+
+<span class="n">key</span><span class="p">,</span> <span class="n">subkey</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="n">cont_linear</span> <span class="o">=</span> <span class="n">LinearFactor</span><span class="p">(</span>
+    <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">subkey</span><span class="p">,</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">cont_nodes</span><span class="p">),)),</span> <span class="n">Block</span><span class="p">(</span><span class="n">cont_nodes</span><span class="p">)</span>
+<span class="p">)</span>
+
+<span class="n">key</span><span class="p">,</span> <span class="n">subkey</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="n">cont_coupling</span> <span class="o">=</span> <span class="n">CouplingFactor</span><span class="p">(</span>
+    <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">subkey</span><span class="p">,</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">cc_edges</span><span class="p">[</span><span class="mi">0</span><span class="p">]),),</span> <span class="n">minval</span><span class="o">=-</span><span class="mi">1</span> <span class="o">/</span> <span class="mi">10</span><span class="p">,</span> <span class="n">maxval</span><span class="o">=</span><span class="mi">1</span> <span class="o">/</span> <span class="mi">10</span><span class="p">),</span>
+    <span class="p">(</span><span class="n">Block</span><span class="p">(</span><span class="n">cc_edges</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">Block</span><span class="p">(</span><span class="n">cc_edges</span><span class="p">[</span><span class="mi">1</span><span class="p">])),</span>
+<span class="p">)</span>
+
+<span class="n">key</span><span class="p">,</span> <span class="n">subkey</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="n">spin_con_coupling</span> <span class="o">=</span> <span class="n">CouplingFactor</span><span class="p">(</span>
+    <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">subkey</span><span class="p">,</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">sc_edges</span><span class="p">[</span><span class="mi">0</span><span class="p">]),)),</span>
+    <span class="p">(</span><span class="n">Block</span><span class="p">(</span><span class="n">sc_edges</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">Block</span><span class="p">(</span><span class="n">sc_edges</span><span class="p">[</span><span class="mi">1</span><span class="p">])),</span>
+<span class="p">)</span>
+</code></pre></div>
+<p>For the factors that involve only spin variables, we will use some built in functionality from THRML. THRML implements sampling functionality for arbitrary discrete-variable EBMs in <code>thrml.models.discrete_ebm</code> that we can apply to our problem. First, the spin factors,</p>
+<div class="highlight"><pre><span></span><code><span class="n">key</span><span class="p">,</span> <span class="n">subkey</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="n">spin_linear</span> <span class="o">=</span> <span class="n">SpinEBMFactor</span><span class="p">(</span>
+    <span class="p">[</span><span class="n">Block</span><span class="p">(</span><span class="n">spin_nodes</span><span class="p">)],</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">subkey</span><span class="p">,</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">spin_nodes</span><span class="p">),))</span>
+<span class="p">)</span>
+
+<span class="n">key</span><span class="p">,</span> <span class="n">subkey</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="n">spin_coupling</span> <span class="o">=</span> <span class="n">SpinEBMFactor</span><span class="p">(</span>
+    <span class="p">[</span><span class="n">Block</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">ss_edges</span><span class="p">],</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">subkey</span><span class="p">,</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ss_edges</span><span class="p">[</span><span class="mi">0</span><span class="p">]),))</span>
+<span class="p">)</span>
+</code></pre></div>
+<p>The Gaussian sampler we wrote for the first part will work our new problem as it is because it won't be seeing any new types of interactions. The Binary sampler built into THRML will have to be extended to handle our <code>LinearInteraction</code>. Luckily, it was designed with this kind of modification in mind.</p>
+<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">ExtendedSpinGibbsSampler</span><span class="p">(</span><span class="n">SpinGibbsConditional</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">compute_parameters</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">key</span><span class="p">:</span> <span class="n">Key</span><span class="p">,</span>
+        <span class="n">interactions</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">PyTree</span><span class="p">],</span>
+        <span class="n">active_flags</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Array</span><span class="p">],</span>
+        <span class="n">states</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="n">_State</span><span class="p">]],</span>
+        <span class="n">sampler_state</span><span class="p">:</span> <span class="n">_SamplerState</span><span class="p">,</span>
+        <span class="n">output_sd</span><span class="p">:</span> <span class="n">PyTree</span><span class="p">[</span><span class="n">jax</span><span class="o">.</span><span class="n">ShapeDtypeStruct</span><span class="p">],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PyTree</span><span class="p">:</span>
+        <span class="n">field</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">output_sd</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+
+        <span class="n">unprocessed_interactions</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">unprocessed_active</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">unprocessed_states</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">interaction</span><span class="p">,</span> <span class="n">active</span><span class="p">,</span> <span class="n">state</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">interactions</span><span class="p">,</span> <span class="n">active_flags</span><span class="p">,</span> <span class="n">states</span><span class="p">):</span>
+            <span class="c1"># if its our new interaction, handle it</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">interaction</span><span class="p">,</span> <span class="n">LinearInteraction</span><span class="p">):</span>
+                <span class="n">state_prod</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+                <span class="n">field</span> <span class="o">-=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">interaction</span><span class="o">.</span><span class="n">weights</span> <span class="o">*</span> <span class="n">active</span> <span class="o">*</span> <span class="n">state_prod</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+
+            <span class="c1"># if we haven&#39;t seen it, remember it</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">unprocessed_interactions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">interaction</span><span class="p">)</span>
+                <span class="n">unprocessed_active</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">active</span><span class="p">)</span>
+                <span class="n">unprocessed_states</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+
+        <span class="c1"># make the parent class deal with THRML-native interactions</span>
+        <span class="n">field</span> <span class="o">-=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">compute_parameters</span><span class="p">(</span>
+            <span class="n">key</span><span class="p">,</span>
+            <span class="n">unprocessed_interactions</span><span class="p">,</span>
+            <span class="n">unprocessed_active</span><span class="p">,</span>
+            <span class="n">unprocessed_states</span><span class="p">,</span>
+            <span class="n">sampler_state</span><span class="p">,</span>
+            <span class="n">output_sd</span><span class="p">,</span>
+        <span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">field</span><span class="p">,</span> <span class="n">sampler_state</span>
+</code></pre></div>
+<p>This is all the work we need to do to sample from our new graph using THRML! All that is left is to set up our Block spec and run some sampling.</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># tell THRML the shape and datatype of our new node</span>
+<span class="n">new_sd</span> <span class="o">=</span> <span class="p">{</span><span class="n">SpinNode</span><span class="p">:</span> <span class="n">jax</span><span class="o">.</span><span class="n">ShapeDtypeStruct</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">jnp</span><span class="o">.</span><span class="n">bool</span><span class="p">)}</span>
+
+<span class="c1"># Our new graph is still two-colorable, however within each color there are two different types of node</span>
+<span class="c1"># this means that we can&#39;t make a single block to represent each color because all of the nodes within a block have to be of the same type</span>
+<span class="c1"># however, we might still want to ensure that the two blocks that represent each color group are sampled at the same &quot;algorithmic&quot; time</span>
+<span class="c1"># i.e even though we can&#39;t sample these blocks directly in parallel because they use different update rules, we want to make sure that they</span>
+<span class="c1"># receive the same state information</span>
+<span class="c1"># we can make this happen in THRML by passing in a list of tuples of blocks to BlockGibbsSpec instead of a list of Blocks</span>
+<span class="c1"># the blocks in each tuple will be sampled at the same algorithmic time</span>
+<span class="n">blocks</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">(</span><span class="n">Block</span><span class="p">(</span><span class="n">coloring</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">SpinNode</span><span class="p">]),</span> <span class="n">Block</span><span class="p">(</span><span class="n">coloring</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">ContinuousNode</span><span class="p">])),</span>
+    <span class="p">(</span><span class="n">Block</span><span class="p">(</span><span class="n">coloring</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">SpinNode</span><span class="p">]),</span> <span class="n">Block</span><span class="p">(</span><span class="n">coloring</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">ContinuousNode</span><span class="p">])),</span>
+<span class="p">]</span>
+
+<span class="n">block_spec</span> <span class="o">=</span> <span class="n">BlockGibbsSpec</span><span class="p">(</span><span class="n">blocks</span><span class="p">,</span> <span class="p">[],</span> <span class="n">node_shape_dtypes</span> <span class="o">|</span> <span class="n">new_sd</span><span class="p">)</span>
+
+<span class="c1"># now we can assemble our program</span>
+
+<span class="c1"># first, choose the right update rule for each block in the spec</span>
+<span class="n">ber_sampler</span> <span class="o">=</span> <span class="n">ExtendedSpinGibbsSampler</span><span class="p">()</span>
+<span class="n">samplers</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">block</span> <span class="ow">in</span> <span class="n">block_spec</span><span class="o">.</span><span class="n">free_blocks</span><span class="p">:</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">block</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">SpinNode</span><span class="p">):</span>
+        <span class="n">samplers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ber_sampler</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">samplers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sampler</span><span class="p">)</span>
+
+<span class="c1"># collect all of our factors</span>
+<span class="n">factors</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">cont_quad</span><span class="p">,</span>
+    <span class="n">cont_linear</span><span class="p">,</span>
+    <span class="n">cont_coupling</span><span class="p">,</span>
+    <span class="n">spin_con_coupling</span><span class="p">,</span>
+    <span class="n">spin_linear</span><span class="p">,</span>
+    <span class="n">spin_coupling</span><span class="p">,</span>
+<span class="p">]</span>
+
+<span class="n">program</span> <span class="o">=</span> <span class="n">FactorSamplingProgram</span><span class="p">(</span><span class="n">block_spec</span><span class="p">,</span> <span class="n">samplers</span><span class="p">,</span> <span class="n">factors</span><span class="p">,</span> <span class="p">[])</span>
+</code></pre></div>
+<p>Our program is doing a lot of work to pad out the interaction structure and make our sampling program GPU-compatible:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># let&#39;s look at an example of the padding</span>
+<span class="n">program</span><span class="o">.</span><span class="n">per_block_interaction_active</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>Array([ True,  True,  True,  True,  True, False, False, False, False,
+       False], dtype=bool)
+</code></pre></div>
+<p>Now we are ready to sample. In this case, we will simply observe the state of our nodes directly</p>
+<div class="highlight"><pre><span></span><code><span class="n">batch_size</span> <span class="o">=</span> <span class="mi">50</span>
+
+<span class="n">schedule</span> <span class="o">=</span> <span class="n">SamplingSchedule</span><span class="p">(</span>
+    <span class="c1"># how many iterations to do before drawing the first sample</span>
+    <span class="n">n_warmup</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+    <span class="c1"># how many samples to draw in total</span>
+    <span class="n">n_samples</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span>
+    <span class="c1"># how many steps to take between samples</span>
+    <span class="n">steps_per_sample</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span>
+<span class="p">)</span>
+
+
+<span class="c1"># construct the initial state of the iterative sampling algorithm</span>
+<span class="n">init_state</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">block</span> <span class="ow">in</span> <span class="n">block_spec</span><span class="o">.</span><span class="n">free_blocks</span><span class="p">:</span>
+    <span class="n">init_shape</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">batch_size</span><span class="p">,</span>
+        <span class="nb">len</span><span class="p">(</span><span class="n">block</span><span class="o">.</span><span class="n">nodes</span><span class="p">),</span>
+    <span class="p">)</span>
+    <span class="n">key</span><span class="p">,</span> <span class="n">subkey</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">block</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">ContinuousNode</span><span class="p">):</span>
+        <span class="n">init_state</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mf">0.1</span> <span class="o">*</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">subkey</span><span class="p">,</span> <span class="n">init_shape</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">init_state</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">bernoulli</span><span class="p">(</span><span class="n">subkey</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">init_shape</span><span class="p">))</span>
+
+<span class="n">key</span><span class="p">,</span> <span class="n">subkey</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="n">keys</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">subkey</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">)</span>
+
+<span class="n">samples</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">vmap</span><span class="p">(</span>
+    <span class="k">lambda</span> <span class="n">k</span><span class="p">,</span> <span class="n">i</span><span class="p">:</span> <span class="n">sample_states</span><span class="p">(</span>
+        <span class="n">k</span><span class="p">,</span> <span class="n">program</span><span class="p">,</span> <span class="n">schedule</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="p">[],</span> <span class="p">[</span><span class="n">Block</span><span class="p">(</span><span class="n">spin_nodes</span><span class="p">),</span> <span class="n">Block</span><span class="p">(</span><span class="n">cont_nodes</span><span class="p">)]</span>
+    <span class="p">)</span>
+<span class="p">)(</span><span class="n">keys</span><span class="p">,</span> <span class="n">init_state</span><span class="p">)</span>
+</code></pre></div>
+<p>Let's visualize our samples. Our data is very high-dimensional, but we can use a PCA to try and get some idea of the structure of the distribution.</p>
+<div class="highlight"><pre><span></span><code><span class="n">all_samples</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">samples</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">pca</span> <span class="o">=</span> <span class="n">PCA</span><span class="p">(</span><span class="n">n_components</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<span class="n">preproc_data</span> <span class="o">=</span> <span class="n">StandardScaler</span><span class="p">()</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span>
+    <span class="n">jnp</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">all_samples</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">all_samples</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+<span class="p">)</span>
+<span class="n">transformed_data</span> <span class="o">=</span> <span class="n">pca</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="n">preproc_data</span><span class="p">)</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+<span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">,</span> <span class="n">projection</span><span class="o">=</span><span class="s2">&quot;3d&quot;</span><span class="p">)</span>
+<span class="n">sc</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span>
+    <span class="n">transformed_data</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span>  <span class="c1"># PC1</span>
+    <span class="n">transformed_data</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span>  <span class="c1"># PC2</span>
+    <span class="n">transformed_data</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">],</span>  <span class="c1"># PC3</span>
+    <span class="n">s</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
+    <span class="n">alpha</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">view_init</span><span class="p">(</span><span class="n">elev</span><span class="o">=-</span><span class="mi">50</span><span class="p">,</span> <span class="n">azim</span><span class="o">=</span><span class="mi">280</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</code></pre></div>
+<p><img alt="img" src="../_data/d51a976fcbad4091843e422523ca3570.png" /></p>
+<p>This distribution is clearly non-Gaussian and complex, despite the random initialization.</p>
+<p>If you've made it to the end of this example and have been paying attention you are now ready to use THRML for your own research-grade problems! We are very excited to see what you make with it.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "toc.integrate", "header.autohide", "content.code.copy"], "search": "../../assets/javascripts/workers/search.f8cc74c7.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.c8b220af.min.js"></script>
+      
+        <script src="../../_static/mathjax.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+        <script src="../../_static/video_handler.js"></script>
+      
+    
+  </body>
+</html>

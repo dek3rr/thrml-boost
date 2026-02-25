@@ -1,0 +1,1314 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="The documentation for the thrml-boost library.">
+      
+      
+        <meta name="author" content="thrml-boost contributors">
+      
+      
+      
+        <link rel="prev" href="../02_spin_models/">
+      
+      
+        <link rel="next" href="../../api/pgm/">
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.7">
+    
+    
+      
+        <title>Parallel Tempering with THRML-Boost - thrml-boost</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.8608ea7d.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="../../assets/_hippogriffe.css">
+    
+      <link rel="stylesheet" href="../../_static/custom_css.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="black" data-md-color-accent="amber">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#parallel-tempering-with-thrml-boost" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="thrml-boost" class="md-header__button md-logo" aria-label="thrml-boost" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            thrml-boost
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Parallel Tempering with THRML-Boost
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="black" data-md-color-accent="amber"  aria-hidden="true"  type="radio" name="__palette" id="__palette_0">
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/dek3rr/thrml-boost" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    thrml-boost
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="thrml-boost" class="md-nav__button md-logo" aria-label="thrml-boost" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    thrml-boost
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/dek3rr/thrml-boost" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    thrml-boost
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../00_probabilistic_computing/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Getting Started with THRML
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    Examples
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Examples
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../01_all_of_thrml/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    All of THRML
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../02_spin_models/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Spin Models in THRML
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Parallel Tempering with THRML-Boost
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    Parallel Tempering with THRML-Boost
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#setup-a-strongly-ferromagnetic-ising-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      Setup: a strongly ferromagnetic Ising model
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-problem-gibbs-gets-stuck" class="md-nav__link">
+    <span class="md-ellipsis">
+      The problem: Gibbs gets stuck
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-fix-parallel-tempering" class="md-nav__link">
+    <span class="md-ellipsis">
+      The fix: parallel tempering
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tuning-the-temperature-ladder" class="md-nav__link">
+    <span class="md-ellipsis">
+      Tuning the temperature ladder
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#comparison-naive-vs-tuned-ladder" class="md-nav__link">
+    <span class="md-ellipsis">
+      Comparison: naive vs tuned ladder
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#performance-compile-time-stays-flat-with-more-chains" class="md-nav__link">
+    <span class="md-ellipsis">
+      Performance: compile time stays flat with more chains
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      Summary
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    API Reference
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            API Reference
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/pgm/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Graphical Model Components
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/block_management/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Block Management
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/interaction/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Interaction Groups
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/factor/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Factors
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/conditional_samplers/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Conditional Samplers
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/block_sampling/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Block Sampling
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/observers/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Sampling Observers
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/tempering/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Parallel Tempering
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_9" id="__nav_4_9_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Models
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_9">
+            <span class="md-nav__icon md-icon"></span>
+            Models
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/models/ebm/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Energy-Based Models
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/models/discrete_ebm/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Discrete Energy-Based Models
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/models/ising/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Ising Models
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    Further details
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            Further details
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Architecture
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="parallel-tempering-with-thrml-boost">Parallel Tempering with THRML-Boost<a class="headerlink" href="#parallel-tempering-with-thrml-boost" title="Permanent link">¤</a></h1>
+<p>Standard block Gibbs sampling is fast, but it has a blind spot: <strong>multimodal distributions</strong>. When the energy landscape has multiple deep wells separated by high barriers, the sampler gets trapped in whichever mode it finds first and never escapes.</p>
+<p>This notebook shows the problem concretely, then demonstrates how parallel tempering fixes it — and how THRML-Boost runs all chains simultaneously via <code>jax.vmap</code> so you pay no extra compile cost for additional chains.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">jax</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">jax.numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jnp</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">networkx</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nx</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">thrml_boost.block_management</span><span class="w"> </span><span class="kn">import</span> <span class="n">Block</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">thrml_boost.block_sampling</span><span class="w"> </span><span class="kn">import</span> <span class="n">SamplingSchedule</span><span class="p">,</span> <span class="n">sample_states</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">thrml_boost.models.ising</span><span class="w"> </span><span class="kn">import</span> <span class="n">IsingEBM</span><span class="p">,</span> <span class="n">IsingSamplingProgram</span><span class="p">,</span> <span class="n">hinton_init</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">thrml_boost.pgm</span><span class="w"> </span><span class="kn">import</span> <span class="n">SpinNode</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">thrml_boost.tempering</span><span class="w"> </span><span class="kn">import</span> <span class="n">parallel_tempering</span>
+</code></pre></div>
+<h2 id="setup-a-strongly-ferromagnetic-ising-model">Setup: a strongly ferromagnetic Ising model<a class="headerlink" href="#setup-a-strongly-ferromagnetic-ising-model" title="Permanent link">¤</a></h2>
+<p>We use a 10×10 periodic Ising grid with strong ferromagnetic coupling and no bias. This model has two symmetric ground states: all spins up and all spins down, separated by a large energy barrier. It's a clean testbed for mixing.</p>
+<div class="highlight"><pre><span></span><code><span class="n">side</span> <span class="o">=</span> <span class="mi">10</span>
+<span class="n">G</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">grid_2d_graph</span><span class="p">(</span><span class="n">side</span><span class="p">,</span> <span class="n">side</span><span class="p">,</span> <span class="n">periodic</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">coord_to_node</span> <span class="o">=</span> <span class="p">{</span><span class="n">coord</span><span class="p">:</span> <span class="n">SpinNode</span><span class="p">()</span> <span class="k">for</span> <span class="n">coord</span> <span class="ow">in</span> <span class="n">G</span><span class="o">.</span><span class="n">nodes</span><span class="p">()}</span>
+<span class="n">nx</span><span class="o">.</span><span class="n">relabel_nodes</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="n">coord_to_node</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="n">nodes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">G</span><span class="o">.</span><span class="n">nodes</span><span class="p">())</span>
+<span class="n">edges</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">G</span><span class="o">.</span><span class="n">edges</span><span class="p">())</span>
+
+<span class="n">beta_target</span> <span class="o">=</span> <span class="mf">2.0</span>
+<span class="n">biases</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">nodes</span><span class="p">))</span>
+<span class="n">weights</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">edges</span><span class="p">))</span> <span class="o">*</span> <span class="mf">1.0</span>  <span class="c1"># ferromagnetic</span>
+
+<span class="c1"># Two-color for block Gibbs</span>
+<span class="n">coloring</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">bipartite</span><span class="o">.</span><span class="n">color</span><span class="p">(</span><span class="n">G</span><span class="p">)</span>
+<span class="n">color0</span> <span class="o">=</span> <span class="p">[</span><span class="n">n</span> <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">coloring</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">c</span> <span class="o">==</span> <span class="mi">0</span><span class="p">]</span>
+<span class="n">color1</span> <span class="o">=</span> <span class="p">[</span><span class="n">n</span> <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">coloring</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">c</span> <span class="o">==</span> <span class="mi">1</span><span class="p">]</span>
+<span class="n">free_blocks</span> <span class="o">=</span> <span class="p">[</span><span class="n">Block</span><span class="p">(</span><span class="n">color0</span><span class="p">),</span> <span class="n">Block</span><span class="p">(</span><span class="n">color1</span><span class="p">)]</span>
+
+<span class="n">key</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">key</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span>
+    <span class="sa">f</span><span class="s2">&quot;Nodes: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">nodes</span><span class="p">)</span><span class="si">}</span><span class="s2">, Edges: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">edges</span><span class="p">)</span><span class="si">}</span><span class="s2">, Block sizes: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">color0</span><span class="p">)</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">color1</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+<span class="p">)</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>Nodes: 100, Edges: 200, Block sizes: 50, 50
+</code></pre></div>
+<h2 id="the-problem-gibbs-gets-stuck">The problem: Gibbs gets stuck<a class="headerlink" href="#the-problem-gibbs-gets-stuck" title="Permanent link">¤</a></h2>
+<p>We track the <strong>mean magnetization</strong> <span class="arithmatex">\(\langle s \rangle = \frac{1}{N}\sum_i s_i\)</span> over time. A sampler that mixes well should oscillate between <span class="arithmatex">\(+1\)</span> (all up) and <span class="arithmatex">\(-1\)</span> (all down). A stuck sampler stays near one value indefinitely.</p>
+<div class="highlight"><pre><span></span><code><span class="n">ebm</span> <span class="o">=</span> <span class="n">IsingEBM</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="n">edges</span><span class="p">,</span> <span class="n">biases</span><span class="p">,</span> <span class="n">weights</span><span class="p">,</span> <span class="n">jnp</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">beta_target</span><span class="p">))</span>
+<span class="n">program</span> <span class="o">=</span> <span class="n">IsingSamplingProgram</span><span class="p">(</span><span class="n">ebm</span><span class="p">,</span> <span class="n">free_blocks</span><span class="p">,</span> <span class="n">clamped_blocks</span><span class="o">=</span><span class="p">[])</span>
+
+<span class="n">key</span><span class="p">,</span> <span class="n">subkey</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+<span class="n">init_state</span> <span class="o">=</span> <span class="n">hinton_init</span><span class="p">(</span><span class="n">subkey</span><span class="p">,</span> <span class="n">ebm</span><span class="p">,</span> <span class="n">free_blocks</span><span class="p">,</span> <span class="p">())</span>
+
+<span class="n">schedule</span> <span class="o">=</span> <span class="n">SamplingSchedule</span><span class="p">(</span><span class="n">n_warmup</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">n_samples</span><span class="o">=</span><span class="mi">400</span><span class="p">,</span> <span class="n">steps_per_sample</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">key</span><span class="p">,</span> <span class="n">subkey</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+<span class="n">gibbs_samples</span> <span class="o">=</span> <span class="n">sample_states</span><span class="p">(</span><span class="n">subkey</span><span class="p">,</span> <span class="n">program</span><span class="p">,</span> <span class="n">schedule</span><span class="p">,</span> <span class="n">init_state</span><span class="p">,</span> <span class="p">[],</span> <span class="p">[</span><span class="n">Block</span><span class="p">(</span><span class="n">nodes</span><span class="p">)])</span>
+
+<span class="n">spins</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">gibbs_samples</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">int8</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+<span class="n">mag_gibbs</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">spins</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">mag_gibbs</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;steelblue&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">axhline</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;k&quot;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s2">&quot;--&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">fill_between</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">mag_gibbs</span><span class="p">)),</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.03</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;gray&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylim</span><span class="p">(</span><span class="o">-</span><span class="mf">1.1</span><span class="p">,</span> <span class="mf">1.1</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">&quot;Sample&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">&quot;Mean magnetization&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Standard Gibbs at β=</span><span class="si">{</span><span class="n">beta_target</span><span class="si">}</span><span class="s2"> — trapped in one mode&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</code></pre></div>
+<p><img alt="img" src="../_data/ff3f562462754c2eb359e6014b34eb2a.png" /></p>
+<h2 id="the-fix-parallel-tempering">The fix: parallel tempering<a class="headerlink" href="#the-fix-parallel-tempering" title="Permanent link">¤</a></h2>
+<p>Parallel tempering runs multiple chains at different temperatures simultaneously:</p>
+<ul>
+<li><strong>Hot chains</strong> (small β) — energy barriers are flattened, the chain explores freely</li>
+<li><strong>Cold chains</strong> (large β) — accurate samples from the target distribution</li>
+<li>Every round, adjacent chains <strong>propose a swap</strong>. If accepted, the cold chain receives a configuration the hot chain found on the other side of a barrier.</li>
+</ul>
+<p>But this only works if the temperature ladder is tuned correctly. If adjacent chains are too different, swaps are almost never accepted and the chains don't communicate. Let's see what that looks like.</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># A naive beta ladder — large gap at the bottom, crowded at the top</span>
+<span class="n">betas_naive</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">,</span> <span class="mf">0.7</span><span class="p">,</span> <span class="mf">1.2</span><span class="p">,</span> <span class="n">beta_target</span><span class="p">]</span>
+<span class="n">n_chains</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">betas_naive</span><span class="p">)</span>
+
+<span class="n">ebms_naive</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">IsingEBM</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="n">edges</span><span class="p">,</span> <span class="n">biases</span><span class="p">,</span> <span class="n">weights</span><span class="p">,</span> <span class="n">jnp</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">b</span><span class="p">))</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">betas_naive</span>
+<span class="p">]</span>
+<span class="n">programs_naive</span> <span class="o">=</span> <span class="p">[</span><span class="n">IsingSamplingProgram</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">free_blocks</span><span class="p">,</span> <span class="p">[])</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">ebms_naive</span><span class="p">]</span>
+
+<span class="n">key</span><span class="p">,</span> <span class="n">subkey</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+<span class="n">init</span> <span class="o">=</span> <span class="n">hinton_init</span><span class="p">(</span><span class="n">subkey</span><span class="p">,</span> <span class="n">ebms_naive</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">free_blocks</span><span class="p">,</span> <span class="p">())</span>
+
+
+<span class="nd">@jax</span><span class="o">.</span><span class="n">jit</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">one_round_naive</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">states</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">parallel_tempering</span><span class="p">(</span>
+        <span class="n">key</span><span class="p">,</span>
+        <span class="n">ebms_naive</span><span class="p">,</span>
+        <span class="n">programs_naive</span><span class="p">,</span>
+        <span class="n">states</span><span class="p">,</span>
+        <span class="p">[],</span>
+        <span class="n">n_rounds</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">gibbs_steps_per_round</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+    <span class="p">)</span>
+
+
+<span class="n">mag_naive</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">states_naive</span> <span class="o">=</span> <span class="p">[</span><span class="n">init</span><span class="p">]</span> <span class="o">*</span> <span class="n">n_chains</span>
+<span class="n">key</span><span class="p">,</span> <span class="n">subkey</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">subkey</span><span class="p">,</span> <span class="mi">400</span><span class="p">):</span>
+    <span class="n">states_naive</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">stats_naive</span> <span class="o">=</span> <span class="n">one_round_naive</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">states_naive</span><span class="p">)</span>
+    <span class="n">cold</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">states_naive</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">mag_naive</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">cold</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">int8</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)))</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Swap acceptance rates with naive ladder:&quot;</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">stats_naive</span><span class="p">[</span><span class="s2">&quot;acceptance_rate&quot;</span><span class="p">]):</span>
+    <span class="n">flag</span> <span class="o">=</span> <span class="s2">&quot;✓&quot;</span> <span class="k">if</span> <span class="mf">0.2</span> <span class="o">&lt;=</span> <span class="nb">float</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mf">0.5</span> <span class="k">else</span> <span class="s2">&quot;✗&quot;</span>
+    <span class="nb">print</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">&quot;  </span><span class="si">{</span><span class="n">flag</span><span class="si">}</span><span class="s2"> β=</span><span class="si">{</span><span class="n">betas_naive</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> ↔ β=</span><span class="si">{</span><span class="n">betas_naive</span><span class="p">[</span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="nb">float</span><span class="p">(</span><span class="n">r</span><span class="p">)</span><span class="si">:</span><span class="s2">.1%</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="p">)</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>Swap acceptance rates with naive ladder:
+  ✗ β=0.1 ↔ β=0.3: 0.0%
+  ✗ β=0.3 ↔ β=0.7: 0.0%
+  ✗ β=0.7 ↔ β=1.2: 0.0%
+  ✗ β=1.2 ↔ β=2.0: 0.0%
+</code></pre></div>
+<p>The large gap between β=0.1 and β=0.3 gives near-zero swap acceptance — those chains never communicate, so the cold chain still can't escape its mode.</p>
+<h2 id="tuning-the-temperature-ladder">Tuning the temperature ladder<a class="headerlink" href="#tuning-the-temperature-ladder" title="Permanent link">¤</a></h2>
+<p>We need acceptance rates in the <strong>20–50% range on every pair</strong>. The iterative refinement below starts from a coarse geometric ladder and repeatedly inserts a new temperature at the geometric midpoint of the worst-performing pair until convergence.</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">run_acceptance</span><span class="p">(</span><span class="n">betas</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">n_rounds</span><span class="o">=</span><span class="mi">300</span><span class="p">):</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">betas</span><span class="p">)</span>
+    <span class="n">ebms_t</span> <span class="o">=</span> <span class="p">[</span><span class="n">IsingEBM</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="n">edges</span><span class="p">,</span> <span class="n">biases</span><span class="p">,</span> <span class="n">weights</span><span class="p">,</span> <span class="n">jnp</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">b</span><span class="p">))</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">betas</span><span class="p">]</span>
+    <span class="n">progs_t</span> <span class="o">=</span> <span class="p">[</span><span class="n">IsingSamplingProgram</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">free_blocks</span><span class="p">,</span> <span class="p">[])</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">ebms_t</span><span class="p">]</span>
+    <span class="n">key</span><span class="p">,</span> <span class="n">subkey</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+    <span class="n">init_t</span> <span class="o">=</span> <span class="n">hinton_init</span><span class="p">(</span><span class="n">subkey</span><span class="p">,</span> <span class="n">ebms_t</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">free_blocks</span><span class="p">,</span> <span class="p">())</span>
+
+    <span class="nd">@jax</span><span class="o">.</span><span class="n">jit</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_run</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">states</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">parallel_tempering</span><span class="p">(</span>
+            <span class="n">key</span><span class="p">,</span> <span class="n">ebms_t</span><span class="p">,</span> <span class="n">progs_t</span><span class="p">,</span> <span class="n">states</span><span class="p">,</span> <span class="p">[],</span> <span class="n">n_rounds</span><span class="o">=</span><span class="n">n_rounds</span><span class="p">,</span> <span class="n">gibbs_steps_per_round</span><span class="o">=</span><span class="mi">2</span>
+        <span class="p">)</span>
+
+    <span class="n">key</span><span class="p">,</span> <span class="n">subkey</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+    <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">stats</span> <span class="o">=</span> <span class="n">_run</span><span class="p">(</span><span class="n">subkey</span><span class="p">,</span> <span class="p">[</span><span class="n">init_t</span><span class="p">]</span> <span class="o">*</span> <span class="n">n</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">stats</span><span class="p">[</span><span class="s2">&quot;acceptance_rate&quot;</span><span class="p">])</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">refine_ladder</span><span class="p">(</span><span class="n">betas</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">min_rate</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">max_iters</span><span class="o">=</span><span class="mi">8</span><span class="p">):</span>
+    <span class="n">betas</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">betas</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">max_iters</span><span class="p">):</span>
+        <span class="n">key</span><span class="p">,</span> <span class="n">subkey</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+        <span class="n">rates</span> <span class="o">=</span> <span class="n">run_acceptance</span><span class="p">(</span><span class="n">betas</span><span class="p">,</span> <span class="n">subkey</span><span class="p">)</span>
+        <span class="n">worst</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">rates</span><span class="p">))</span>
+        <span class="n">worst_rate</span> <span class="o">=</span> <span class="n">rates</span><span class="p">[</span><span class="n">worst</span><span class="p">]</span>
+        <span class="nb">print</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;  Iter </span><span class="si">{</span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">betas</span><span class="p">)</span><span class="si">}</span><span class="s2"> chains, &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;min rate = </span><span class="si">{</span><span class="n">worst_rate</span><span class="si">:</span><span class="s2">.1%</span><span class="si">}</span><span class="s2"> at β=</span><span class="si">{</span><span class="n">betas</span><span class="p">[</span><span class="n">worst</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">↔</span><span class="si">{</span><span class="n">betas</span><span class="p">[</span><span class="n">worst</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">worst_rate</span> <span class="o">&gt;=</span> <span class="n">min_rate</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  All pairs above </span><span class="si">{</span><span class="n">min_rate</span><span class="si">:</span><span class="s2">.0%</span><span class="si">}</span><span class="s2"> — converged.&quot;</span><span class="p">)</span>
+            <span class="k">break</span>
+        <span class="n">new_beta</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">betas</span><span class="p">[</span><span class="n">worst</span><span class="p">]</span> <span class="o">*</span> <span class="n">betas</span><span class="p">[</span><span class="n">worst</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]))</span>
+        <span class="n">betas</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">worst</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">new_beta</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">betas</span><span class="p">,</span> <span class="n">rates</span>
+
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Refining from a 5-chain geometric ladder...&quot;</span><span class="p">)</span>
+<span class="n">start_betas</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">geomspace</span><span class="p">(</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">beta_target</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+<span class="n">key</span><span class="p">,</span> <span class="n">subkey</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+<span class="n">refined_betas</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">refine_ladder</span><span class="p">(</span><span class="n">start_betas</span><span class="p">,</span> <span class="n">subkey</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Final ladder: </span><span class="si">{</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">b</span><span class="si">:</span><span class="s1">.3f</span><span class="si">}</span><span class="s1">&#39;</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">b</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">refined_betas</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>Refining from a 5-chain geometric ladder...
+  Iter 1: 5 chains, min rate = 0.0% at β=0.211↔0.447
+  Iter 2: 6 chains, min rate = 1.3% at β=0.308↔0.447
+  Iter 3: 7 chains, min rate = 1.3% at β=0.447↔0.946
+  Iter 4: 8 chains, min rate = 8.0% at β=0.447↔0.650
+  Iter 5: 9 chains, min rate = 10.7% at β=0.371↔0.447
+  Iter 6: 10 chains, min rate = 20.7% at β=0.447↔0.539
+  All pairs above 20% — converged.
+
+Final ladder: [&#39;0.100&#39;, &#39;0.211&#39;, &#39;0.308&#39;, &#39;0.371&#39;, &#39;0.407&#39;, &#39;0.447&#39;, &#39;0.539&#39;, &#39;0.650&#39;, &#39;0.946&#39;, &#39;2.000&#39;]
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><span class="c1"># Plot final acceptance rates</span>
+<span class="n">key</span><span class="p">,</span> <span class="n">subkey</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+<span class="n">final_rates</span> <span class="o">=</span> <span class="n">run_acceptance</span><span class="p">(</span><span class="n">refined_betas</span><span class="p">,</span> <span class="n">subkey</span><span class="p">)</span>
+<span class="n">pair_labels</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">refined_betas</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">↔</span><span class="si">{</span><span class="n">refined_betas</span><span class="p">[</span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">refined_betas</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+<span class="p">]</span>
+<span class="n">bar_colors</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;green&quot;</span> <span class="k">if</span> <span class="mf">0.2</span> <span class="o">&lt;=</span> <span class="n">r</span> <span class="o">&lt;=</span> <span class="mf">0.5</span> <span class="k">else</span> <span class="s2">&quot;orange&quot;</span> <span class="k">if</span> <span class="n">r</span> <span class="o">&gt;</span> <span class="mf">0.5</span> <span class="k">else</span> <span class="s2">&quot;red&quot;</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">final_rates</span>
+<span class="p">]</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">9</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">pair_labels</span><span class="p">,</span> <span class="n">final_rates</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">bar_colors</span><span class="p">,</span> <span class="n">edgecolor</span><span class="o">=</span><span class="s2">&quot;white&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">axhline</span><span class="p">(</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;k&quot;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s2">&quot;--&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;20</span><span class="si">% lo</span><span class="s2">wer target&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">axhline</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;k&quot;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s2">&quot;:&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;50</span><span class="si">% u</span><span class="s2">pper target&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">&quot;Acceptance rate&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Refined ladder — </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">refined_betas</span><span class="p">)</span><span class="si">}</span><span class="s2"> chains&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xticks</span><span class="p">(</span><span class="n">rotation</span><span class="o">=</span><span class="mi">25</span><span class="p">,</span> <span class="n">ha</span><span class="o">=</span><span class="s2">&quot;right&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</code></pre></div>
+<p><img alt="img" src="../_data/e5f500bbddc545b69b1202e762401018.png" /></p>
+<h2 id="comparison-naive-vs-tuned-ladder">Comparison: naive vs tuned ladder<a class="headerlink" href="#comparison-naive-vs-tuned-ladder" title="Permanent link">¤</a></h2>
+<p>Now we can see the real benefit. With a well-tuned ladder, the cold chain mixes freely between both modes.</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Run PT with refined betas</span>
+<span class="n">ebms_refined</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">IsingEBM</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="n">edges</span><span class="p">,</span> <span class="n">biases</span><span class="p">,</span> <span class="n">weights</span><span class="p">,</span> <span class="n">jnp</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">b</span><span class="p">))</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">refined_betas</span>
+<span class="p">]</span>
+<span class="n">programs_refined</span> <span class="o">=</span> <span class="p">[</span><span class="n">IsingSamplingProgram</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">free_blocks</span><span class="p">,</span> <span class="p">[])</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">ebms_refined</span><span class="p">]</span>
+<span class="n">n_ref</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">refined_betas</span><span class="p">)</span>
+
+<span class="n">key</span><span class="p">,</span> <span class="n">subkey</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+<span class="n">init_ref</span> <span class="o">=</span> <span class="n">hinton_init</span><span class="p">(</span><span class="n">subkey</span><span class="p">,</span> <span class="n">ebms_refined</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">free_blocks</span><span class="p">,</span> <span class="p">())</span>
+
+
+<span class="nd">@jax</span><span class="o">.</span><span class="n">jit</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">one_round_refined</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">states</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">parallel_tempering</span><span class="p">(</span>
+        <span class="n">key</span><span class="p">,</span>
+        <span class="n">ebms_refined</span><span class="p">,</span>
+        <span class="n">programs_refined</span><span class="p">,</span>
+        <span class="n">states</span><span class="p">,</span>
+        <span class="p">[],</span>
+        <span class="n">n_rounds</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">gibbs_steps_per_round</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+    <span class="p">)</span>
+
+
+<span class="n">mag_refined</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">states_ref</span> <span class="o">=</span> <span class="p">[</span><span class="n">init_ref</span><span class="p">]</span> <span class="o">*</span> <span class="n">n_ref</span>
+<span class="n">key</span><span class="p">,</span> <span class="n">subkey</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">subkey</span><span class="p">,</span> <span class="mi">400</span><span class="p">):</span>
+    <span class="n">states_ref</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">one_round_refined</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">states_ref</span><span class="p">)</span>
+    <span class="n">cold</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">states_ref</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">mag_refined</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">cold</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">int8</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)))</span>
+
+<span class="c1"># Three-way comparison</span>
+<span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">7</span><span class="p">),</span> <span class="n">sharex</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">ax</span><span class="p">,</span> <span class="n">mag</span><span class="p">,</span> <span class="n">color</span><span class="p">,</span> <span class="n">title</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span>
+    <span class="n">axes</span><span class="p">,</span>
+    <span class="p">[</span><span class="n">mag_gibbs</span><span class="p">,</span> <span class="n">mag_naive</span><span class="p">,</span> <span class="n">mag_refined</span><span class="p">],</span>
+    <span class="p">[</span><span class="s2">&quot;steelblue&quot;</span><span class="p">,</span> <span class="s2">&quot;orangered&quot;</span><span class="p">,</span> <span class="s2">&quot;green&quot;</span><span class="p">],</span>
+    <span class="p">[</span>
+        <span class="s2">&quot;Standard Gibbs — trapped&quot;</span><span class="p">,</span>
+        <span class="sa">f</span><span class="s2">&quot;PT with naive betas </span><span class="si">{</span><span class="p">[</span><span class="nb">round</span><span class="p">(</span><span class="n">b</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">b</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">betas_naive</span><span class="p">]</span><span class="si">}</span><span class="s2"> — still trapped&quot;</span><span class="p">,</span>
+        <span class="sa">f</span><span class="s2">&quot;PT with refined betas (</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">refined_betas</span><span class="p">)</span><span class="si">}</span><span class="s2"> chains) — mixing between modes&quot;</span><span class="p">,</span>
+    <span class="p">],</span>
+<span class="p">):</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">mag</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">axhline</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;k&quot;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s2">&quot;--&quot;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="o">-</span><span class="mf">1.1</span><span class="p">,</span> <span class="mf">1.1</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;Magnetization&quot;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">title</span><span class="p">)</span>
+
+<span class="n">axes</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;Round&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</code></pre></div>
+<p><img alt="img" src="../_data/86137049224b4d54880e55f0203550b7.png" /></p>
+<h2 id="performance-compile-time-stays-flat-with-more-chains">Performance: compile time stays flat with more chains<a class="headerlink" href="#performance-compile-time-stays-flat-with-more-chains" title="Permanent link">¤</a></h2>
+<p>In the original thrml, more chains meant longer compile time because each chain was unrolled separately into the XLA graph. With <code>jax.vmap</code> in THRML-Boost, compile time is essentially constant — you only pay in runtime, which scales linearly.</p>
+<div class="highlight"><pre><span></span><code><span class="n">chain_counts</span> <span class="o">=</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">16</span><span class="p">]</span>
+<span class="n">compile_times</span> <span class="o">=</span> <span class="p">[]</span>
+
+<span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">chain_counts</span><span class="p">:</span>
+    <span class="n">betas_n</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">geomspace</span><span class="p">(</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">beta_target</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+    <span class="n">ebms_n</span> <span class="o">=</span> <span class="p">[</span><span class="n">IsingEBM</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="n">edges</span><span class="p">,</span> <span class="n">biases</span><span class="p">,</span> <span class="n">weights</span><span class="p">,</span> <span class="n">jnp</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">b</span><span class="p">))</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">betas_n</span><span class="p">]</span>
+    <span class="n">progs_n</span> <span class="o">=</span> <span class="p">[</span><span class="n">IsingSamplingProgram</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">free_blocks</span><span class="p">,</span> <span class="p">[])</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">ebms_n</span><span class="p">]</span>
+    <span class="n">key</span><span class="p">,</span> <span class="n">subkey</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+    <span class="n">init_n</span> <span class="o">=</span> <span class="n">hinton_init</span><span class="p">(</span><span class="n">subkey</span><span class="p">,</span> <span class="n">ebms_n</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">free_blocks</span><span class="p">,</span> <span class="p">())</span>
+
+    <span class="nd">@jax</span><span class="o">.</span><span class="n">jit</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_run</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">states</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">parallel_tempering</span><span class="p">(</span>
+            <span class="n">key</span><span class="p">,</span> <span class="n">ebms_n</span><span class="p">,</span> <span class="n">progs_n</span><span class="p">,</span> <span class="n">states</span><span class="p">,</span> <span class="p">[],</span> <span class="n">n_rounds</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">gibbs_steps_per_round</span><span class="o">=</span><span class="mi">1</span>
+        <span class="p">)</span>
+
+    <span class="n">key</span><span class="p">,</span> <span class="n">subkey</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+    <span class="n">t0</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">_run</span><span class="p">(</span><span class="n">subkey</span><span class="p">,</span> <span class="p">[</span><span class="n">init_n</span><span class="p">]</span> <span class="o">*</span> <span class="n">n</span><span class="p">)</span>
+    <span class="n">jax</span><span class="o">.</span><span class="n">block_until_ready</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">compile_times</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">t0</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  </span><span class="si">{</span><span class="n">n</span><span class="si">:</span><span class="s2">2d</span><span class="si">}</span><span class="s2"> chains: </span><span class="si">{</span><span class="n">compile_times</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">s&quot;</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
+    <span class="n">chain_counts</span><span class="p">,</span> <span class="n">compile_times</span><span class="p">,</span> <span class="s2">&quot;o-&quot;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;steelblue&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;THRML-Boost (vmap)&quot;</span>
+<span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">&quot;Number of chains&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">&quot;First-call time (compile + run, s)&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">&quot;Compile time is flat across chain counts&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>2 chains: 0.30s
+   4 chains: 0.46s
+   8 chains: 0.73s
+  16 chains: 1.29s
+</code></pre></div>
+<p><img alt="img" src="../_data/cbbd2336bb6843f8919eb1372ac170ac.png" /></p>
+<h2 id="summary">Summary<a class="headerlink" href="#summary" title="Permanent link">¤</a></h2>
+<p>Parallel tempering in THRML-Boost:</p>
+<ul>
+<li>Escapes multimodal traps that standard Gibbs cannot</li>
+<li>All chains run in a single <code>jax.vmap</code> kernel — no compile cost for extra chains</li>
+<li>Swap statistics guide temperature ladder tuning</li>
+<li>The iterative refinement loop above handles problem-specific structure automatically</li>
+</ul>
+<div class="highlight"><pre><span></span><code><span class="n">final_states</span><span class="p">,</span> <span class="n">sampler_states</span><span class="p">,</span> <span class="n">stats</span> <span class="o">=</span> <span class="n">parallel_tempering</span><span class="p">(</span>
+    <span class="n">key</span><span class="p">,</span>
+    <span class="n">ebms</span><span class="p">,</span>            <span class="c1"># one IsingEBM per temperature</span>
+    <span class="n">programs</span><span class="p">,</span>        <span class="c1"># one IsingSamplingProgram per temperature</span>
+    <span class="n">init_states</span><span class="p">,</span>     <span class="c1"># one initial state per temperature</span>
+    <span class="n">clamp_state</span><span class="o">=</span><span class="p">[],</span>
+    <span class="n">n_rounds</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span>
+    <span class="n">gibbs_steps_per_round</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="c1"># Check your ladder</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">stats</span><span class="p">[</span><span class="s1">&#39;acceptance_rate&#39;</span><span class="p">])</span>   <span class="c1"># aim for 0.2–0.5 on every pair</span>
+</code></pre></div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "toc.integrate", "header.autohide", "content.code.copy"], "search": "../../assets/javascripts/workers/search.f8cc74c7.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.c8b220af.min.js"></script>
+      
+        <script src="../../_static/mathjax.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+        <script src="../../_static/video_handler.js"></script>
+      
+    
+  </body>
+</html>
