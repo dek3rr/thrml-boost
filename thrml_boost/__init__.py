@@ -34,6 +34,9 @@ from .observers import StateObserver as StateObserver
 from .pgm import AbstractNode as AbstractNode
 from .pgm import CategoricalNode as CategoricalNode
 from .pgm import SpinNode as SpinNode
-from .tempering import parallel_tempering as parallel_tempering
+from .nrpt import nrpt as nrpt
+from .nrpt import nrpt_adaptive as nrpt_adaptive
+from .nrpt import optimize_schedule as optimize_schedule
+
 
 __version__ = importlib.metadata.version("thrml_boost")

@@ -27,6 +27,7 @@ import numpy as np
 jax.config.update("jax_enable_x64", False)
 
 import thrml_boost  # noqa: E402
+from thrml_boost.nrpt import nrpt  # noqa: E402
 from thrml_boost import (  # noqa: E402
     Block,
     SamplingSchedule,
@@ -39,7 +40,6 @@ from thrml_boost.models import (  # noqa: E402
     IsingSamplingProgram,
     hinton_init,
 )
-from thrml_boost.tempering import parallel_tempering  # noqa: E402
 
 try:
     import thrml
@@ -227,8 +227,8 @@ def bench_parallel_tempering(
         # ── A) thrml-boost parallel_tempering ──
         pt_keys = jax.random.split(keys[-1], num_runs + 2)
 
-        def run_pt(k=pt_keys[0]):
-            return parallel_tempering(
+        def run_nrpt(k=pt_keys[0]):
+            return nrpt(
                 k,
                 ebms,
                 programs,
@@ -238,12 +238,12 @@ def bench_parallel_tempering(
                 gibbs_steps_per_round=gibbs_steps,
             )
 
-        res_pt = time_fn(run_pt, num_runs=num_runs)
+        res_nrpt = time_fn(run_nrpt, num_runs=num_runs)
         total_sweeps = n_rounds * gibbs_steps * n_chains
         row(
-            "parallel_tempering (vmap)",
-            res_pt,
-            f"({total_sweeps / res_pt['avg_s']:.0f} sweeps/s)",
+            "nrpt (vectorized) ",
+            res_nrpt,
+            f"({total_sweeps / res_nrpt['avg_s']:.0f} sweeps/s)",
         )
 
         # ── B) Sequential baseline: Python loop of sample_states ──
@@ -289,8 +289,8 @@ def bench_parallel_tempering(
             f"({total_sweeps / res_seq['avg_s']:.0f} sweeps/s)",
         )
 
-        rt_speedup = res_seq["avg_s"] / res_pt["avg_s"]
-        ct_ratio = res_seq["compile_s"] / max(res_pt["compile_s"], 1e-9)
+        rt_speedup = res_seq["avg_s"] / res_nrpt["avg_s"]
+        ct_ratio = res_seq["compile_s"] / max(res_nrpt["compile_s"], 1e-9)
         print(
             f"  → runtime speedup: {rt_speedup:.2f}×  |  compile ratio: {ct_ratio:.2f}×"
         )
@@ -542,7 +542,7 @@ def check_correctness():
     keys = jax.random.split(key, len(betas) + 1)
     inits = [hinton_init(keys[i], ebms[0], fb_p, ()) for i in range(len(betas))]
 
-    states, ss, stats = parallel_tempering(
+    states, ss, stats = nrpt(
         keys[-1],
         ebms,
         progs,
