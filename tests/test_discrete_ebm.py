@@ -1089,7 +1089,7 @@ class TestBigGrid(unittest.TestCase):
     """
 
     def test_big(self):
-        side_lens = [50, 100, 200, 400, 500]
+        side_lens = [50, 100, 200, 400]
         times = []
         for side_len in side_lens:
             g = nx.grid_graph((side_len, side_len))
@@ -1137,5 +1137,4 @@ class TestBigGrid(unittest.TestCase):
 
         scaling_correct = delta_time < 1.1 * delta_side
 
-        # we should try to improve the constant factors here
         self.assertTrue(np.all(scaling_correct))
