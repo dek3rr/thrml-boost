@@ -1,6 +1,6 @@
 # Interaction Groups
 
-::: thrml_boost.InteractionGroup
+::: hamon.InteractionGroup
     options:
         members:
             - __init__

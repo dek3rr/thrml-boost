@@ -3,8 +3,8 @@
 Clone the repo and set up a virtual environment:
 
 ```bash
-git clone https://github.com/dek3rr/thrml-boost.git
-cd thrml-boost
+git clone https://github.com/dek3rr/hamon.git
+cd hamon
 ```
 
 Then install with development dependencies:
@@ -63,3 +63,18 @@ test: add vmap correctness tests for parallel tempering
 docs: update README installation instructions
 chore: bump ruff to v0.11.0
 ```
+
+## Releasing
+
+Releases are automated via GitHub Actions. To publish a new version:
+
+1. Update `version` in `pyproject.toml`
+2. Update `CHANGELOG.md`
+3. Merge to `main`
+4. Tag and push:
+   ```bash
+   git tag -a v0.1.0 -m "v0.1.0"
+   git push origin v0.1.0
+   ```
+5. Create a GitHub Release from the tag
+6. The publish workflow handles PyPI automatically

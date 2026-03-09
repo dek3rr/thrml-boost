@@ -1,14 +1,14 @@
 <div align="center">
-  <img src="_static/logo/logo.svg" alt="THRML-Boost Logo" width="200" style="margin-bottom: 20px;">
+  <img src="_static/logo/logo.svg" alt="Hamon Logo" width="200" style="margin-bottom: 20px;">
 </div>
 
-# **THRML-Boost**
+# **Hamon**
 
 *Performance-optimized block Gibbs sampling for probabilistic graphical models in JAX.*
 
 ---
 
-THRML-Boost is a fork of [Extropic AI's THRML library](https://github.com/Extropic-AI/thrml) that targets the JAX compilation and runtime bottlenecks in the original implementation. The API is unchanged — it's a drop-in replacement.
+Hamon is a fork of [Extropic AI's THRML library](https://github.com/Extropic-AI/thrml) that targets the JAX compilation and runtime bottlenecks in the original implementation. The API is unchanged — it's a drop-in replacement.
 
 The library provides GPU-accelerated tools for blocked Gibbs sampling on sparse, heterogeneous graphs. It's a good fit for Ising models, Boltzmann machines, discrete energy-based models, or anything with a bipartite factor-graph structure.
 
@@ -27,8 +27,8 @@ See the [architecture guide](architecture.md) for how the internals work, or jum
 Requires Python ≥ 3.10 and a working [JAX installation](https://jax.readthedocs.io/en/latest/installation.html).
 
 ```bash
-git clone https://github.com/dek3rr/thrml-boost.git
-cd thrml-boost
+git clone https://github.com/dek3rr/hamon.git
+cd hamon
 pip install -e .
 ```
 
@@ -45,8 +45,8 @@ Sample a small Ising chain with two-color block Gibbs:
 ```python
 import jax
 import jax.numpy as jnp
-from thrml_boost import SpinNode, Block, SamplingSchedule, sample_states
-from thrml_boost.models import IsingEBM, IsingSamplingProgram, hinton_init
+from hamon import SpinNode, Block, SamplingSchedule, sample_states
+from hamon.models import IsingEBM, IsingSamplingProgram, hinton_init
 
 nodes = [SpinNode() for _ in range(5)]
 edges = [(nodes[i], nodes[i + 1]) for i in range(4)]
@@ -68,4 +68,4 @@ samples = sample_states(k_samp, program, schedule, init_state, [], [Block(nodes)
 
 ## Attribution
 
-THRML-Boost is a derivative work of [thrml](https://github.com/Extropic-AI/thrml) by Extropic AI, licensed under the [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0). See the [NOTICE](https://github.com/dek3rr/thrml-boost/blob/main/NOTICE) file for details.
+Hamon is a derivative work of [thrml](https://github.com/Extropic-AI/thrml) by Extropic AI, licensed under the [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0). See the [NOTICE](https://github.com/dek3rr/hamon/blob/main/NOTICE) file for details.

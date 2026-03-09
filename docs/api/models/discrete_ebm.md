@@ -2,42 +2,42 @@
 
 This module contains implementations of discrete energy-based models.
 
-::: thrml_boost.models.DiscreteEBMFactor
+::: hamon.models.DiscreteEBMFactor
     options:
         members:
             - energy
             - to_interaction_groups
 
-::: thrml_boost.models.DiscreteEBMInteraction
+::: hamon.models.DiscreteEBMInteraction
     options:
         members: False
 
-::: thrml_boost.models.SquareDiscreteEBMFactor
+::: hamon.models.SquareDiscreteEBMFactor
     options:
         members:
             - to_interaction_groups
 
-::: thrml_boost.models.SpinEBMFactor
+::: hamon.models.SpinEBMFactor
     options:
         members: false
         inherited_members: false
 
-::: thrml_boost.models.CategoricalEBMFactor
+::: hamon.models.CategoricalEBMFactor
     options:
         members: false
         inherited_members: false
 
-::: thrml_boost.models.SquareCategoricalEBMFactor
+::: hamon.models.SquareCategoricalEBMFactor
     options:
         members: false
         inherited_members: false
 
-::: thrml_boost.models.SpinGibbsConditional
+::: hamon.models.SpinGibbsConditional
     options:
         members:
             - compute_parameters
 
-::: thrml_boost.models.CategoricalGibbsConditional
+::: hamon.models.CategoricalGibbsConditional
     options:
         members:
             - compute_parameters

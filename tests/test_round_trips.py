@@ -14,7 +14,7 @@ Covers:
 
 import jax.numpy as jnp
 
-from thrml_boost.round_trips import (
+from hamon.round_trips import (
     init_index_state,
     update_index_state,
     estimate_local_barrier,

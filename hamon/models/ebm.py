@@ -6,10 +6,10 @@ import equinox as eqx
 import jax.numpy as jnp
 from jaxtyping import Array, Float
 
-from thrml_boost.block_management import Block, BlockSpec, block_state_to_global
-from thrml_boost.block_sampling import _SD, _State
-from thrml_boost.factor import AbstractFactor
-from thrml_boost.pgm import DEFAULT_NODE_SHAPE_DTYPES
+from hamon.block_management import Block, BlockSpec, block_state_to_global
+from hamon.block_sampling import _SD, _State
+from hamon.factor import AbstractFactor
+from hamon.pgm import DEFAULT_NODE_SHAPE_DTYPES
 
 
 class AbstractEBM(eqx.Module):

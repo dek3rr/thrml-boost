@@ -1,4 +1,4 @@
-"""Comprehensive backend tests for thrml_boost.
+"""Comprehensive backend tests for hamon.
 
 Targets gaps identified in the architecture audit:
 - Roundtrip fidelity: block → global → block for heterogeneous pytree states
@@ -23,7 +23,7 @@ import jax
 import jax.numpy as jnp
 from jaxtyping import Array
 
-from thrml_boost.block_management import (
+from hamon.block_management import (
     Block,
     BlockSpec,
     block_state_to_global,
@@ -34,7 +34,7 @@ from thrml_boost.block_management import (
     verify_block_state,
     _hash_pytree,
 )
-from thrml_boost.block_sampling import (
+from hamon.block_sampling import (
     BlockGibbsSpec,
     BlockSamplingProgram,
     SamplingSchedule,
@@ -43,12 +43,12 @@ from thrml_boost.block_sampling import (
     sample_states,
     sample_with_observation,
 )
-from thrml_boost.conditional_samplers import (
+from hamon.conditional_samplers import (
     AbstractConditionalSampler,
 )
-from thrml_boost.interaction import InteractionGroup
-from thrml_boost.observers import MomentAccumulatorObserver, StateObserver
-from thrml_boost.pgm import AbstractNode, CategoricalNode, SpinNode
+from hamon.interaction import InteractionGroup
+from hamon.observers import MomentAccumulatorObserver, StateObserver
+from hamon.pgm import AbstractNode, CategoricalNode, SpinNode
 
 
 # ---------------------------------------------------------------------------
@@ -441,7 +441,7 @@ class TestMomentAccumulatorDedup(unittest.TestCase):
 
 class TestIsingEBMFactors(unittest.TestCase):
     def _make_model(self):
-        from thrml_boost.models.ising import IsingEBM
+        from hamon.models.ising import IsingEBM
 
         nodes = [SpinNode() for _ in range(5)]
         edges = [(nodes[i], nodes[i + 1]) for i in range(4)]
@@ -466,7 +466,7 @@ class TestIsingEBMFactors(unittest.TestCase):
 
     def test_factors_weights_include_beta_scaling(self):
         """factors property should return beta * weights / beta * biases."""
-        from thrml_boost.models.ising import IsingEBM
+        from hamon.models.ising import IsingEBM
 
         nodes = [SpinNode() for _ in range(3)]
         edges = [(nodes[0], nodes[1]), (nodes[1], nodes[2])]
@@ -623,7 +623,7 @@ class TestDuplicateNodeDetection(unittest.TestCase):
 
 class TestEnergyFastPath(unittest.TestCase):
     def test_blockspec_vs_list(self):
-        from thrml_boost.models.ising import IsingEBM
+        from hamon.models.ising import IsingEBM
 
         nodes = [SpinNode() for _ in range(6)]
         edges = [(nodes[i], nodes[i + 1]) for i in range(5)]
@@ -636,7 +636,7 @@ class TestEnergyFastPath(unittest.TestCase):
         self.assertTrue(jnp.allclose(e_list, e_spec))
 
     def test_jit_compatible(self):
-        from thrml_boost.models.ising import IsingEBM
+        from hamon.models.ising import IsingEBM
 
         nodes = [SpinNode() for _ in range(4)]
         edges = [(nodes[i], nodes[i + 1]) for i in range(3)]

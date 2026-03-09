@@ -4,9 +4,9 @@ import equinox as eqx
 import jax
 from jax import numpy as jnp
 
-from thrml_boost.block_management import Block
-from thrml_boost.block_sampling import SamplingSchedule, sample_with_observation
-from thrml_boost.models.ising import (
+from hamon.block_management import Block
+from hamon.block_sampling import SamplingSchedule, sample_with_observation
+from hamon.models.ising import (
     IsingEBM,
     IsingSamplingProgram,
     IsingTrainingSpec,
@@ -14,8 +14,8 @@ from thrml_boost.models.ising import (
     estimate_moments,
     hinton_init,
 )
-from thrml_boost.observers import StateObserver
-from thrml_boost.pgm import SpinNode
+from hamon.observers import StateObserver
+from hamon.pgm import SpinNode
 
 from .utils import sample_and_compare_distribution
 

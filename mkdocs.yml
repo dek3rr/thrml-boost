@@ -13,19 +13,18 @@ theme:
     icon:
         repo: fontawesome/brands/github
 
-site_name: thrml-boost
-site_description: The documentation for the thrml-boost library.
-site_author: thrml-boost contributors
+site_name: Hamon
+site_description: JAX-native thermal sampling for discrete energy-based models.
+site_author: Hamon contributors
 site_url: ""
 
-repo_url: https://github.com/dek3rr/thrml-boost
-repo_name: thrml-boost
+repo_url: https://github.com/dek3rr/hamon
+repo_name: hamon
 edit_uri: ""
 
 strict: false
 
-extra_javascript: 
-    # The below two make MathJax work, see https://squidfunk.github.io/mkdocs-material/reference/mathjax/
+extra_javascript:
     - _static/mathjax.js
     - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
     - _static/video_handler.js
@@ -46,10 +45,7 @@ markdown_extensions:
         toc_depth: 4
 
 plugins:
-    - search:
-        # See https://github.com/squidfunk/mkdocs-material/discussions/8116#discussioncomment-12632752
-        # and https://github.com/patrick-kidger/equinox/issues/984
-        separator: '[\s\-,:!=\[\]()"/]+|(?!\b)(?=[A-Z][a-z])|\.(?!\d)|&[lg]t;'
+    - search
     - include_exclude_files:
         include:
             - ".htaccess"
@@ -101,9 +97,13 @@ nav:
         - 'api/block_sampling.md'
         - 'api/observers.md'
         - 'api/tempering.md'
+        - 'api/nrpt.md'
+        - 'api/round_trips.md'
+        - 'api/dynamic_blocks.md'
+        - 'api/boundary_energy.md'
         - Models:
             - 'api/models/ebm.md'
             - 'api/models/discrete_ebm.md'
             - 'api/models/ising.md'
     - Further details:
-      - 'architecture.md'
+        - 'architecture.md'

@@ -4,7 +4,7 @@
 
 THRML is a [JAX](https://docs.jax.dev/en/latest/)-based Python library for efficient [block Gibbs sampling](https://proceedings.mlr.press/v15/gonzalez11a/gonzalez11a.pdf) of graphical models at scale. It provides the machinery for blocked Gibbs sampling on any graphical model and includes built-in support for [Boltzmann Machines](https://www.cs.toronto.edu/~fritz/absps/cogscibm.pdf) and other discrete energy-based models.
 
-THRML was originally developed by [Extropic AI](https://github.com/Extropic-AI/thrml). THRML-Boost is a performance-optimized fork that preserves the full API while improving JAX compilation and runtime efficiency.
+THRML was originally developed by [Extropic AI](https://github.com/Extropic-AI/thrml). Hamon is a performance-optimized fork that preserves the full API while improving JAX compilation and runtime efficiency.
 
 ## Core concepts
 
@@ -32,9 +32,9 @@ Since JAX does not support ragged arrays, every block within a structural group 
 
 Everything else exists to provide convenience for creating and working with a program. With a tight core focused on block index management and padding, the codebase stays lightweight and hackable.
 
-## What THRML-Boost optimizes
+## What Hamon optimizes
 
-THRML-Boost does not change the mathematical semantics of any sampler. It targets the JAX compilation and runtime overhead:
+Hamon does not change the mathematical semantics of any sampler. It targets the JAX compilation and runtime overhead:
 
 - **`jax.vmap` parallel tempering** — replaces the Python for-loop over chains that unrolled N copies of the full Gibbs graph into XLA. One kernel, all chains, constant compile time.
 - **`jax.lax.scan` carry threading** — global state is now carried through the scan loop instead of being rebuilt from block states on every iteration.

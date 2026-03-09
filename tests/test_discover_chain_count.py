@@ -13,9 +13,9 @@ import jax
 import jax.numpy as jnp
 import pytest
 
-from thrml_boost import Block, SpinNode
-from thrml_boost.models import IsingEBM, IsingSamplingProgram, hinton_init
-from thrml_boost.nrpt import discover_chain_count
+from hamon import Block, SpinNode
+from hamon.models import IsingEBM, IsingSamplingProgram, hinton_init
+from hamon.nrpt import discover_chain_count
 
 
 # ---------------------------------------------------------------------------

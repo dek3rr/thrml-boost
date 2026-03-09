@@ -36,9 +36,9 @@ import jax.numpy as jnp
 import numpy as np
 from jax import lax
 
-from thrml_boost.block_sampling import _run_blocks, BlockSamplingProgram
-from thrml_boost.models.ebm import AbstractEBM
-from thrml_boost.round_trips import (
+from hamon.block_sampling import _run_blocks, BlockSamplingProgram
+from hamon.models.ebm import AbstractEBM
+from hamon.round_trips import (
     init_index_state,
     update_index_state,
     round_trip_summary,

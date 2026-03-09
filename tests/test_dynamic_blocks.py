@@ -16,8 +16,8 @@ Covers:
 import jax.numpy as jnp
 import numpy as np
 
-from thrml_boost.pgm import SpinNode
-from thrml_boost.dynamic_blocks import (
+from hamon.pgm import SpinNode
+from hamon.dynamic_blocks import (
     compute_edge_influence,
     compute_aggregate_influence,
     classify_nodes,
@@ -336,7 +336,7 @@ class TestColoringValidation:
     def test_invalid_coloring(self):
         """Two adjacent blocks in same color class should fail."""
         nodes, edges, nodes_2d = _grid_graph(4)
-        from thrml_boost.boundary_energy import make_rectangular_blocks
+        from hamon.boundary_energy import make_rectangular_blocks
 
         blocks, _ = make_rectangular_blocks(4, 2, nodes_2d)
         # Put all blocks in one color class

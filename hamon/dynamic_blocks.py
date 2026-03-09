@@ -28,7 +28,7 @@ import jax
 import jax.numpy as jnp
 import numpy as np
 
-from thrml_boost.pgm import AbstractNode
+from hamon.pgm import AbstractNode
 
 
 # ---------------------------------------------------------------------------
