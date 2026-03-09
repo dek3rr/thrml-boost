@@ -1,16 +1,16 @@
 # Graphical Model Components
 
-::: thrml_boost.AbstractNode
+::: hamon.AbstractNode
     options:
         members: false
         inherited_members: false
 
-::: thrml_boost.SpinNode
+::: hamon.SpinNode
     options:
         members: false
         inherited_members: false
 
-::: thrml_boost.CategoricalNode
+::: hamon.CategoricalNode
     options:
         members: false
         inherited_members: false

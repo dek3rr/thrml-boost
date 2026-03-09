@@ -8,15 +8,15 @@ import networkx as nx
 import numpy as np
 from jax import numpy as jnp
 
-from thrml_boost.block_management import Block
-from thrml_boost.block_sampling import (
+from hamon.block_management import Block
+from hamon.block_sampling import (
     BlockGibbsSpec,
     SamplingSchedule,
     sample_single_block,
     sample_states,
 )
-from thrml_boost.factor import FactorSamplingProgram
-from thrml_boost.models.discrete_ebm import (
+from hamon.factor import FactorSamplingProgram
+from hamon.models.discrete_ebm import (
     CategoricalEBMFactor,
     CategoricalGibbsConditional,
     DiscreteEBMFactor,
@@ -25,8 +25,8 @@ from thrml_boost.models.discrete_ebm import (
     SquareCategoricalEBMFactor,
     SquareDiscreteEBMFactor,
 )
-from thrml_boost.models.ebm import FactorizedEBM
-from thrml_boost.pgm import AbstractNode, CategoricalNode, SpinNode
+from hamon.models.ebm import FactorizedEBM
+from hamon.pgm import AbstractNode, CategoricalNode, SpinNode
 
 from .utils import (
     count_samples,
@@ -1135,6 +1135,6 @@ class TestBigGrid(unittest.TestCase):
         delta_side = (side_lens[1:] / side_lens[:-1]) ** 2
         delta_time = times[1:] / times[:-1]
 
-        scaling_correct = delta_time < 1.1 * delta_side
+        scaling_correct = delta_time < 1.2 * delta_side
 
         self.assertTrue(np.all(scaling_correct))

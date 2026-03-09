@@ -11,12 +11,12 @@ import numpy as np
 from jax import numpy as jnp
 from jaxtyping import Array, Int, PyTree
 
-from thrml_boost.block_management import Block, block_state_to_global, from_global_state
+from hamon.block_management import Block, block_state_to_global, from_global_state
 
 if TYPE_CHECKING:
-    from thrml_boost.block_sampling import _State, BlockSamplingProgram
+    from hamon.block_sampling import _State, BlockSamplingProgram
 
-from thrml_boost.pgm import AbstractNode
+from hamon.pgm import AbstractNode
 
 ObserveCarry = TypeVar("ObserveCarry", bound=PyTree)
 

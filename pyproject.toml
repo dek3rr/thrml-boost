@@ -1,20 +1,52 @@
 [project]
-name = "thrml-boost"
-version = "0.2.0"
-description = "Thermodynamic HypergRaphical Model Library (THRML) — performance-optimized fork"
+name = "hamon"
+version = "0.1.0"
+description = "JAX-native thermal sampling for discrete energy-based models"
 readme = "README.md"
+license = "Apache-2.0"
 requires-python = ">=3.10"
 authors = [
-  {name = "Extropic AI"},
-  {name = "dek3rr"},
+    { name = "dek3rr" },
 ]
-
-urls = { repository = "https://github.com/dek3rr/thrml-boost" }
+maintainers = [
+    { name = "dek3rr" },
+]
+keywords = [
+    "jax",
+    "mcmc",
+    "parallel-tempering",
+    "gibbs-sampling",
+    "energy-based-models",
+    "ising",
+    "probabilistic-graphical-models",
+    "sampling",
+    "gpu",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Scientific/Engineering :: Physics",
+    "Typing :: Typed",
+]
 
 dependencies = [
     "equinox>=0.11.2",
     "jaxtyping>=0.2.23",
 ]
+
+[project.urls]
+Repository = "https://github.com/dek3rr/hamon"
+Documentation = "https://dek3rr.github.io/hamon"
+Issues = "https://github.com/dek3rr/hamon/issues"
+Changelog = "https://github.com/dek3rr/hamon/blob/main/CHANGELOG.md"
 
 [build-system]
 requires = ["setuptools>=65"]
@@ -29,32 +61,33 @@ examples = [
     "scikit-learn>=1.7.0",
 ]
 testing = [
-    "coverage==7.6.10",
-    "pytest==8.3.4",
-    "nbmake==1.5.5",
+    "coverage>=7.6",
+    "pytest>=8.3",
+    "nbmake>=1.5",
     "networkx>=2.6.3",
     "optax>=0.2.4",
     "setuptools>=75.0",
 ]
 development = [
-    "ruff==0.15.2",
-    "pyright==1.1.408",
-    "pytest-cov==4.0.0",
-    "pytest-asyncio==0.21.0",
+    "ruff>=0.15",
+    "pyright>=1.1.400",
+    "pytest-cov>=4.0",
+    "build>=1.0",
+    "twine>=6.0",
 ]
 docs = [
-    "hippogriffe==0.2.0",
-    "griffe==1.7.3",
-    "mkdocs==1.6.1",
-    "mkdocs-include-exclude-files==0.1.0",
-    "mkdocs-ipynb==0.1.0",
-    "mkdocs-material==9.6.7",
-    "mkdocstrings[python]==0.28.3",
-    "pymdown-extensions==10.14.3",
+    "hippogriffe>=0.2.0",
+    "griffe>=1.7",
+    "mkdocs>=1.6",
+    "mkdocs-include-exclude-files>=0.1.0",
+    "mkdocs-ipynb>=0.1.0",
+    "mkdocs-material>=9.6",
+    "mkdocstrings[python]>=0.28",
+    "pymdown-extensions>=10.14",
 ]
 
 [tool.setuptools]
-packages = { find = { include = ["thrml_boost", "thrml_boost.*"] } }
+packages = { find = { include = ["hamon", "hamon.*"] } }
 
 [tool.ruff]
 extend-include = ["*.ipynb"]
@@ -71,6 +104,6 @@ markers = [
 
 [tool.pyright]
 reportUnnecessaryTypeIgnoreComment = true
-include = ["thrml_boost"]
+include = ["hamon"]
 venvPath = "."
 venv = "venv"

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-thrml-boost comprehensive benchmark.
+hamon comprehensive benchmark.
 
 Isolates and measures each optimization against a fair baseline:
 
@@ -14,7 +14,7 @@ Usage:
     python benchmark.py                          # defaults (32×32 grid)
     python benchmark.py --L 64                   # larger grid
     python benchmark.py --L 32 --runs 5          # more statistical power
-    python benchmark.py --skip-thrml             # only test thrml-boost internals
+    python benchmark.py --skip-thrml             # only test hamon internals
 """
 
 import argparse
@@ -26,16 +26,16 @@ import numpy as np
 
 jax.config.update("jax_enable_x64", False)
 
-import thrml_boost  # noqa: E402
-from thrml_boost.nrpt import nrpt  # noqa: E402
-from thrml_boost import (  # noqa: E402
+import hamon  # noqa: E402
+from hamon.nrpt import nrpt  # noqa: E402
+from hamon import (  # noqa: E402
     Block,
     SamplingSchedule,
     sample_states,
     sample_with_observation,
     MomentAccumulatorObserver,
 )
-from thrml_boost.models import (  # noqa: E402
+from hamon.models import (  # noqa: E402
     IsingEBM,
     IsingSamplingProgram,
     hinton_init,
@@ -52,7 +52,7 @@ except ImportError:
 # ── Utilities ─────────────────────────────────────────────────────
 
 
-def create_ising_components(L: int, lib=thrml_boost):
+def create_ising_components(L: int, lib=hamon):
     """Build reusable 2D Ising graph with checkerboard blocking."""
     N = L * L
     _SpinNode = lib.SpinNode
@@ -132,13 +132,13 @@ def bench_single_chain(L: int, n_warmup: int, n_samples: int, num_runs: int):
     """Tests scan carry threading and deterministic global state layout.
 
     Both libraries run sample_states on the same 2D Ising model.
-    thrml-boost threads global state through lax.scan carry and uses
+    hamon threads global state through lax.scan carry and uses
     targeted scatter instead of full rebuild each iteration.
     """
     header(f"1. Single-chain Gibbs | {L}×{L} ({L * L} spins)")
 
     results = {}
-    libs = [(thrml_boost, "thrml-boost")]
+    libs = [(hamon, "hamon")]
     if HAS_THRML:
         libs.append((thrml, "thrml"))
 
@@ -180,9 +180,9 @@ def bench_single_chain(L: int, n_warmup: int, n_samples: int, num_runs: int):
         sps = n_samples / res["avg_s"]
         row(name, res, f"({sps:.0f} samples/s)")
 
-    if "thrml" in results and "thrml-boost" in results:
-        sp = results["thrml"]["avg_s"] / results["thrml-boost"]["avg_s"]
-        print(f"\n  → thrml-boost runtime speedup: {sp:.2f}×")
+    if "thrml" in results and "hamon" in results:
+        sp = results["thrml"]["avg_s"] / results["hamon"]["avg_s"]
+        print(f"\n  → hamon runtime speedup: {sp:.2f}×")
 
     return results
 
@@ -197,9 +197,9 @@ def bench_parallel_tempering(
 ):
     """Tests the headline optimization: jax.vmap over tempered chains.
 
-    Compares thrml-boost's parallel_tempering (1 vmapped kernel) against
+    Compares hamon's parallel_tempering (1 vmapped kernel) against
     a sequential baseline that calls sample_states per chain in a Python
-    loop.  Both use thrml-boost, isolating the vmap win from other changes.
+    loop.  Both use hamon, isolating the vmap win from other changes.
     """
     header(f"2. Parallel tempering scaling | {L}×{L} ({L * L} spins)")
 
@@ -224,7 +224,7 @@ def bench_parallel_tempering(
             hinton_init(keys[i], ebms[0], free_blocks, ()) for i in range(n_chains)
         ]
 
-        # ── A) thrml-boost parallel_tempering ──
+        # ── A) hamon parallel_tempering ──
         pt_keys = jax.random.split(keys[-1], num_runs + 2)
 
         def run_nrpt(k=pt_keys[0]):
@@ -305,7 +305,7 @@ def bench_energy(L: int, n_evals: int, num_runs: int):
     """Tests the pre-built BlockSpec fast-path in energy().
 
     In upstream thrml, energy() always rebuilds a BlockSpec from list[Block].
-    thrml-boost accepts a pre-built spec, skipping Python-level construction.
+    hamon accepts a pre-built spec, skipping Python-level construction.
     The win is largest during parallel tempering, where energy() is called
     4× per swap attempt (this benchmark isolates the per-call overhead).
     """
@@ -393,7 +393,7 @@ def bench_moments(L: int, n_warmup: int, n_samples: int, num_runs: int):
     """Tests the fixed-dtype MomentAccumulatorObserver.
 
     Upstream thrml inferred accumulator dtype per scan step, silently
-    triggering float64 emulation on GPU.  thrml-boost sets it once at
+    triggering float64 emulation on GPU.  hamon sets it once at
     construction (float32 by default).
 
     We compare MomentAccumulatorObserver with explicit float32 vs float64
@@ -426,7 +426,7 @@ def bench_moments(L: int, n_warmup: int, n_samples: int, num_runs: int):
     res_state = time_fn(run_state_obs, num_runs=num_runs)
     row("StateObserver (baseline)", res_state)
 
-    # ── MomentAccumulatorObserver float32 (thrml-boost default) ──
+    # ── MomentAccumulatorObserver float32 (hamon default) ──
     obs_f32 = MomentAccumulatorObserver(
         moment_spec, f_transform=spin_transform, dtype=jnp.float32
     )
@@ -591,7 +591,7 @@ def check_correctness():
 def print_summary(args):
     header("Summary")
     print(f"""
-  This benchmark tested the five optimizations in thrml-boost:
+  This benchmark tested the five optimizations in hamon:
 
   1. Scan carry threading         (single-chain Gibbs)
      Global state is threaded through lax.scan instead of being rebuilt
@@ -622,7 +622,7 @@ def print_summary(args):
 # ═════════════════════════════════════════════════════════════════
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="thrml-boost comprehensive benchmark")
+    parser = argparse.ArgumentParser(description="hamon comprehensive benchmark")
     parser.add_argument(
         "--L", type=int, default=32, help="Grid side length (default: 32 → 1024 spins)"
     )
@@ -684,7 +684,7 @@ if __name__ == "__main__":
 
     print(f"Device: {jax.devices()[0]}")
     print(f"JAX version: {jax.__version__}")
-    print(f"thrml-boost version: {thrml_boost.__version__}")
+    print(f"hamon version: {hamon.__version__}")
     if HAS_THRML:
         print(f"thrml version: {thrml.__version__}")
     else:

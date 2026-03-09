@@ -1,10 +1,10 @@
-# thrml_boost/graph_utils.py
+# hamon/graph_utils.py
 """
 Graph-coloring utilities for automatic construction of sampling order.
 
 The key entry point is :func:`auto_color_blocks`, which inspects a set of
-:class:`~thrml_boost.InteractionGroup` objects and returns a ``free_super_blocks``
-list ready to pass directly into :class:`~thrml_boost.BlockGibbsSpec`.
+:class:`~hamon.InteractionGroup` objects and returns a ``free_super_blocks``
+list ready to pass directly into :class:`~hamon.BlockGibbsSpec`.
 
 Background
 ----------
@@ -27,11 +27,11 @@ graph topologies.
 from collections import defaultdict
 from typing import Sequence
 
-from thrml_boost.block_management import Block
-from thrml_boost.interaction import InteractionGroup
+from hamon.block_management import Block
+from hamon.interaction import InteractionGroup
 
 # Re-export the SuperBlock type alias so callers only need one import.
-from thrml_boost.block_sampling import SuperBlock  # noqa: F401
+from hamon.block_sampling import SuperBlock  # noqa: F401
 
 
 def auto_color_blocks(
@@ -41,9 +41,9 @@ def auto_color_blocks(
     """Derive a minimal parallel sampling order from the interaction graph.
 
     Analyses which free blocks interact with which others and returns a list of
-    ``SuperBlock`` values (each either a plain :class:`~thrml_boost.Block` or a
-    tuple of :class:`~thrml_boost.Block` objects) that can be passed directly to
-    :class:`~thrml_boost.BlockGibbsSpec` as ``free_super_blocks``.
+    ``SuperBlock`` values (each either a plain :class:`~hamon.Block` or a
+    tuple of :class:`~hamon.Block` objects) that can be passed directly to
+    :class:`~hamon.BlockGibbsSpec` as ``free_super_blocks``.
 
     Blocks assigned to the same ``SuperBlock`` are conditionally independent —
     their nodes never appear in each other's ``tail_nodes`` — so they can safely

@@ -48,4 +48,4 @@ from .dynamic_blocks import per_temperature_block_config as per_temperature_bloc
 from .dynamic_blocks import dynamic_reblock as dynamic_reblock
 from .dynamic_blocks import classify_nodes as classify_nodes
 
-__version__ = importlib.metadata.version("thrml_boost")
+__version__ = importlib.metadata.version("hamon")

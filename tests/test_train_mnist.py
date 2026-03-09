@@ -8,9 +8,9 @@ import optax
 import pytest
 from jaxtyping import Array, Key
 
-from thrml_boost.block_management import Block
-from thrml_boost.block_sampling import SamplingSchedule, sample_states
-from thrml_boost.models.ising import (
+from hamon.block_management import Block
+from hamon.block_sampling import SamplingSchedule, sample_states
+from hamon.models.ising import (
     Edge,
     IsingEBM,
     IsingSamplingProgram,
@@ -18,7 +18,7 @@ from thrml_boost.models.ising import (
     estimate_kl_grad,
     hinton_init,
 )
-from thrml_boost.pgm import AbstractNode, SpinNode
+from hamon.pgm import AbstractNode, SpinNode
 
 
 def get_double_grid(

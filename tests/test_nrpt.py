@@ -10,9 +10,9 @@ Validates:
 import jax
 import jax.numpy as jnp
 
-from thrml_boost import Block, SpinNode, make_empty_block_state
-from thrml_boost.models import IsingEBM, IsingSamplingProgram, hinton_init
-from thrml_boost.nrpt import _compute_base_energies, nrpt
+from hamon import Block, SpinNode, make_empty_block_state
+from hamon.models import IsingEBM, IsingSamplingProgram, hinton_init
+from hamon.nrpt import _compute_base_energies, nrpt
 
 
 # ---------------------------------------------------------------------------

@@ -13,8 +13,8 @@ Covers:
 import jax
 import jax.numpy as jnp
 
-from thrml_boost.pgm import SpinNode
-from thrml_boost.boundary_energy import (
+from hamon.pgm import SpinNode
+from hamon.boundary_energy import (
     EdgePartition,
     ising_energy_delta,
     make_rectangular_blocks,

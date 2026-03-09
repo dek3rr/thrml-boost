@@ -2,9 +2,9 @@ import unittest
 
 import jax.numpy as jnp
 
-from thrml_boost.block_management import Block
-from thrml_boost.interaction import InteractionGroup
-from thrml_boost.pgm import AbstractNode
+from hamon.block_management import Block
+from hamon.interaction import InteractionGroup
+from hamon.pgm import AbstractNode
 
 
 class Node(AbstractNode):

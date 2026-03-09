@@ -23,7 +23,7 @@ jobs:
       - name: Run coverage
         run: |
           pip install .[testing]
-          coverage run --source thrml_boost --parallel-mode -m pytest -m "not slow" tests/
+          coverage run --source hamon --parallel-mode -m pytest -m "not slow" tests/
           coverage combine
           coverage html
           coverage report --fail-under=90

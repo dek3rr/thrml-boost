@@ -5,14 +5,14 @@ import numpy as np
 from jax import numpy as jnp
 from jaxtyping import Array, Key
 
-from thrml_boost.block_management import Block
-from thrml_boost.block_sampling import (
+from hamon.block_management import Block
+from hamon.block_sampling import (
     BlockSamplingProgram,
     SamplingSchedule,
     sample_states,
 )
-from thrml_boost.models.ebm import AbstractEBM
-from thrml_boost.pgm import DEFAULT_NODE_SHAPE_DTYPES, CategoricalNode, SpinNode
+from hamon.models.ebm import AbstractEBM
+from hamon.pgm import DEFAULT_NODE_SHAPE_DTYPES, CategoricalNode, SpinNode
 
 
 def generate_all_states_binary(num_binary: int) -> Array:

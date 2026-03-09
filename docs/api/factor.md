@@ -1,16 +1,16 @@
 # Factors
 
-::: thrml_boost.AbstractFactor
+::: hamon.AbstractFactor
     options:
         members:
             - to_interaction_groups
 
-::: thrml_boost.WeightedFactor
+::: hamon.WeightedFactor
     options:
         members: false
         inherited_members: false
 
-::: thrml_boost.FactorSamplingProgram
+::: hamon.FactorSamplingProgram
     options:
         members:
             - __init__

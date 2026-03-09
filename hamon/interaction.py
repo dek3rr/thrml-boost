@@ -2,7 +2,7 @@ import equinox as eqx
 import jax
 from jaxtyping import PyTree
 
-from thrml_boost.block_management import Block
+from hamon.block_management import Block
 
 
 class InteractionGroup(eqx.Module):
