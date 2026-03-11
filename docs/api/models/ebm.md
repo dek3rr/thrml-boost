@@ -1,23 +1,14 @@
 # Energy-Based Models
 
-This module contains implementations of energy-based models.
+Base classes for energy-based models. `AbstractEBM` defines the interface;
+`DiscreteEBM` adds discrete-specific factor construction.
 
 ::: hamon.models.AbstractEBM
     options:
         members:
             - energy
 
-::: hamon.models.AbstractFactorizedEBM
-    options:
-        members: false
-
-::: hamon.models.FactorizedEBM
+::: hamon.models.DiscreteEBM
     options:
         members:
             - __init__
-            - energy
-
-::: hamon.models.EBMFactor
-    options:
-        members:
-            - energy

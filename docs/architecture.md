@@ -1,48 +1,100 @@
 # Architecture
 
-## What is THRML?
+Hamon's internals are organized around one idea: **block-structured Gibbs
+sampling on padded, stacked PyTree states, compiled once via JAX**.
 
-THRML is a [JAX](https://docs.jax.dev/en/latest/)-based Python library for efficient [block Gibbs sampling](https://proceedings.mlr.press/v15/gonzalez11a/gonzalez11a.pdf) of graphical models at scale. It provides the machinery for blocked Gibbs sampling on any graphical model and includes built-in support for [Boltzmann Machines](https://www.cs.toronto.edu/~fritz/absps/cogscibm.pdf) and other discrete energy-based models.
+## The core abstraction
 
-THRML was originally developed by [Extropic AI](https://github.com/Extropic-AI/thrml). Hamon is a performance-optimized fork that preserves the full API while improving JAX compilation and runtime efficiency.
+A `BlockSamplingProgram` holds everything needed to run block Gibbs on a single
+model: the `BlockGibbsSpec` (which blocks to sample, which to clamp), the
+conditional samplers for each block, and the factors that define the energy.
 
-## Core concepts
+The `BlockSpec` manages the mapping between block-local and global state arrays.
+Because JAX requires rectangular arrays, variable-size blocks are padded and
+stacked by structural group. This costs some wasted FLOPs but avoids Python-level
+loops over blocks, which would cause XLA compile times to scale linearly with
+block count.
 
-From a user perspective there are three main components: **blocks**, **factors**, and **programs**. For worked examples see the example notebooks.
+## State representation
 
-### Blocks
+Global state is a list of arrays, one per structural group of blocks. Each array
+has shape `(n_blocks_in_group, max_block_size, ...)` with padding where needed.
+`BlockSpec` tracks the valid (non-padded) indices so that `block_state_to_global`
+and `from_global_state` can convert between representations without data loss.
 
-A `Block` is a collection of nodes of the same type with implicit ordering. Blocks are the unit of parallelism in block Gibbs sampling — all nodes in a block are updated simultaneously in a single SIMD-friendly JAX operation.
+Node identity matters: the same `SpinNode()` object must appear in both the EBM
+and the block definitions. Hamon enforces this through `init_factory`, which
+always extracts `free_blocks = programs[0].gibbs_spec.free_blocks` rather than
+capturing block objects from an outer scope.
 
-### Factors
+## Parallel tempering layout
 
-Factors organize interactions between variables into a [bipartite factor graph](https://ocw.mit.edu/courses/6-438-algorithms-for-inference-fall-2014/3e3e9934d12e3537b4e9b46b53cd5bf1_MIT6_438F14_Lec4.pdf). Each factor synthesizes a batch of `InteractionGroup`s and must implement `to_interaction_groups()`. An `InteractionGroup` specifies directed computational dependencies: which nodes to update (head), which neighbor states to read (tail), and what static parameters (weights) to use.
+NRPT runs \( N \) chains, each at a different inverse temperature \( \beta_i \).
+Rather than looping over chains in Python (which unrolls \( N \) copies of the
+computation graph in XLA), Hamon stacks all chain states into a leading dimension
+and uses `jax.vmap` for the Gibbs sweeps.
 
-### Programs
+The tempering round is a `lax.scan` loop:
 
-Programs are the orchestrating data structures. `BlockSamplingProgram` handles the mapping and bookkeeping for padded block Gibbs sampling — managing global state representations efficiently for JAX. `FactorSamplingProgram` is a convenience wrapper that converts factors into interaction groups automatically. Programs coordinate free/clamped blocks, conditional samplers, and interactions to execute the sampling loop.
+```
+for round in range(n_rounds):
+    # 1. Gibbs sweeps (vmapped across chains)
+    states = vmap(gibbs_sweep)(states)
 
-## Internal design
+    # 2. DEO swap proposals (single parity)
+    parity = round % 2
+    states, accepted = deo_swap(states, energies, parity)
+```
 
-The core approach is to represent everything as contiguous arrays and PyTrees, operate on these flat structures, and map to/from them at the user boundary. Internally this is the "global state" (as opposed to the user-facing "block state"). This is similar in spirit to struct-of-arrays (SoA) layout and to other JAX graphical model packages like [PGMax](https://github.com/google-deepmind/PGMax).
+Swap decisions use the Metropolis-Hastings criterion with the
+temperature-linearity trick: for Ising models, \( E(\beta, x) = \beta \cdot E(1, x) \),
+so swap acceptance ratios reduce to
+\( \exp\bigl((\beta_{i+1} - \beta_i)(V^{(i+1)} - V^{(i)})\bigr) \)
+without recomputing energies at each temperature.
 
-An important distinction from PGMax is that THRML supports **PyTree states and heterogeneous node types**. Heterogeneity is handled by splitting nodes according to their PyTree structure and organizing the global state as a list of these PyTrees, stacked across blocks that share the same structure. The management of these indices and the mapping between block and global representations is constructed and held by the program's `BlockSpec`.
+## Energy caching
 
-Since JAX does not support ragged arrays, every block within a structural group must have the same leaf array size. THRML handles variable block sizes by stacking and padding. There is an inherent tradeoff: padding wastes some compute, but the alternative — looping over blocks in Python — incurs untenable XLA compile-time cost.
+When an `energy_delta_fn` is provided (e.g. from `make_ising_delta_fn`), Hamon
+computes the full energy only once at round 0, then maintains a running cache
+that is updated incrementally after each Gibbs sweep. After swaps, the cache is
+permuted to match the new chain ordering.
 
-Everything else exists to provide convenience for creating and working with a program. With a tight core focused on block index management and padding, the codebase stays lightweight and hackable.
+This eliminates the \( O(|\mathcal{E}|) \) energy recomputation that would
+otherwise dominate each round.
 
-## What Hamon optimizes
+## Index process tracking
 
-Hamon does not change the mathematical semantics of any sampler. It targets the JAX compilation and runtime overhead:
+The index process tracks which chain index occupies which temperature level over
+time. Hamon uses a permutation-based representation: `index_state` is an array of
+shape `(n_chains, 2)` where column 0 is the current position in the ladder and
+column 1 is the direction of travel.
 
-- **`jax.vmap` parallel tempering** — replaces the Python for-loop over chains that unrolled N copies of the full Gibbs graph into XLA. One kernel, all chains, constant compile time.
-- **`jax.lax.scan` carry threading** — global state is now carried through the scan loop instead of being rebuilt from block states on every iteration.
-- **Fixed accumulator dtype** — `MomentAccumulatorObserver` no longer infers dtype per step; set once at construction (float32 default).
-- **Pre-built `BlockSpec` passthrough** — `energy()` accepts a pre-built spec to avoid reconstructing it on every call (critical during tempering swap attempts).
-- **Deterministic global state ordering** — `dict.fromkeys()` replaces `set()` for deduplication, so ordering is reproducible across runs.
-- **Ragged `hinton_init`** — correctly handles blocks of different sizes.
+Because DEO swaps are disjoint transpositions, the swap permutation is
+self-inverse (`inv_perm == perm`), so updating the index state after a swap
+requires only a single gather — no `jnp.argsort`.
 
+Round-trip counting and \( \Lambda \) estimation happen in `round_trip_summary`
+from the accumulated index state and rejection rates.
+
+## Schedule optimization
+
+`optimize_schedule` implements the equi-acceptance reparameterization from
+Algorithm 4 of Syed et al. (2021). Given observed rejection rates
+\( r_0, \ldots, r_{N-2} \), it constructs the CDF of the rejection cost and
+inverts it to find \( \beta \) values that equalize the per-level contribution
+to \( \Lambda \).
+
+`nrpt_adaptive` wraps this in a loop: run a short burn-in, measure rejections,
+reposition betas, repeat for `n_tune` phases, then run production.
+
+## Dynamic blocks
+
+For models where different temperature levels benefit from different block
+granularity, `dynamic_blocks` provides influence-aware partitioning.
+`compute_aggregate_influence` measures how strongly each node couples to its
+neighbors. `influence_aware_partition` then groups nodes into blocks of a
+target size, keeping strongly-coupled nodes together. `per_temperature_block_config`
+can assign different block sizes to different chains based on temperature.
 
 ## Class hierarchy
 
@@ -51,12 +103,12 @@ Hamon does not change the mathematical semantics of any sampler. It targets the 
 ```
 AbstractFactor
 ├── WeightedFactor
-│   └── DiscreteEBMFactor — spin × categorical polynomial interactions
-│       ├── SquareDiscreteEBMFactor — merged groups for square weight tensors
-│       │   ├── SpinEBMFactor — spin-only
-│       │   └── SquareCategoricalEBMFactor — categorical-only (square)
-│       └── CategoricalEBMFactor — categorical-only (general)
-└── EBMFactor — factors with energy functions
+│   └── DiscreteEBMFactor
+│       ├── SquareDiscreteEBMFactor
+│       │   ├── SpinEBMFactor
+│       │   └── SquareCategoricalEBMFactor
+│       └── CategoricalEBMFactor
+└── EBMFactor
 ```
 
 ### Conditional samplers
@@ -64,36 +116,24 @@ AbstractFactor
 ```
 AbstractConditionalSampler
 └── AbstractParametricConditionalSampler
-    ├── BernoulliConditional — spin-valued Bernoulli sampling
-    │   └── SpinGibbsConditional — Gibbs updates for spin EBMs
-    └── SoftmaxConditional — categorical softmax sampling
-        └── CategoricalGibbsConditional — Gibbs updates for categorical EBMs
+    ├── BernoulliConditional
+    │   └── SpinGibbsConditional
+    └── SoftmaxConditional
+        └── CategoricalGibbsConditional
 ```
 
 ### Observers
 
 ```
 AbstractObserver
-├── StateObserver — records raw states at each observation step
-└── MomentAccumulatorObserver — online moment accumulation (mean, variance, etc.)
+├── StateObserver
+└── MomentAccumulatorObserver
 ```
 
-### EBMs
+### Models
 
 ```
 AbstractEBM
-└── AbstractFactorizedEBM — energy = sum of factor energies
-    └── IsingEBM — standard Ising model (biases + pairwise couplings)
+└── DiscreteEBM
+    └── IsingEBM
 ```
-
-### Programs
-
-```
-BlockSamplingProgram — core padded block Gibbs engine
-└── FactorSamplingProgram — auto-converts factors → interaction groups
-    └── IsingSamplingProgram — thin Ising-specific wrapper
-```
-
-## Limitations
-
-Sampling is a fundamentally hard problem. Generating samples from a high-dimensional distribution can require many steps even with parallelized proposals. THRML is focused on Gibbs sampling; for general sampling it is not always clear when Gibbs is substantially [faster](https://arxiv.org/abs/2007.08200) or [slower](https://arxiv.org/abs/1605.00139) than other MCMC methods. As a concrete example: a two-node Ising model with $J = -\infty, h = 0$ has two ground states $\{-1,-1\}$ and $\{1,1\}$; Gibbs sampling will never mix between them, while uniform Metropolis–Hastings converges quickly.

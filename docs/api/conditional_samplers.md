@@ -1,21 +1,13 @@
 # Conditional Samplers
 
+Conditional samplers produce new values for a block given the current state
+of all other variables. `BernoulliConditional` handles spin nodes;
+`SoftmaxConditional` handles categorical nodes.
+
 ::: hamon.AbstractConditionalSampler
-    options:
-        members:
-            - sample
 
 ::: hamon.AbstractParametricConditionalSampler
-    options:
-        members:
-            - compute_parameters
 
 ::: hamon.BernoulliConditional
-    options:
-        members: false
-        inherited_members: false
 
 ::: hamon.SoftmaxConditional
-    options:
-        members: false
-        inherited_members: false

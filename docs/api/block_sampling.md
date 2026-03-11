@@ -1,5 +1,9 @@
 # Block Sampling
 
+The sampling engine. `BlockSamplingProgram` wraps a model and its block
+structure into a callable that runs Gibbs sweeps. `sample_states` is the
+main entry point for collecting samples from a single chain.
+
 ::: hamon.BlockGibbsSpec
     options:
         members:

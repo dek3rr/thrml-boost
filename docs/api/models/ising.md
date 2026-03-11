@@ -1,6 +1,8 @@
 # Ising Models
 
-This module contains implementations of Ising models and spin systems.
+Ising-specific model, program, and training utilities. `IsingEBM` is the
+most common entry point — it constructs the factor graph from a list of
+nodes, edges, biases, and coupling weights.
 
 ::: hamon.models.IsingEBM
     options:

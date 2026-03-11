@@ -1,16 +1,11 @@
-# Graphical Model Components
+# Graph Primitives
+
+Nodes are the random variables in your model. Every node has a value domain
+(spin or categorical) and serves as the identity key for block membership
+and factor connections.
 
 ::: hamon.AbstractNode
-    options:
-        members: false
-        inherited_members: false
 
 ::: hamon.SpinNode
-    options:
-        members: false
-        inherited_members: false
 
 ::: hamon.CategoricalNode
-    options:
-        members: false
-        inherited_members: false

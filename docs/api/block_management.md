@@ -1,5 +1,9 @@
 # Block Management
 
+Blocks are disjoint subsets of nodes. `BlockSpec` handles the index
+bookkeeping — mapping between block-local and global state representations,
+padding variable-size blocks for JAX array stacking, and verifying consistency.
+
 ::: hamon.Block
     options:
         members: false

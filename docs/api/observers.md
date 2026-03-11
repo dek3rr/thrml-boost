@@ -1,5 +1,8 @@
+# Observers
 
-# Sampling Observers
+Observers collect statistics during sampling. `StateObserver` records raw
+states; `MomentAccumulatorObserver` computes running means and variances
+without storing every sample.
 
 ::: hamon.AbstractObserver
     options:

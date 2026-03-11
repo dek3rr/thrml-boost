@@ -1,25 +1,31 @@
-# adapted from https://github.com/patrick-kidger/equinox/blob/main/mkdocs.yml
 theme:
     name: material
     features:
         - navigation.sections
+        - navigation.expand
+        - navigation.path
         - toc.integrate
         - header.autohide
         - content.code.copy
+        - content.tabs.link
     palette:
         - scheme: slate
-          primary: black
-          accent: amber
+          primary: custom
+          accent: light blue
+    font:
+        text: Inter
+        code: JetBrains Mono
     icon:
         repo: fontawesome/brands/github
+        logo: material/sword
 
 site_name: Hamon
 site_description: JAX-native thermal sampling for discrete energy-based models.
-site_author: Hamon contributors
-site_url: ""
+site_author: Douglas E. Kerr Jr.
+site_url: https://dek3rr.github.io/hamon
 
 repo_url: https://github.com/dek3rr/hamon
-repo_name: hamon
+repo_name: dek3rr/hamon
 edit_uri: ""
 
 strict: false
@@ -27,83 +33,96 @@ strict: false
 extra_javascript:
     - _static/mathjax.js
     - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
-    - _static/video_handler.js
 
 extra_css:
     - _static/custom_css.css
 
 markdown_extensions:
     - pymdownx.arithmatex:
-        generic: true
+          generic: true
     - pymdownx.superfences
     - pymdownx.details
     - pymdownx.snippets:
-        base_path: docs
+          base_path: docs
+    - pymdownx.tabbed:
+          alternate_style: true
+    - pymdownx.highlight:
+          anchor_linenums: true
+    - pymdownx.inlinehilite
     - admonition
+    - attr_list
+    - md_in_html
     - toc:
-        permalink: "¤"
-        toc_depth: 4
+          permalink: "#"
+          toc_depth: 3
 
 plugins:
     - search
     - include_exclude_files:
-        include:
-            - ".htaccess"
-        exclude:
-            - "examples/.ipynb_checkpoints/"
-            - "examples/MNIST"
-            - "examples/bert_checkpoint.eqx"
+          include:
+              - ".htaccess"
+          exclude:
+              - "examples/.ipynb_checkpoints/"
+              - "examples/MNIST"
+              - "examples/bert_checkpoint.eqx"
     - ipynb
     - hippogriffe:
-        extra_public_objects:
-            - equinox.if_array
-            - jax.ShapeDtypeStruct
-            - jax.extend.core.ClosedJaxpr
-            - jax.Device
-            - jax.sharding.Sharding
-            - numpy.dtype
-            - jax.numpy.float32
-            - jax.Array
+          extra_public_objects:
+              - equinox.if_array
+              - jax.ShapeDtypeStruct
+              - jax.extend.core.ClosedJaxpr
+              - jax.Device
+              - jax.sharding.Sharding
+              - numpy.dtype
+              - jax.numpy.float32
+              - jax.Array
     - mkdocstrings:
-        handlers:
-            python:
-                options:
-                    force_inspection: true
-                    heading_level: 4
-                    inherited_members: true
-                    members_order: source
-                    show_bases: false
-                    show_if_no_docstring: true
-                    show_overloads: false
-                    show_root_heading: true
-                    show_signature_annotations: true
-                    show_source: false
-                    show_symbol_type_heading: true
-                    show_symbol_type_toc: true
+          handlers:
+              python:
+                  options:
+                      force_inspection: true
+                      heading_level: 4
+                      inherited_members: true
+                      members_order: source
+                      show_bases: false
+                      show_if_no_docstring: true
+                      show_overloads: false
+                      show_root_heading: true
+                      show_signature_annotations: true
+                      show_source: false
+                      show_symbol_type_heading: true
+                      show_symbol_type_toc: true
 
 nav:
-    - 'index.md'
-    - 'examples/00_probabilistic_computing.ipynb'
+    - Home: 'index.md'
+    - Getting Started:
+        - Installation: 'getting-started.md'
+        - 'examples/00_probabilistic_computing.ipynb'
+    - Concepts:
+        - 'concepts.md'
+        - Architecture: 'architecture.md'
     - Examples:
-        - 'examples/01_all_of_thrml.ipynb'
+        - 'examples/01_all_of_hamon.ipynb'
         - 'examples/02_spin_models.ipynb'
         - 'examples/03_parallel_tempering.ipynb'
     - API Reference:
-        - 'api/pgm.md'
-        - 'api/block_management.md'
-        - 'api/interaction.md'
-        - 'api/factor.md'
-        - 'api/conditional_samplers.md'
-        - 'api/block_sampling.md'
-        - 'api/observers.md'
-        - 'api/tempering.md'
-        - 'api/nrpt.md'
-        - 'api/round_trips.md'
-        - 'api/dynamic_blocks.md'
-        - 'api/boundary_energy.md'
+        - Graph Primitives:
+            - 'api/pgm.md'
+            - 'api/interaction.md'
+            - 'api/factor.md'
+        - Sampling:
+            - 'api/block_management.md'
+            - 'api/block_sampling.md'
+            - 'api/conditional_samplers.md'
+            - 'api/observers.md'
+        - Tempering:
+            - 'api/tempering.md'
+            - 'api/nrpt.md'
+            - 'api/round_trips.md'
+        - Advanced:
+            - 'api/dynamic_blocks.md'
+            - 'api/boundary_energy.md'
         - Models:
             - 'api/models/ebm.md'
             - 'api/models/discrete_ebm.md'
             - 'api/models/ising.md'
-    - Further details:
-        - 'architecture.md'
