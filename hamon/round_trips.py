@@ -49,16 +49,9 @@ def update_index_state(
 ) -> dict:
     """Update the index process after a swap pass.
 
-    The swap pass applies a permutation to the stacked states:
-    ``new_states[i] = old_states[perm[i]]``.  This means the state
-    that *was* at chain ``perm[i]`` is *now* at chain ``i``.
-
-    For each machine j whose state was at chain ``old_pos = m2c[j]``,
-    the new position is ``inv_perm[old_pos]``.
-
     Args:
         index_state: current tracking dict
-        perm: (n_chains,) int array — the permutation applied to states
+        perm: (n_chains,) int array — permutation applied to states
         n_chains: total number of chains
     """
     old_m2c = index_state["machine_to_chain"]
@@ -185,10 +178,8 @@ def recommend_n_chains(
 
     The default target_acceptance=0.6 means 40% rejection per pair.
 
-    **Warning**: Λ estimated from a run with too few chains is biased low,
-    because the schedule can't resolve the peak in λ(β). If recommend_n_chains
-    keeps increasing on successive calls, use ``discover_chain_count`` in
-    ``nrpt.py`` which handles the bootstrapping problem iteratively.
+    Note: Λ from too few chains is biased low. Use ``discover_chain_count``
+    for iterative bootstrapping if recommendations keep increasing.
 
     Args:
         Lambda: estimated global communication barrier

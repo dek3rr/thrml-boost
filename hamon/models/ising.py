@@ -1,5 +1,4 @@
 # Modified from the original thrml library (https://github.com/Extropic-AI/thrml)
-# Changes: rewrote hinton_init to handle ragged block sizes correctly
 
 import equinox as eqx
 import jax
@@ -47,12 +46,7 @@ class IsingEBM(AbstractFactorizedEBM):
     weights: Array
     beta: Array
 
-    # NOTE: .factors is intentionally a @property, NOT cached.
-    # eqx.filter_value_and_grad replaces self.weights/self.biases with
-    # tracers; caching beta*weights at __init__ time would freeze
-    # concrete values and break gradient flow. The Block/SpinEBMFactor
-    # construction overhead is acceptable — it's Python-level and doesn't
-    # add XLA ops.
+    # .factors must recompute β*weights on every call — caching breaks AD tracer flow.
 
     def __init__(
         self,

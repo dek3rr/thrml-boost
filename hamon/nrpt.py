@@ -3,27 +3,10 @@
 Based on Syed et al. (2021), "Non-Reversible Parallel Tempering:
 a Scalable Highly Parallel MCMC Scheme" (arXiv:1905.02939).
 
-  1. Vectorized swap pass exploiting temperature-linearity of Ising energy:
-     E_β(x) = β·E_base(x)  →  1 energy eval per chain replaces 4 per pair.
-     All even (or odd) swaps execute simultaneously via permutation indexing.
-
-  2. Adaptive schedule optimization (Algorithm 4): iteratively tunes β spacing
-     to equalize rejection rates, minimizing the global communication barrier Λ.
-
-  3. Round trip tracking: monitors the index process (I_n, ε_n) per machine,
-     counts round trips, and estimates the communication barrier. Provides
-     convergence diagnostics and validates against τ̄ = 1/(2+2Λ).
-
-  4. Energy caching with boundary-only delta support: maintains base energies
-     across rounds to avoid redundant full recomputation. When rectangular
-     blocks are used, energy deltas are computed from incident edges only.
-
-  5. Per-temperature block hooks: supports different BlockSamplingPrograms
-     per chain (already in architecture), with helper functions to construct
-     temperature-adapted partitions.
-
-  6. Vmapped energy computation: _compute_base_energies uses jax.vmap over
-     chain axis instead of a Python loop, producing a single batched kernel.
+Exploits temperature-linearity (E_β = β·E_base) for single-eval-per-chain
+swap decisions. Adaptive schedule optimization (Algorithm 4) equalizes
+rejection rates. Optional energy caching with boundary-only deltas for
+rectangular block partitions.
 """
 
 from __future__ import annotations
@@ -71,7 +54,7 @@ def _make_pbi_in_axes(stacked_pbi):
 
 
 # ---------------------------------------------------------------------------
-# Core: energy computation — vmapped (H1)
+# Core: energy computation
 # ---------------------------------------------------------------------------
 
 
@@ -84,12 +67,7 @@ def _compute_base_energies(
 ) -> jax.Array:
     """Compute E_base(x) for all chains via vmap. Shape: (n_chains,).
 
-    Exploits temperature linearity: ebm0.energy(x, spec) = β₀·E_base(x),
-    so E_base = ebm0.energy(x, spec) / β₀. Vmapping over the chain axis
-    produces a single batched kernel instead of n_chains sequential calls.
-
-    beta0 is passed explicitly so the signature doesn't depend on the
-    concrete EBM subclass having a .beta attribute.
+    E_base = ebm0.energy(x, spec) / β₀ (temperature linearity).
     """
 
     def _energy_one_chain(*block_slices):
@@ -100,7 +78,7 @@ def _compute_base_energies(
 
 
 # ---------------------------------------------------------------------------
-# Core: vectorized swap pass (H3/H4 precomputed constants)
+# Core: vectorized swap pass
 # ---------------------------------------------------------------------------
 
 
@@ -157,10 +135,7 @@ def _make_swap_branch(
 ):
     """Build a lax.cond branch for even or odd swap pass.
 
-    When return_perm=False (non-cached path), returns
-        (states, acc, att, idx_state).
-    When return_perm=True (cached path), additionally returns the
-    permutation for post-swap energy reordering.
+    Returns (states, acc, att, idx_state[, perm]) — perm included when return_perm=True.
     """
     if not return_perm:
 
@@ -240,20 +215,8 @@ def nrpt(
 ) -> tuple[list, list, dict]:
     """Non-Reversible Parallel Tempering with vectorized swaps.
 
-    API-compatible with parallel_tempering(). Key optimizations:
-    - Vmapped energy evaluation: single batched kernel for all chains (H1)
-    - 1 energy evaluation per chain per round (temperature linearity)
-    - All non-overlapping swaps execute simultaneously (permutation indexing)
-    - Precomputed attempt masks and identity perm avoid scatter in scan (H3/H4)
-
     Single-pass DEO: one swap parity per round, alternating even/odd.
-    Multi-pass (both per round) breaks non-reversibility — with disjoint
-    transpositions, even∘odd composed with odd∘even = identity, creating
-    period-2 orbits instead of the conveyor belt drift needed for O(1)
-    round trip rates.
-
-    When track_round_trips=True (default), monitors the index process per
-    machine and includes round trip diagnostics in stats.
+    Multi-pass breaks non-reversibility (even∘odd∘odd∘even = identity).
 
     Stats keys:
         accepted, attempted, acceptance_rate, rejection_rates, betas
@@ -336,7 +299,7 @@ def nrpt(
             in_axes=(0, [0] * n_free_blocks, pbi_in_axes),
         )
 
-    # Pair indices and precomputed constants (H3/H4)
+    # Pair indices and precomputed constants
     n_pairs = n_chains - 1
     even_pairs = jnp.arange(0, n_pairs, 2, dtype=jnp.int32)
     odd_pairs = jnp.arange(1, n_pairs, 2, dtype=jnp.int32)
@@ -346,7 +309,7 @@ def nrpt(
     att_odd = jnp.zeros(n_pairs, dtype=jnp.int32).at[odd_pairs].set(1)
     base_perm = jnp.arange(n_chains, dtype=jnp.int32)
 
-    # Reference EBM for vmapped energy (H1) — any chain works,
+    # Reference EBM for vmapped energy — any chain works,
     # temperature linearity means E_base = E_β / β for all.
     ebm0 = ebms[0]
 
@@ -360,9 +323,6 @@ def nrpt(
     assert _run_all_chains is not None
     run_chains = _run_all_chains
 
-    # Build swap branches — one factory call per parity replaces the
-    # 4 near-identical do_even/do_odd closures that were previously
-    # duplicated across the cached and non-cached scan bodies.
     swap_args = (betas, n_chains, n_pairs, n_free_blocks, base_perm)
     do_even = _make_swap_branch(
         even_pairs,
@@ -380,7 +340,7 @@ def nrpt(
     )
 
     if not use_cached:
-        # ── Original path: full vmap energy eval every round ──────────
+
         def one_round(carry, round_idx):
             key, st_states, st_ss, acc, att, idx_st = carry
             key, k_gibbs, k_swap = jax.random.split(key, 3)
@@ -418,18 +378,8 @@ def nrpt(
             )
 
     else:
-        # ── Cached path: carry base_E; update via delta; permute after swap
-        #
-        # CRITICAL: bE[pm] must be computed OUTSIDE lax.cond.
-        # Inside a lax.cond branch, pm is a traced intermediate; indexing a
-        # traced array with another traced array can produce incorrect concrete
-        # values when JAX materialises the branch select.  Returning pm and
-        # applying cached_bE[pm] outside avoids this entirely.
-        #
-        # FLOPS: for checkerboard (incident_mask = all edges) the delta
-        # computation costs the same as a full recompute but skips equinox
-        # dispatch.  With rectangular blocks (incident_mask = boundary edges)
-        # this is a strict subset — real savings scale as O(1/m) for m×m blocks.
+        # Cached path: carry base_E, update via delta, permute after swap.
+        # bE[pm] MUST be applied outside lax.cond (traced intermediates).
         base_E = _compute_base_energies(
             ebm0,
             betas[0],
@@ -459,8 +409,7 @@ def nrpt(
                 do_odd,
                 (st_states, acc, att, k_swap, cached_bE, idx_st),
             )
-            # The base energies must follow the same permutation so that
-            # cached_bE[i] = E_base(state at chain i) stays true every round.
+            # Permute cached energies to match post-swap chain ordering.
             cached_bE = cached_bE[pm]
             return (key, st_states, st_ss, acc, att, idx_st, cached_bE), None
 

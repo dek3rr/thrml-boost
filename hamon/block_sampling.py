@@ -1,5 +1,4 @@
 # Modified from the original thrml library (https://github.com/Extropic-AI/thrml)
-# Changes: global state threaded through scan carry; added per_block_interactions override to _run_blocks and sample_single_block
 
 import dataclasses
 from collections import defaultdict
@@ -43,7 +42,7 @@ class BlockGibbsSpec(BlockSpec):
     different sampling methods such that JAX SIMD approaches are not feasible
     to parallelize them.
 
-    A recurring theme in `thrml` is the importance of implicit indexing. One
+    A recurring theme in `hamon` is the importance of implicit indexing. One
     such example can be seen here. Because global states are created by
     concatenating lists of free and clamped blocks, providing the inputs
     in the same order as the blocks are defined is essential. This is almost
@@ -128,7 +127,7 @@ def _build_output_sd(block: Block, template_sd: PyTree) -> PyTree:
 class BlockSamplingProgram(eqx.Module):
     """A PGM block-sampling program.
 
-    This class encapsulates everything that is needed to run a PGM block sampling program in THRML.
+    This class encapsulates everything that is needed to run a PGM block sampling program in hamon.
     `per_block_interactions` and `per_block_interaction_active` are parallel to the free blocks in `gibbs_spec`, and
     their members are passed directly to a sampler when the state of the corresponding free block is being updated
     during a sampling program. `per_block_interaction_global_inds` and `per_block_interaction_global_slices` are
@@ -173,11 +172,8 @@ class BlockSamplingProgram(eqx.Module):
     ):
         """Construct a `BlockSamplingProgram`.
 
-        This code is the beating heart of THRML, and the chance that you should be
-        modifying it or trying to understand it deeply are very low (as this would
-        basically correspond to re-writing the library). This code takes in a set of
-        information that implicitly defines a sampling program and manipulates it into
-        a shape that is appropriate for practical vectorized block-sampling program.
+        Takes in a set of information that implicitly defines a sampling program
+        and manipulates it into a shape appropriate for vectorized block-sampling.
         This involves reindexing, slicing, and often padding.
 
         **Arguments:**
@@ -453,25 +449,17 @@ def _run_blocks(
 ) -> tuple[
     list[PyTree[Shaped[Array, "nodes ?*state"]]], list[_SamplerState], list[PyTree]
 ]:
-    """
-    Perform `n_iters` steps of block sampling.
-
-    Global state is built once before the scan and carried as part of the scan
-    carry, avoiding a full O(N) concatenation on every iteration. After each
-    block is sampled, only its positions in the global state are updated via a
-    targeted scatter (`jnp.ndarray.at[...].set(...)`). The clamped portion of
-    the global state is never recomputed.
+    """Perform `n_iters` steps of block sampling.
 
     **Arguments:**
 
-    - `per_block_interactions`: Optional override for interaction weights. When
-        provided, these are used in place of `program.per_block_interactions`
-        throughout the scan. Used by `parallel_tempering` to inject per-chain
-        beta-scaled weights into a vmapped runner that shares all other program
-        structure from a single template program.
+    - `per_block_interactions`: Optional override for interaction weights.
+        When provided, replaces `program.per_block_interactions` throughout
+        the scan. Used by parallel tempering to inject per-chain β-scaled
+        weights into a vmapped runner.
     """
-    # Build global state once. The clamped slice never changes, and building
-    # before the n_iters==0 early-return means callers always get a valid global_state.
+
+    # Build global state once before scan (clamped slice is static).
     init_global_state = block_state_to_global(
         init_chain_state + state_clamp, program.gibbs_spec
     )
@@ -657,8 +645,8 @@ def sample_states(
 ) -> list[PyTree[Shaped[Array, "n_samples nodes ?*state"]]]:
     """Convenience wrapper to collect state information for *nodes_to_sample* only.
 
-    Internally builds a [`thrml.StateObserver`][], runs
-    [`thrml.sample_with_observation`][], and returns a stacked tensor of shape
+    Internally builds a [`hamon.StateObserver`][], runs
+    [`hamon.sample_with_observation`][], and returns a stacked tensor of shape
     `(schedule.n_samples, ...)`.
     """
     f_observe = StateObserver(nodes_to_sample)

@@ -1,23 +1,9 @@
 """Boundary-only energy delta computation for Ising models.
 
-Implements the key optimization from Flock et al. (2025): after updating
-block b during Gibbs sampling, the energy change depends only on edges
-incident to block b. For larger rectangular blocks, this is a strict
-subset of all edges.
-
-For the current checkerboard (2-coloring) partition, every edge crosses
-the block boundary, so there's no FLOPS reduction. The savings appear
-with m×m rectangular blocks (4-coloring), where the boundary/total edge
-ratio scales as O(1/m).
-
-This module provides:
-- Edge classification into boundary vs interior for arbitrary block partitions
-- Incremental energy delta computation from old/new block states
-- Cached energy management for the NRPT scan loop
-- Rectangular block construction with 4-coloring for 2D grids
-
-The rectangular blocking + 4-coloring is the prerequisite for boundary-only
-energy to actually reduce FLOPS. Both are provided here as a unit.
+After updating block b, ΔE depends only on edges incident to b.
+For m×m rectangular blocks with 4-coloring, the boundary/total edge
+ratio scales as O(1/m). Provides edge classification, incremental ΔE,
+and rectangular block construction.
 """
 
 from __future__ import annotations
@@ -239,8 +225,7 @@ def make_ising_delta_fn(
     edge_src = jnp.array([node_map[id(e[0])] for e in edges], dtype=jnp.int32)
     edge_dst = jnp.array([node_map[id(e[1])] for e in edges], dtype=jnp.int32)
 
-    # Full-graph masks: correct for a complete Gibbs pass (all nodes updated).
-    # For partial updates (single colour class), pass custom masks instead.
+    # Full-graph masks (all nodes updated). For single-colour-class updates, pass custom masks.
     incident_mask = jnp.ones(len(edges), dtype=jnp.float32)
     changed_mask = jnp.ones(n_nodes, dtype=jnp.float32)
 
@@ -328,13 +313,7 @@ def make_rectangular_blocks(
 
 
 def estimate_boundary_savings(L: int, block_size: int) -> dict:
-    """Estimate FLOPS savings from boundary-only energy with rectangular blocks.
-
-    For an L×L grid with m×m blocks:
-    - Total edges: 2L(L-1) for nearest-neighbor grid
-    - Edges per block (incident): ~4m (boundary) + 2(m-1)(m) (interior)
-    - For swap ΔE: need all incident edges for all blocks updated in one color
-    """
+    """Estimate FLOPS savings for boundary-only energy delta on an L×L grid with m×m blocks."""
     m = block_size
     n_blocks_axis = (L + m - 1) // m
     total_edges = 2 * L * (L - 1)

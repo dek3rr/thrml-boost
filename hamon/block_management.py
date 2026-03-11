@@ -1,5 +1,4 @@
 # Modified from the original thrml library (https://github.com/Extropic-AI/thrml)
-# Changes: replaced set comprehension with dict.fromkeys() for deterministic global_sd_order
 
 from typing import (
     Generic,
@@ -34,7 +33,7 @@ class Block(Generic[_Node]):
     A Block is the basic unit through which Gibbs sampling can operate.
 
     Each block represents a collection of nodes that can efficiently be sampled
-    simultaneously in a JAX-friendly SIMD manner. In THRML, this means that the nodes must all be of the same type.
+    simultaneously in a JAX-friendly SIMD manner. In hamon, this means that the nodes must all be of the same type.
 
     **Attributes:**
 
@@ -55,7 +54,7 @@ class Block(Generic[_Node]):
     def node_type(self) -> Type[_Node]:
         if not self.nodes:
             raise ValueError(
-                "Block is empty and doesn't have a node type. Most methods in thrml do not support empty blocks."
+                "Block is empty and doesn't have a node type. Most methods in hamon do not support empty blocks."
             )
         return type(self.nodes[0])
 
@@ -100,20 +99,6 @@ class BlockSpec:
     every node is the same pytree (just a scalar array), as such the block state is
     a list of arrays where each array is the state of the block and the global state
     would be a length-1 list that contains an array of shape (total_nodes,).
-
-    Why is this global/block representation necessary? The answer is that the global
-    representation is preferred for operating over in many JAX cases, but requires
-    careful indexing (to know where in this long array each block resides) and thus
-    the block representation is more natural/easy to use for many users. Why is the
-    global state easier to work with? Well consider sampling, in order to sample a
-    block (or even just a node) we need to collect all the states of the neighboring
-    nodes. If we only had the block state we would have to loop over the block state
-    and collect from each block the neighbors, we would then pass this to the
-    sampler. The sampler would then have to know the type of each block (to know
-    what to do with the states) then for loop over the blocks in order to collect
-    each. This (programmatically) is fine, but results in additional for loops that
-    slow down JAX, compared to gathering indexes from a single array.
-
 
     **Attributes:**
 
@@ -243,7 +228,7 @@ def block_state_to_global(
 
     - `block_state`: State organised per block, same length as
         ``spec.blocks``.
-    - `spec`: The [`thrml.BlockSpec`][] that defines the mapping.
+    - `spec`: The [`hamon.BlockSpec`][] that defines the mapping.
 
     **Returns:**
 
@@ -291,7 +276,7 @@ def scatter_block_to_global(
         a new list is returned).
     - `new_block_state`: The freshly sampled state for ``block``.
     - `block`: The block that was just sampled.
-    - `spec`: The [`thrml.BlockSpec`][] that defines the mapping.
+    - `spec`: The [`hamon.BlockSpec`][] that defines the mapping.
 
     **Returns:**
 
@@ -316,15 +301,15 @@ def get_node_locations(
 
     **Arguments:**
 
-    - `nodes`: A [`thrml.Block`][] whose nodes you want locations for.
-    - `spec`: The [`thrml.BlockSpec`][] generated from the same graph.
+    - `nodes`: A [`hamon.Block`][] whose nodes you want locations for.
+    - `spec`: The [`hamon.BlockSpec`][] generated from the same graph.
 
     **Returns:**
 
     Tuple ``(sd_index, positions)`` where
 
     * *sd_index* is the position inside the global list returned by
-      [`thrml.block_state_to_global`][], and
+      [`hamon.block_state_to_global`][], and
     * *positions* is a 1D array with the indices each node
       occupies inside that particular PyTree.
     """
@@ -346,8 +331,8 @@ def from_global_state(
     **Arguments:**
 
     - `global_state`: A state produced by
-        [`thrml.block_state_to_global(spec_from)`][].
-    - `spec_from`: The [`thrml.BlockSpec`][] associated with *global_state*.
+        [`hamon.block_state_to_global(spec_from)`][].
+    - `spec_from`: The [`hamon.BlockSpec`][] associated with *global_state*.
     - `blocks_to_extract`: The blocks whose node states should be returned.
 
     **Returns:**
@@ -468,7 +453,7 @@ def verify_block_state(
     """
     Check that a state is what it should be given some blocks and node shape/dtypes.
 
-    Passing incompatible state information into THRML functions can lead to unintended casting/other weird silent
+    Passing incompatible state information into hamon functions can lead to unintended casting/other weird silent
     errors, so we should always check this.
 
     **Arguments:**

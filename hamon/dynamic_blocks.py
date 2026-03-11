@@ -1,23 +1,11 @@
 """Dynamic block construction and re-partitioning for parallel tempering.
 
-Implements three strategies:
+Three strategies:
+1. Per-temperature blocks — larger blocks near β_c to fight critical slowing.
+2. Influence-aware partitioning — heavy vertices interior to blocks.
+3. Correlation-based re-blocking — merge blocks with high empirical correlation.
 
-1. Per-temperature blocks (Efthymiou & Zampetakis 2024):
-   Different block partitions at different β values. Hot chains use small
-   cheap blocks; cold chains use large blocks to overcome critical slowing.
-
-2. Influence-aware partitioning (Efthymiou):
-   Aggregate influence A(w) = Σ_{z~w} |1-exp(βJ)|/(1+exp(βJ)) identifies
-   "heavy" vertices that should be interior to blocks, not on boundaries.
-
-3. Dynamic re-blocking (Venugopal & Gogate 2013):
-   Measure pairwise correlations during sampling, re-partition blocks to
-   group highly correlated variables together.
-
-These operate at the Python level (block construction is a compile-time
-concern, not a JIT-traced operation). The resulting block partitions
-are passed to IsingSamplingProgram which builds the padded interaction
-structures for GPU execution.
+All operate at Python level (compile-time block construction, not JIT-traced).
 """
 
 from __future__ import annotations
@@ -102,15 +90,9 @@ def recommend_block_size(
     min_size: int = 1,
     max_size: int = 16,
 ) -> int:
-    """Recommend block size based on inverse temperature.
+    """Recommend block size based on proximity to β_c.
 
-    Near-criticality correlation length diverges, requiring larger blocks
-    to overcome critical slowing down. The block size should scale with
-    the correlation length ξ ~ |β - β_c|^{-ν} (ν=1 for 2D Ising).
-
-    Below criticality: small blocks suffice (fast mixing).
-    At criticality: maximize block size.
-    Above criticality: large blocks needed (but energy landscape is simpler).
+    Scales with correlation length ξ ~ |β - β_c|^{-ν} (ν=1, 2D Ising).
     """
     if abs(beta - beta_c) < 0.05:
         return max_size
@@ -152,16 +134,7 @@ def influence_aware_partition(
 ) -> list[list[AbstractNode]]:
     """Build blocks where heavy nodes are interior, light nodes form boundary.
 
-    Algorithm:
-    1. Compute aggregate influence for each node
-    2. Sort nodes by influence (descending)
-    3. Greedily build blocks: start from heaviest unassigned node,
-       BFS outward until block reaches max_size or runs out of neighbors
-    4. Heavy nodes end up interior, light neighbors form buffer
-
-    For standard grids, this reduces to larger blocks around high-coupling
-    regions. For heterogeneous couplings (learned EBMs, spin glasses),
-    it adapts the partition to the coupling structure.
+    Greedy BFS from heaviest unassigned node outward until max_size.
     """
     node_map = {id(n): i for i, n in enumerate(nodes)}
     n_nodes = len(nodes)
