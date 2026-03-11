@@ -190,6 +190,93 @@ def update_energy_cache(
 
 
 # ---------------------------------------------------------------------------
+# NRPT integration: vmapped delta function factory
+# ---------------------------------------------------------------------------
+
+
+def make_ising_delta_fn(
+    nodes: list[AbstractNode],
+    edges: list[tuple[AbstractNode, AbstractNode]],
+    free_blocks,
+    biases: jax.Array,
+    weights: jax.Array,
+):
+    """Build a vmapped base-energy delta function for use with nrpt().
+
+    Returns delta_fn(old_stacked_states, new_stacked_states) -> (n_chains,),
+    where delta_fn[c] = E_base(new_c) - E_base(old_c).
+
+    Pass the result as the energy_delta_fn keyword argument to nrpt():
+
+        delta_fn = make_ising_delta_fn(ebm.nodes, ebm.edges,
+                                       free_blocks, ebm.biases, ebm.weights)
+        nrpt(..., energy_delta_fn=delta_fn)
+
+    FLOPS note:
+        For checkerboard (2-block) partitions every edge is incident to at
+        least one block, so incident_mask = all-ones — same arithmetic as a
+        full recompute but without the equinox dispatch overhead.  The strict
+        FLOPS savings appear with rectangular blocks (4-coloring) where the
+        incident fraction is O(1/m) for m×m blocks.
+
+    Args:
+        nodes:       all nodes in global order (IsingEBM.nodes)
+        edges:       all edges               (IsingEBM.edges)
+        free_blocks: the free blocks used in the sampling program; any
+                     iterable of node-iterables (Block objects work directly)
+        biases:      (n_nodes,) bias array   (IsingEBM.biases)
+        weights:     (n_edges,) weight array (IsingEBM.weights)
+    """
+    node_map: dict[int, int] = {id(n): i for i, n in enumerate(nodes)}
+    n_nodes = len(nodes)
+
+    # Per-block arrays of global node indices — static, computed once.
+    block_indices = [
+        jnp.array([node_map[id(n)] for n in block], dtype=jnp.int32)
+        for block in free_blocks
+    ]
+
+    edge_src = jnp.array([node_map[id(e[0])] for e in edges], dtype=jnp.int32)
+    edge_dst = jnp.array([node_map[id(e[1])] for e in edges], dtype=jnp.int32)
+
+    # Full-graph masks: correct for a complete Gibbs pass (all nodes updated).
+    # For partial updates (single colour class), pass custom masks instead.
+    incident_mask = jnp.ones(len(edges), dtype=jnp.float32)
+    changed_mask = jnp.ones(n_nodes, dtype=jnp.float32)
+
+    def _assemble_flat(stacked_states_list: list) -> jax.Array:
+        """Scatter per-block bool states into a (n_chains, n_nodes) float±1 array."""
+        n_chains = stacked_states_list[0].shape[0]
+        flat = jnp.zeros((n_chains, n_nodes), dtype=jnp.float32)
+        for b, indices in enumerate(block_indices):
+            # bool {0,1} → float {-1, +1} to match SpinEBMFactor convention
+            spins = 2.0 * stacked_states_list[b].astype(jnp.float32) - 1.0
+            flat = flat.at[:, indices].set(spins)
+        return flat
+
+    def delta_fn(old_stacked: list, new_stacked: list) -> jax.Array:
+        """Return (n_chains,) array of E_base deltas."""
+        old_flat = _assemble_flat(old_stacked)
+        new_flat = _assemble_flat(new_stacked)
+
+        def _delta_one(old_f: jax.Array, new_f: jax.Array) -> jax.Array:
+            return ising_energy_delta(
+                old_f,
+                new_f,
+                biases,
+                weights,
+                edge_src,
+                edge_dst,
+                incident_mask,
+                changed_mask,
+            )
+
+        return jax.vmap(_delta_one)(old_flat, new_flat)
+
+    return delta_fn
+
+
+# ---------------------------------------------------------------------------
 # Rectangular block construction (4-coloring for 2D grids)
 # ---------------------------------------------------------------------------
 

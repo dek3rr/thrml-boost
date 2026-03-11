@@ -29,7 +29,7 @@ a Scalable Highly Parallel MCMC Scheme" (arXiv:1905.02939).
 from __future__ import annotations
 
 from collections.abc import Sequence
-from typing import Any
+from typing import Any, Callable
 
 import jax
 import jax.numpy as jnp
@@ -182,6 +182,7 @@ def nrpt(
     betas: jax.Array | None = None,
     sampler_states: Sequence[list] | None = None,
     track_round_trips: bool = True,
+    energy_delta_fn: Callable | None = None,
 ) -> tuple[list, list, dict]:
     """Non-Reversible Parallel Tempering with vectorized swaps.
 
@@ -300,81 +301,189 @@ def nrpt(
 
     accepted = jnp.zeros(n_pairs, dtype=jnp.int32)
     attempted = jnp.zeros(n_pairs, dtype=jnp.int32)
-
-    # Initialize round trip tracking
     idx_state = init_index_state(n_chains)
 
-    def one_round(carry, round_idx):
-        key, st_states, st_ss, acc, att, idx_st = carry
-        key, k_gibbs, k_swap = jax.random.split(key, 3)
+    if energy_delta_fn is None:
+        # ── Original path: full vmap energy eval every round ──────────────
+        def one_round(carry, round_idx):
+            key, st_states, st_ss, acc, att, idx_st = carry
+            key, k_gibbs, k_swap = jax.random.split(key, 3)
 
-        # --- Gibbs sweep (vmapped across chains) ---
-        gibbs_keys = jax.random.split(k_gibbs, n_chains)
-        assert _run_all_chains is not None
-        st_states = _run_all_chains(gibbs_keys, st_states, stacked_pbi)
+            gibbs_keys = jax.random.split(k_gibbs, n_chains)
+            assert _run_all_chains is not None
+            st_states = _run_all_chains(gibbs_keys, st_states, stacked_pbi)
 
-        # --- Base energies: 1 vmapped eval per round (H1) ---
+            base_E = _compute_base_energies(
+                ebm0,
+                betas[0],
+                base_spec,
+                st_states,
+                clamp_state,
+            )
+
+            def do_even(args):
+                ss, ac, at, sk, bE, ist = args
+                ss2, ac2, at2, pm = _vectorized_swap(
+                    sk,
+                    ss,
+                    betas,
+                    bE,
+                    even_pairs,
+                    n_even,
+                    n_chains,
+                    n_pairs,
+                    n_free_blocks,
+                    att_even,
+                    base_perm,
+                )
+                return ss2, ac + ac2, at + at2, update_index_state(ist, pm, n_chains)
+
+            def do_odd(args):
+                ss, ac, at, sk, bE, ist = args
+                ss2, ac2, at2, pm = _vectorized_swap(
+                    sk,
+                    ss,
+                    betas,
+                    bE,
+                    odd_pairs,
+                    n_odd,
+                    n_chains,
+                    n_pairs,
+                    n_free_blocks,
+                    att_odd,
+                    base_perm,
+                )
+                return ss2, ac + ac2, at + at2, update_index_state(ist, pm, n_chains)
+
+            st_states, acc, att, idx_st = lax.cond(
+                (round_idx & 1) == 0,
+                do_even,
+                do_odd,
+                (st_states, acc, att, k_swap, base_E, idx_st),
+            )
+            return (key, st_states, st_ss, acc, att, idx_st), None
+
+        if n_rounds > 0:
+            init_carry = (
+                key,
+                stacked_states,
+                stacked_ss,
+                accepted,
+                attempted,
+                idx_state,
+            )
+            (key, stacked_states, stacked_ss, accepted, attempted, idx_state), _ = (
+                lax.scan(one_round, init_carry, jnp.arange(n_rounds))
+            )
+
+    else:
+        # ── Cached path: carry base_E; update via delta; permute after swap ──
+        #
+        # After a swap the states at position i come from position perm[i].
+        # The base energies must follow the same permutation so that
+        # cached_bE[i] = E_base(state at chain i) stays true every round.
+        #
+        # CRITICAL: bE[pm] must be computed OUTSIDE lax.cond.
+        # Inside a lax.cond branch, pm is a traced intermediate; indexing a
+        # traced array with another traced array can produce incorrect concrete
+        # values when JAX materialises the branch select.  Returning pm and
+        # applying cached_bE[pm] outside avoids this entirely.
+        #
+        # FLOPS: for checkerboard (incident_mask = all edges) the delta
+        # computation costs the same as a full recompute but skips equinox
+        # dispatch.  With rectangular blocks (incident_mask = boundary edges)
+        # this is a strict subset — real savings scale as O(1/m) for m×m blocks.
         base_E = _compute_base_energies(
             ebm0,
             betas[0],
             base_spec,
-            st_states,
+            stacked_states,
             clamp_state,
         )
 
-        # --- Single-pass DEO swap with round trip tracking ---
-        # Alternating even/odd each round is essential for non-reversibility.
-        # Multi-pass (both per round) creates period-2 orbits that kill
-        # the conveyor belt — states oscillate instead of drifting.
-        def do_even(args):
-            ss, ac, at, sk, bE, ist = args
-            ss2, ac2, at2, pm = _vectorized_swap(
-                sk,
-                ss,
-                betas,
-                bE,
-                even_pairs,
-                n_even,
-                n_chains,
-                n_pairs,
-                n_free_blocks,
-                att_even,
-                base_perm,
+        def one_round_cached(carry, round_idx):
+            key, st_states, st_ss, acc, att, idx_st, cached_bE = carry
+            key, k_gibbs, k_swap = jax.random.split(key, 3)
+
+            old_states = st_states
+            gibbs_keys = jax.random.split(k_gibbs, n_chains)
+            assert _run_all_chains is not None
+            st_states = _run_all_chains(gibbs_keys, st_states, stacked_pbi)
+
+            # Update cached base energies for Gibbs changes.
+            # delta_fn(old, new) = E_base(new) - E_base(old), no beta factor.
+            cached_bE = cached_bE + energy_delta_fn(old_states, st_states)
+
+            # Return pm from lax.cond; apply energy permutation outside.
+            def do_even(args):
+                ss, ac, at, sk, bE, ist = args
+                ss2, ac2, at2, pm = _vectorized_swap(
+                    sk,
+                    ss,
+                    betas,
+                    bE,
+                    even_pairs,
+                    n_even,
+                    n_chains,
+                    n_pairs,
+                    n_free_blocks,
+                    att_even,
+                    base_perm,
+                )
+                return (
+                    ss2,
+                    ac + ac2,
+                    at + at2,
+                    update_index_state(ist, pm, n_chains),
+                    pm,
+                )
+
+            def do_odd(args):
+                ss, ac, at, sk, bE, ist = args
+                ss2, ac2, at2, pm = _vectorized_swap(
+                    sk,
+                    ss,
+                    betas,
+                    bE,
+                    odd_pairs,
+                    n_odd,
+                    n_chains,
+                    n_pairs,
+                    n_free_blocks,
+                    att_odd,
+                    base_perm,
+                )
+                return (
+                    ss2,
+                    ac + ac2,
+                    at + at2,
+                    update_index_state(ist, pm, n_chains),
+                    pm,
+                )
+
+            st_states, acc, att, idx_st, pm = lax.cond(
+                (round_idx & 1) == 0,
+                do_even,
+                do_odd,
+                (st_states, acc, att, k_swap, cached_bE, idx_st),
             )
-            ist2 = update_index_state(ist, pm, n_chains)
-            return ss2, ac + ac2, at + at2, ist2
+            # Apply the same permutation to energies that was applied to states.
+            cached_bE = cached_bE[pm]
+            return (key, st_states, st_ss, acc, att, idx_st, cached_bE), None
 
-        def do_odd(args):
-            ss, ac, at, sk, bE, ist = args
-            ss2, ac2, at2, pm = _vectorized_swap(
-                sk,
-                ss,
-                betas,
-                bE,
-                odd_pairs,
-                n_odd,
-                n_chains,
-                n_pairs,
-                n_free_blocks,
-                att_odd,
-                base_perm,
+        if n_rounds > 0:
+            init_carry = (
+                key,
+                stacked_states,
+                stacked_ss,
+                accepted,
+                attempted,
+                idx_state,
+                base_E,
             )
-            ist2 = update_index_state(ist, pm, n_chains)
-            return ss2, ac + ac2, at + at2, ist2
-
-        st_states, acc, att, idx_st = lax.cond(
-            (round_idx & 1) == 0,
-            do_even,
-            do_odd,
-            (st_states, acc, att, k_swap, base_E, idx_st),
-        )
-        return (key, st_states, st_ss, acc, att, idx_st), None
-
-    if n_rounds > 0:
-        init_carry = (key, stacked_states, stacked_ss, accepted, attempted, idx_state)
-        (key, stacked_states, stacked_ss, accepted, attempted, idx_state), _ = lax.scan(
-            one_round, init_carry, jnp.arange(n_rounds)
-        )
+            (key, stacked_states, stacked_ss, accepted, attempted, idx_state, _), _ = (
+                lax.scan(one_round_cached, init_carry, jnp.arange(n_rounds))
+            )
 
     # Unstack
     states_out = [
