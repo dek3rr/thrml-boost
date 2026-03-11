@@ -67,7 +67,7 @@ def update_index_state(
     restarts = index_state["restarts"]
     N = n_chains - 1
 
-    # Self inverses perm == inv_perm
+    # DEO swap permutations are products of disjoint transpositions → self-inverse.
     new_m2c = perm[old_m2c]
 
     # Detect visits to top (chain N)

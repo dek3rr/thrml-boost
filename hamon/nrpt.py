@@ -46,7 +46,7 @@ from hamon.round_trips import (
 
 
 # ---------------------------------------------------------------------------
-# Helpers (unchanged from v0.2.0)
+# Helpers
 # ---------------------------------------------------------------------------
 
 
@@ -55,17 +55,12 @@ def _init_sampler_states(program: BlockSamplingProgram) -> list:
 
 
 def _stack_pbi_across_chains(interaction_list: list) -> object:
-    flat0, treedef = jax.tree_util.tree_flatten(interaction_list[0])
-    flat_rest = [jax.tree_util.tree_flatten(inter)[0] for inter in interaction_list[1:]]
-
-    stacked_leaves = []
-    for i, leaf in enumerate(flat0):
-        if isinstance(leaf, jax.Array):
-            stacked_leaves.append(jnp.stack([leaf] + [f[i] for f in flat_rest], axis=0))
-        else:
-            stacked_leaves.append(leaf)
-
-    return treedef.unflatten(stacked_leaves)
+    return jax.tree.map(
+        lambda *leaves: (
+            jnp.stack(leaves) if isinstance(leaves[0], jax.Array) else leaves[0]
+        ),
+        *interaction_list,
+    )
 
 
 def _make_pbi_in_axes(stacked_pbi):
@@ -119,14 +114,11 @@ def _vectorized_swap(
     n_chains: int,
     n_pairs: int,
     n_free_blocks: int,
-    att_mask: jax.Array,
     base_perm: jax.Array,
-) -> tuple[list, jax.Array, jax.Array, jax.Array]:
+) -> tuple[list, jax.Array, jax.Array]:
     """Execute all swaps for one set of non-overlapping pairs.
 
-    Returns (new_states, accept_counts, attempt_counts, permutation).
-
-    att_mask and base_perm are precomputed outside the scan body (H3/H4).
+    Returns (new_states, accept_counts, permutation).
     """
     i_idx = pair_indices
     j_idx = pair_indices + 1
@@ -138,7 +130,6 @@ def _vectorized_swap(
     u = jax.random.uniform(key, shape=(n_active,))
     accepted = u < accept_probs
 
-    # Build permutation from precomputed identity
     perm = base_perm
     perm = perm.at[i_idx].set(jnp.where(accepted, j_idx, i_idx))
     perm = perm.at[j_idx].set(jnp.where(accepted, i_idx, j_idx))
@@ -150,7 +141,70 @@ def _vectorized_swap(
         .set(accepted.astype(jnp.int32))
     )
 
-    return new_states, acc, att_mask, perm
+    return new_states, acc, perm
+
+
+def _make_swap_branch(
+    pair_indices: jax.Array,
+    n_active: int,
+    att_mask: jax.Array,
+    betas: jax.Array,
+    n_chains: int,
+    n_pairs: int,
+    n_free_blocks: int,
+    base_perm: jax.Array,
+    return_perm: bool = False,
+):
+    """Build a lax.cond branch for even or odd swap pass.
+
+    When return_perm=False (non-cached path), returns
+        (states, acc, att, idx_state).
+    When return_perm=True (cached path), additionally returns the
+    permutation for post-swap energy reordering.
+    """
+    if not return_perm:
+
+        def _branch_no_perm(args):
+            ss, ac, at, sk, bE, ist = args
+            ss2, ac2, pm = _vectorized_swap(
+                sk,
+                ss,
+                betas,
+                bE,
+                pair_indices,
+                n_active,
+                n_chains,
+                n_pairs,
+                n_free_blocks,
+                base_perm,
+            )
+            return ss2, ac + ac2, at + att_mask, update_index_state(ist, pm, n_chains)
+
+        return _branch_no_perm
+
+    def _branch_with_perm(args):
+        ss, ac, at, sk, bE, ist = args
+        ss2, ac2, pm = _vectorized_swap(
+            sk,
+            ss,
+            betas,
+            bE,
+            pair_indices,
+            n_active,
+            n_chains,
+            n_pairs,
+            n_free_blocks,
+            base_perm,
+        )
+        return (
+            ss2,
+            ac + ac2,
+            at + att_mask,
+            update_index_state(ist, pm, n_chains),
+            pm,
+        )
+
+    return _branch_with_perm
 
 
 # ---------------------------------------------------------------------------
@@ -227,12 +281,12 @@ def nrpt(
         betas = jnp.array([float(getattr(ebm, "beta")) for ebm in ebms])
 
     states = [list(s) for s in init_states]
-    sampler_states = (
+    sampler_states_l = (
         [list(s) for s in sampler_states]
         if sampler_states is not None
         else [_init_sampler_states(p) for p in programs]
     )
-    all_ss_none = all(s is None for chain_ss in sampler_states for s in chain_ss)
+    all_ss_none = all(s is None for chain_ss in sampler_states_l for s in chain_ss)
 
     # Stack states
     stacked_states = [
@@ -242,8 +296,8 @@ def nrpt(
         stacked_ss = [None] * n_free_blocks
     else:
         stacked_ss = [
-            jnp.stack([sampler_states[c][b] for c in range(n_chains)])
-            if sampler_states[0][b] is not None
+            jnp.stack([sampler_states_l[c][b] for c in range(n_chains)])
+            if sampler_states_l[0][b] is not None
             else None
             for b in range(n_free_blocks)
         ]
@@ -288,9 +342,6 @@ def nrpt(
     odd_pairs = jnp.arange(1, n_pairs, 2, dtype=jnp.int32)
     n_even = len(even_pairs)
     n_odd = len(odd_pairs)
-
-    # Precompute attempt masks — these are compile-time constants but
-    # making them explicit avoids scatter ops inside the scan body.
     att_even = jnp.zeros(n_pairs, dtype=jnp.int32).at[even_pairs].set(1)
     att_odd = jnp.zeros(n_pairs, dtype=jnp.int32).at[odd_pairs].set(1)
     base_perm = jnp.arange(n_chains, dtype=jnp.int32)
@@ -303,15 +354,39 @@ def nrpt(
     attempted = jnp.zeros(n_pairs, dtype=jnp.int32)
     idx_state = init_index_state(n_chains)
 
-    if energy_delta_fn is None:
-        # ── Original path: full vmap energy eval every round ──────────────
+    use_cached = energy_delta_fn is not None
+
+    # Narrow type for Pyright — guaranteed non-None when all_ss_none is True.
+    assert _run_all_chains is not None
+    run_chains = _run_all_chains
+
+    # Build swap branches — one factory call per parity replaces the
+    # 4 near-identical do_even/do_odd closures that were previously
+    # duplicated across the cached and non-cached scan bodies.
+    swap_args = (betas, n_chains, n_pairs, n_free_blocks, base_perm)
+    do_even = _make_swap_branch(
+        even_pairs,
+        n_even,
+        att_even,
+        *swap_args,
+        return_perm=use_cached,
+    )
+    do_odd = _make_swap_branch(
+        odd_pairs,
+        n_odd,
+        att_odd,
+        *swap_args,
+        return_perm=use_cached,
+    )
+
+    if not use_cached:
+        # ── Original path: full vmap energy eval every round ──────────
         def one_round(carry, round_idx):
             key, st_states, st_ss, acc, att, idx_st = carry
             key, k_gibbs, k_swap = jax.random.split(key, 3)
 
             gibbs_keys = jax.random.split(k_gibbs, n_chains)
-            assert _run_all_chains is not None
-            st_states = _run_all_chains(gibbs_keys, st_states, stacked_pbi)
+            st_states = run_chains(gibbs_keys, st_states, stacked_pbi)
 
             base_E = _compute_base_energies(
                 ebm0,
@@ -320,40 +395,6 @@ def nrpt(
                 st_states,
                 clamp_state,
             )
-
-            def do_even(args):
-                ss, ac, at, sk, bE, ist = args
-                ss2, ac2, at2, pm = _vectorized_swap(
-                    sk,
-                    ss,
-                    betas,
-                    bE,
-                    even_pairs,
-                    n_even,
-                    n_chains,
-                    n_pairs,
-                    n_free_blocks,
-                    att_even,
-                    base_perm,
-                )
-                return ss2, ac + ac2, at + at2, update_index_state(ist, pm, n_chains)
-
-            def do_odd(args):
-                ss, ac, at, sk, bE, ist = args
-                ss2, ac2, at2, pm = _vectorized_swap(
-                    sk,
-                    ss,
-                    betas,
-                    bE,
-                    odd_pairs,
-                    n_odd,
-                    n_chains,
-                    n_pairs,
-                    n_free_blocks,
-                    att_odd,
-                    base_perm,
-                )
-                return ss2, ac + ac2, at + at2, update_index_state(ist, pm, n_chains)
 
             st_states, acc, att, idx_st = lax.cond(
                 (round_idx & 1) == 0,
@@ -377,11 +418,7 @@ def nrpt(
             )
 
     else:
-        # ── Cached path: carry base_E; update via delta; permute after swap ──
-        #
-        # After a swap the states at position i come from position perm[i].
-        # The base energies must follow the same permutation so that
-        # cached_bE[i] = E_base(state at chain i) stays true every round.
+        # ── Cached path: carry base_E; update via delta; permute after swap
         #
         # CRITICAL: bE[pm] must be computed OUTSIDE lax.cond.
         # Inside a lax.cond branch, pm is a traced intermediate; indexing a
@@ -401,65 +438,20 @@ def nrpt(
             clamp_state,
         )
 
+        # Narrow type for Pyright — we're in the `use_cached` branch.
+        assert energy_delta_fn is not None
+        delta_fn = energy_delta_fn
+
         def one_round_cached(carry, round_idx):
             key, st_states, st_ss, acc, att, idx_st, cached_bE = carry
             key, k_gibbs, k_swap = jax.random.split(key, 3)
 
             old_states = st_states
             gibbs_keys = jax.random.split(k_gibbs, n_chains)
-            assert _run_all_chains is not None
-            st_states = _run_all_chains(gibbs_keys, st_states, stacked_pbi)
+            st_states = run_chains(gibbs_keys, st_states, stacked_pbi)
 
-            # Update cached base energies for Gibbs changes.
             # delta_fn(old, new) = E_base(new) - E_base(old), no beta factor.
-            cached_bE = cached_bE + energy_delta_fn(old_states, st_states)
-
-            # Return pm from lax.cond; apply energy permutation outside.
-            def do_even(args):
-                ss, ac, at, sk, bE, ist = args
-                ss2, ac2, at2, pm = _vectorized_swap(
-                    sk,
-                    ss,
-                    betas,
-                    bE,
-                    even_pairs,
-                    n_even,
-                    n_chains,
-                    n_pairs,
-                    n_free_blocks,
-                    att_even,
-                    base_perm,
-                )
-                return (
-                    ss2,
-                    ac + ac2,
-                    at + at2,
-                    update_index_state(ist, pm, n_chains),
-                    pm,
-                )
-
-            def do_odd(args):
-                ss, ac, at, sk, bE, ist = args
-                ss2, ac2, at2, pm = _vectorized_swap(
-                    sk,
-                    ss,
-                    betas,
-                    bE,
-                    odd_pairs,
-                    n_odd,
-                    n_chains,
-                    n_pairs,
-                    n_free_blocks,
-                    att_odd,
-                    base_perm,
-                )
-                return (
-                    ss2,
-                    ac + ac2,
-                    at + at2,
-                    update_index_state(ist, pm, n_chains),
-                    pm,
-                )
+            cached_bE = cached_bE + delta_fn(old_states, st_states)
 
             st_states, acc, att, idx_st, pm = lax.cond(
                 (round_idx & 1) == 0,
@@ -467,7 +459,8 @@ def nrpt(
                 do_odd,
                 (st_states, acc, att, k_swap, cached_bE, idx_st),
             )
-            # Apply the same permutation to energies that was applied to states.
+            # The base energies must follow the same permutation so that
+            # cached_bE[i] = E_base(state at chain i) stays true every round.
             cached_bE = cached_bE[pm]
             return (key, st_states, st_ss, acc, att, idx_st, cached_bE), None
 
@@ -709,7 +702,6 @@ def discover_chain_count(
         lambda_max = max(lambda_max, lambda_raw)
         best_betas = stats["betas"]
 
-        # Recommendation from conservative (max) Λ estimate
         n_recommended = max(min_chains, int(np.ceil(lambda_max / max(r_target, 0.01))))
         n_recommended = min(n_recommended, max_chains)
 
@@ -725,12 +717,10 @@ def discover_chain_count(
             }
         )
 
-        # --- Convergence check 1: chain count matches recommendation ---
         if abs(n_recommended - n_current) <= 1:
             converged_reason = "chain_count"
             break
 
-        # --- Convergence check 2: Λ has stabilized ---
         if iteration > 0 and lambda_max > 0:
             rel_change = abs(lambda_raw - lambda_prev) / lambda_max
             if rel_change < lambda_rtol:
@@ -744,7 +734,6 @@ def discover_chain_count(
 
         lambda_prev = lambda_raw
 
-        # --- Step toward recommendation ---
         step = int(np.ceil((n_recommended - n_current) / 2))
         n_next = n_current + step
         n_next = max(min_chains, min(n_next, max_chains))
