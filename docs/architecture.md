@@ -134,6 +134,6 @@ AbstractObserver
 
 ```
 AbstractEBM
-└── DiscreteEBM
+└── AbstractFactorizedEBM
     └── IsingEBM
 ```

@@ -1,14 +1,14 @@
 # Energy-Based Models
 
 Base classes for energy-based models. `AbstractEBM` defines the interface;
-`DiscreteEBM` adds discrete-specific factor construction.
+`AbstractFactorizedEBM` adds discrete-specific factor construction.
 
 ::: hamon.models.AbstractEBM
     options:
         members:
             - energy
 
-::: hamon.models.DiscreteEBM
+::: hamon.models.AbstractFactorizedEBM
     options:
         members:
             - __init__
