@@ -13,6 +13,7 @@ from hamon.models.ising import (
     estimate_kl_grad,
     estimate_moments,
     hinton_init,
+    ising_sample,
 )
 from hamon.observers import StateObserver
 from hamon.pgm import SpinNode
@@ -229,3 +230,52 @@ class TestEstimateKLGrad(unittest.TestCase):
 
         self.assertLess(error_w, 0.01)
         self.assertLess(error_b, 0.01)
+
+
+class TestIsingSample(unittest.TestCase):
+    """Test that the high-level ising_sample wrapper produces correct marginals."""
+
+    def test_marginals(self):
+        n = 5
+        beta = 1.5
+        key = jax.random.key(99)
+        key, k_bias, k_weight = jax.random.split(key, 3)
+        biases = jax.random.uniform(k_bias, (n,), minval=-1.0, maxval=1.0)
+        edges = jnp.array([[i, i + 1] for i in range(n - 1)])
+        weights = jax.random.uniform(k_weight, (n - 1,), minval=-0.5, maxval=0.5)
+
+        samples, diagnostics = ising_sample(
+            biases,
+            edges,
+            weights,
+            key=key,
+            beta=beta,
+            n_samples=8000,
+            n_warmup=500,
+            steps_per_sample=3,
+        )
+
+        self.assertEqual(samples.shape, (8000, n))
+        self.assertEqual(samples.dtype, jnp.bool_)
+        self.assertIn("n_chains", diagnostics)
+        self.assertIn("betas", diagnostics)
+        self.assertIn("Lambda", diagnostics)
+
+        # Compare empirical marginals against exact Boltzmann distribution.
+        all_states = _all_bitstrings(n)  # (2^n, n)
+
+        # Build the same Ising model to compute exact energies.
+        nodes = [SpinNode() for _ in range(n)]
+        node_edges = [(nodes[i], nodes[i + 1]) for i in range(n - 1)]
+        ebm = IsingEBM(nodes, node_edges, biases, weights, jnp.array(beta))
+        obs_block = Block(nodes)
+
+        energies = jax.vmap(lambda s: ebm.energy([s], [obs_block]))(all_states)
+        log_probs = -energies  # energy already includes beta
+        log_probs -= jax.scipy.special.logsumexp(log_probs)
+        exact_marginals = jnp.exp(log_probs) @ all_states.astype(jnp.float32)
+
+        empirical_marginals = jnp.mean(samples.astype(jnp.float32), axis=0)
+
+        max_err = jnp.max(jnp.abs(empirical_marginals - exact_marginals))
+        self.assertLess(float(max_err), 0.05)

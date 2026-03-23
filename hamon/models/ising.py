@@ -1,9 +1,10 @@
 # Modified from the original thrml library (https://github.com/Extropic-AI/thrml)
 
+import networkx as nx  # type: ignore[import-untyped]
 import equinox as eqx
 import jax
 from jax import numpy as jnp
-from jaxtyping import Array, Bool, Key
+from jaxtyping import Array, Bool, Key, Shaped
 
 from hamon.block_sampling import (
     Block,
@@ -11,13 +12,14 @@ from hamon.block_sampling import (
     BlockSamplingProgram,
     SamplingSchedule,
     SuperBlock,
+    sample_states,
     sample_with_observation,
 )
 from hamon.factor import FactorSamplingProgram
 from hamon.models.discrete_ebm import SpinEBMFactor, SpinGibbsConditional
 from hamon.models.ebm import AbstractFactorizedEBM, EBMFactor
 from hamon.observers import MomentAccumulatorObserver
-from hamon.pgm import AbstractNode
+from hamon.pgm import AbstractNode, SpinNode
 
 Edge = tuple[AbstractNode, AbstractNode]
 
@@ -133,7 +135,7 @@ def hinton_init(
     key: Key[Array, ""],
     model: IsingEBM,
     blocks: list[Block[AbstractNode]],
-    batch_shape: tuple[int],
+    batch_shape: tuple[int, ...],
 ) -> list[Bool[Array, "batch_size block_size"]]:
     r"""
     Initialize the blocks according to the marginal bias.
@@ -316,3 +318,128 @@ def estimate_kl_grad(
         - jnp.mean(moms_w_neg, axis=0, dtype=float_type)
     )
     return grad_w, grad_b, (moms_b_pos, moms_w_pos), (moms_b_neg, moms_w_neg)
+
+
+def ising_sample(
+    biases: Shaped[Array, " n"],
+    edges: Shaped[Array, "m 2"],
+    weights: Shaped[Array, " m"],
+    *,
+    key: Key[Array, ""],
+    beta: float = 1.0,
+    n_samples: int = 1000,
+    n_warmup: int = 500,
+    steps_per_sample: int = 1,
+    gibbs_steps_per_round: int = 1,
+    target_acceptance: float = 0.6,
+) -> tuple[Bool[Array, "n_samples n"], dict]:
+    r"""Sample from an Ising model Boltzmann distribution via NRPT.
+
+    Orchestrates the full pipeline: graph coloring, chain-count discovery,
+    adaptive schedule tuning, and final sampling from the cold chain.
+
+    The energy function is
+
+    $$\mathcal{E}(s) = -\beta \left( \sum_i b_i s_i
+        + \sum_{(i,j)} J_{ij} s_i s_j \right)$$
+
+    Args:
+        biases: per-node bias array of shape ``(n,)``.
+        edges: integer index pairs of shape ``(m, 2)``.
+        weights: per-edge coupling of shape ``(m,)``.
+        key: JAX PRNG key.
+        beta: inverse temperature for the target distribution.
+        n_samples: number of samples to return.
+        n_warmup: warmup steps before collecting samples.
+        steps_per_sample: Gibbs sweeps between recorded samples.
+        gibbs_steps_per_round: Gibbs sweeps between NRPT swap attempts.
+        target_acceptance: desired per-pair swap acceptance rate for
+            chain-count discovery.
+
+    Returns:
+        A tuple ``(samples, diagnostics)`` where *samples* is a boolean
+        array of shape ``(n_samples, n)`` (``True`` = spin up) and
+        *diagnostics* is a dict with keys ``n_chains``, ``betas``,
+        ``Lambda``, ``converged_reason``, ``acceptance_rate``, and
+        ``round_trip_diagnostics``.
+    """
+    from hamon.nrpt import discover_chain_count, nrpt_adaptive
+
+    n = biases.shape[0]
+    edges_np = jnp.asarray(edges)
+
+    # --- build graph and colour it for block Gibbs ---
+    nodes: list[AbstractNode] = [SpinNode() for _ in range(n)]
+    node_edges: list[Edge] = [(nodes[int(e[0])], nodes[int(e[1])]) for e in edges_np]
+
+    g = nx.Graph()
+    g.add_nodes_from(range(n))
+    g.add_edges_from([(int(e[0]), int(e[1])) for e in edges_np])
+    coloring = nx.coloring.greedy_color(g, strategy="DSATUR")
+    n_colors = max(coloring.values()) + 1 if coloring else 1
+    color_groups: list[list[AbstractNode]] = [[] for _ in range(n_colors)]
+    for idx, color in coloring.items():
+        color_groups[color].append(nodes[idx])
+    free_blocks: list[SuperBlock] = [Block(group) for group in color_groups]
+
+    # --- template EBM & program ---
+    ebm = IsingEBM(nodes, node_edges, biases, weights, jnp.array(float(beta)))
+    program = IsingSamplingProgram(ebm, free_blocks, [])
+
+    def _init_factory(n_chains, ebms, programs):
+        fb = programs[0].gibbs_spec.free_blocks
+        keys = jax.random.split(jax.random.key(0), n_chains)
+        return [hinton_init(keys[c], ebms[0], fb, ()) for c in range(n_chains)]
+
+    # --- discover chain count ---
+    key, k_disc, k_nrpt, k_samp = jax.random.split(key, 4)
+
+    discovery = discover_chain_count(
+        k_disc,
+        ebm=ebm,
+        program=program,
+        init_factory=_init_factory,
+        beta_range=(0.0, float(beta)),
+        gibbs_steps_per_round=gibbs_steps_per_round,
+        target_acceptance=target_acceptance,
+    )
+
+    # --- adaptive NRPT ---
+    betas = discovery["betas"]
+    n_chains = len(betas)
+
+    init_ebms = [ebm.with_beta(jnp.array(float(b))) for b in betas]
+    init_progs = [program.with_ebm(e) for e in init_ebms]
+    init_states = _init_factory(n_chains, init_ebms, init_progs)
+
+    warm_states, _, nrpt_stats = nrpt_adaptive(
+        k_nrpt,
+        ebm=ebm,
+        program=program,
+        init_states=init_states,
+        clamp_state=[],
+        n_rounds=500,
+        gibbs_steps_per_round=gibbs_steps_per_round,
+        initial_betas=betas,
+        n_tune=5,
+        rounds_per_tune=200,
+    )
+
+    # --- sample from cold chain (last index = highest beta) ---
+    cold_state = warm_states[-1]
+    schedule = SamplingSchedule(n_warmup, n_samples, steps_per_sample)
+    obs_block = Block(nodes)
+    raw_samples = sample_states(k_samp, program, schedule, cold_state, [], [obs_block])
+    samples = raw_samples[0]  # (n_samples, n)
+
+    diagnostics = {
+        "n_chains": discovery["n_chains"],
+        "betas": nrpt_stats["betas"],
+        "Lambda": discovery["Lambda"],
+        "converged_reason": discovery["converged_reason"],
+        "acceptance_rate": nrpt_stats["acceptance_rate"],
+    }
+    if "round_trip_diagnostics" in nrpt_stats:
+        diagnostics["round_trip_diagnostics"] = nrpt_stats["round_trip_diagnostics"]
+
+    return samples, diagnostics
