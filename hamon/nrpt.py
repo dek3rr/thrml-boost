@@ -218,6 +218,15 @@ def nrpt(
     Single-pass DEO: one swap parity per round, alternating even/odd.
     Multi-pass breaks non-reversibility (even∘odd∘odd∘even = identity).
 
+    Chains are ordered by ascending β: index 0 is the **hottest** chain
+    (lowest β, closest to the reference distribution) and index −1 is the
+    **coldest** chain (highest β, the target distribution you want to
+    sample from).  The returned ``states`` list preserves this ordering.
+
+    .. warning::
+       To collect samples from the target distribution, always use
+       ``states[-1]`` (the cold chain), **not** ``states[0]``.
+
     Stats keys:
         accepted, attempted, acceptance_rate, rejection_rates, betas
         round_trip_diagnostics (if track_round_trips=True):
@@ -230,12 +239,22 @@ def nrpt(
     base_spec = programs[0].gibbs_spec
     n_free_blocks = len(base_spec.free_blocks)
     base_clamped = len(base_spec.clamped_blocks)
-    for prog in programs[1:]:
+    base_nodes = [set(id(n) for n in block.nodes) for block in base_spec.free_blocks]
+    for i, prog in enumerate(programs[1:], 1):
         if (
             len(prog.gibbs_spec.free_blocks) != n_free_blocks
             or len(prog.gibbs_spec.clamped_blocks) != base_clamped
         ):
             raise ValueError("All programs must share the same block structure.")
+        for b, block in enumerate(prog.gibbs_spec.free_blocks):
+            prog_nodes = set(id(n) for n in block.nodes)
+            if prog_nodes != base_nodes[b]:
+                raise ValueError(
+                    f"programs[{i}] free block {b} contains different node "
+                    f"objects than programs[0]. All programs must share the "
+                    f"same node instances. When using factories, ensure "
+                    f"with_beta() / with_ebm() reuse the original nodes."
+                )
 
     clamp_state = clamp_state or []
     n_chains = len(ebms)
@@ -493,8 +512,9 @@ def nrpt_adaptive(
     a template ``ebm`` and ``program`` and the factories will be built
     internally using ``ebm.with_beta()`` and ``program.with_ebm()``.
 
-    Returns (states, sampler_states, stats) where stats includes tuning
-    history in stats["tuning_history"].
+    Returns ``(states, sampler_states, stats)`` where stats includes tuning
+    history in ``stats["tuning_history"]``.  States are ordered by ascending
+    β — the **cold chain** (target distribution) is ``states[-1]``.
     """
     if ebm_factory is None and program_factory is None:
         if ebm is None or program is None:

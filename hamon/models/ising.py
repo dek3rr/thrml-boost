@@ -1,5 +1,7 @@
 # Modified from the original thrml library (https://github.com/Extropic-AI/thrml)
 
+import logging
+
 import networkx as nx  # type: ignore[import-untyped]
 import equinox as eqx
 import jax
@@ -20,6 +22,8 @@ from hamon.models.discrete_ebm import SpinEBMFactor, SpinGibbsConditional
 from hamon.models.ebm import AbstractFactorizedEBM, EBMFactor
 from hamon.observers import MomentAccumulatorObserver
 from hamon.pgm import AbstractNode, SpinNode
+
+logger = logging.getLogger(__name__)
 
 Edge = tuple[AbstractNode, AbstractNode]
 
@@ -360,13 +364,34 @@ def ising_sample(
         A tuple ``(samples, diagnostics)`` where *samples* is a boolean
         array of shape ``(n_samples, n)`` (``True`` = spin up) and
         *diagnostics* is a dict with keys ``n_chains``, ``betas``,
-        ``Lambda``, ``converged_reason``, ``acceptance_rate``, and
+        ``Lambda``, ``converged_reason``, ``acceptance_rate``,
+        ``mean_spins`` (average number of +1 spins per sample), and
         ``round_trip_diagnostics``.
+
+    Warns:
+        Logs a warning if all coupling weights are zero (NRPT is
+        unnecessary) or if all biases are identical (model has no
+        per-variable preference).
     """
     from hamon.nrpt import discover_chain_count, nrpt_adaptive
 
+    biases = jnp.asarray(biases)
+    weights = jnp.asarray(weights)
     n = biases.shape[0]
     edges_np = jnp.asarray(edges)
+
+    # --- degenerate model checks ---
+    if jnp.all(weights == 0):
+        logger.warning(
+            "All coupling weights are zero — variables are independent. "
+            "NRPT is unnecessary; single-chain Gibbs sampling suffices."
+        )
+    bias_range = float(jnp.max(biases) - jnp.min(biases))
+    if bias_range == 0 and biases.shape[0] > 1:
+        logger.warning(
+            "All biases are identical (spread = 0). The model has no "
+            "per-variable preference; sampling results may be uninformative."
+        )
 
     # --- build graph and colour it for block Gibbs ---
     nodes: list[AbstractNode] = [SpinNode() for _ in range(n)]
@@ -432,12 +457,15 @@ def ising_sample(
     raw_samples = sample_states(k_samp, program, schedule, cold_state, [], [obs_block])
     samples = raw_samples[0]  # (n_samples, n)
 
+    mean_spins = float(jnp.mean(jnp.sum(samples, axis=1).astype(jnp.float32)))
+
     diagnostics = {
         "n_chains": discovery["n_chains"],
         "betas": nrpt_stats["betas"],
         "Lambda": discovery["Lambda"],
         "converged_reason": discovery["converged_reason"],
         "acceptance_rate": nrpt_stats["acceptance_rate"],
+        "mean_spins": mean_spins,
     }
     if "round_trip_diagnostics" in nrpt_stats:
         diagnostics["round_trip_diagnostics"] = nrpt_stats["round_trip_diagnostics"]
