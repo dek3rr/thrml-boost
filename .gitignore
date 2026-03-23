@@ -54,6 +54,7 @@ coverage.xml
 .ruff_cache
 cover/
 *.DS_Store
+.claude/
 
 # Translations
 *.mo
