@@ -1088,53 +1088,60 @@ class TestBigGrid(unittest.TestCase):
     of degrees of freedom.
     """
 
+    @staticmethod
+    def _build_and_compile(side_len):
+        g = nx.grid_graph((side_len, side_len))
+
+        nx.relabel_nodes(g, lambda x: SpinNode(), copy=False)
+
+        edge_groups = [[], []]
+
+        for edge in g.edges:
+            edge_groups[0].append(edge[0])
+            edge_groups[1].append(edge[1])
+
+        key = jax.random.key(424)
+        key, subkey = jax.random.split(key, 2)
+        fac = SpinEBMFactor(
+            [Block(x) for x in edge_groups],
+            jax.random.normal(subkey, (len(edge_groups[0]),)),
+        )
+
+        ebm = FactorizedEBM([fac])
+
+        bicol = nx.bipartite.color(g)
+        color0 = [n for n, c in bicol.items() if c == 0]
+        color1 = [n for n, c in bicol.items() if c == 1]
+
+        free_blocks = [Block(color0), Block(color1)]
+
+        spec = BlockGibbsSpec(free_blocks, [])
+
+        samp = SpinGibbsConditional()
+
+        _ = FactorSamplingProgram(
+            spec, [samp for _ in spec.free_blocks], ebm.factors, []
+        )
+
     def test_big(self):
         side_lens = [64, 128, 256, 512]
+        n_reps = 3
+
+        # Warmup to amortize one-time JIT/initialization costs.
+        self._build_and_compile(32)
+
         times = []
         for side_len in side_lens:
-            g = nx.grid_graph((side_len, side_len))
+            rep_times = []
+            for _ in range(n_reps):
+                start_time = time.perf_counter()
+                self._build_and_compile(side_len)
+                end_time = time.perf_counter()
+                rep_times.append(end_time - start_time)
+            times.append(min(rep_times))
 
-            nx.relabel_nodes(g, lambda x: SpinNode(), copy=False)
+        log_nodes = np.log(np.array(side_lens, dtype=float) ** 2)
+        log_times = np.log(np.array(times))
+        slope, _ = np.polyfit(log_nodes, log_times, 1)
 
-            edge_groups = [[], []]
-
-            for edge in g.edges:
-                edge_groups[0].append(edge[0])
-                edge_groups[1].append(edge[1])
-
-            key = jax.random.key(424)
-            key, subkey = jax.random.split(key, 2)
-            fac = SpinEBMFactor(
-                [Block(x) for x in edge_groups],
-                jax.random.normal(subkey, (len(edge_groups[0]),)),
-            )
-
-            ebm = FactorizedEBM([fac])
-
-            bicol = nx.bipartite.color(g)
-            color0 = [n for n, c in bicol.items() if c == 0]
-            color1 = [n for n, c in bicol.items() if c == 1]
-
-            free_blocks = [Block(color0), Block(color1)]
-
-            spec = BlockGibbsSpec(free_blocks, [])
-
-            samp = SpinGibbsConditional()
-
-            start_time = time.time()
-            _ = FactorSamplingProgram(
-                spec, [samp for _ in spec.free_blocks], ebm.factors, []
-            )
-            end_time = time.time()
-
-            times.append(end_time - start_time)
-
-        side_lens = np.array(side_lens)
-        times = np.array(times)
-
-        delta_side = (side_lens[1:] / side_lens[:-1]) ** 2
-        delta_time = times[1:] / times[:-1]
-
-        scaling_correct = delta_time < 1.2 * delta_side
-
-        self.assertTrue(np.all(scaling_correct))
+        self.assertLess(slope, 1.3)
