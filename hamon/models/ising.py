@@ -2,7 +2,6 @@
 
 import logging
 
-import networkx as nx  # type: ignore[import-untyped]
 import equinox as eqx
 import jax
 from jax import numpy as jnp
@@ -373,6 +372,8 @@ def ising_sample(
         unnecessary) or if all biases are identical (model has no
         per-variable preference).
     """
+    import networkx as nx  # type: ignore[import-untyped]
+
     from hamon.nrpt import discover_chain_count, nrpt_adaptive
 
     biases = jnp.asarray(biases)
