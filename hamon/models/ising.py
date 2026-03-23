@@ -381,7 +381,12 @@ def ising_sample(
     edges_np = jnp.asarray(edges)
 
     # --- degenerate model checks ---
-    if jnp.all(weights == 0):
+    if edges_np.shape[0] == 0:
+        logger.warning(
+            "No edges provided — variables are independent. "
+            "NRPT is unnecessary; single-chain Gibbs sampling suffices."
+        )
+    elif jnp.all(weights == 0):
         logger.warning(
             "All coupling weights are zero — variables are independent. "
             "NRPT is unnecessary; single-chain Gibbs sampling suffices."
@@ -411,13 +416,13 @@ def ising_sample(
     ebm = IsingEBM(nodes, node_edges, biases, weights, jnp.array(float(beta)))
     program = IsingSamplingProgram(ebm, free_blocks, [])
 
+    # --- discover chain count ---
+    key, k_disc, k_nrpt, k_samp, k_init = jax.random.split(key, 5)
+
     def _init_factory(n_chains, ebms, programs):
         fb = programs[0].gibbs_spec.free_blocks
-        keys = jax.random.split(jax.random.key(0), n_chains)
+        keys = jax.random.split(k_init, n_chains)
         return [hinton_init(keys[c], ebms[0], fb, ()) for c in range(n_chains)]
-
-    # --- discover chain count ---
-    key, k_disc, k_nrpt, k_samp = jax.random.split(key, 4)
 
     discovery = discover_chain_count(
         k_disc,
