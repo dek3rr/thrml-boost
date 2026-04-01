@@ -10,7 +10,7 @@ Validates:
 import jax
 import jax.numpy as jnp
 
-from hamon import Block, SpinNode, make_empty_block_state
+from hamon import Block, SpinNode, make_empty_block_state, NRPTStateObserver
 from hamon.models import IsingEBM, IsingSamplingProgram, hinton_init
 from hamon.nrpt import _compute_base_energies, nrpt
 
@@ -337,3 +337,103 @@ class TestAPIUnchanged:
         )
         tau = stats["round_trip_diagnostics"]["tau_predicted"]
         assert 0.0 < float(tau) <= 0.5
+
+
+# ---------------------------------------------------------------------------
+# NRPT observer
+# ---------------------------------------------------------------------------
+
+
+class TestNRPTObserver:
+    """Verify NRPTStateObserver collects per-round states correctly."""
+
+    def test_observer_cold_chain_shape(self):
+        """Observations should have shape (n_rounds, 1, ...) for cold chain."""
+        betas = [0.5, 1.0, 1.5]
+        n_chains = 3
+        n_rounds = 10
+        _, _, fb, ebms, progs = _make_ising(4, betas, coupling=0.5)
+        init = make_empty_block_state(fb, ebms[0].node_shape_dtypes)
+
+        obs = NRPTStateObserver(chain_indices=(-1,))
+        _, _, stats = nrpt(
+            jax.random.key(0),
+            ebms,
+            progs,
+            [init] * n_chains,
+            [],
+            n_rounds=n_rounds,
+            gibbs_steps_per_round=2,
+            observer=obs,
+        )
+        assert "observations" in stats
+        # One array per free block; leading axis = n_rounds, then 1 chain
+        for arr in stats["observations"]:
+            assert arr.shape[0] == n_rounds
+            assert arr.shape[1] == 1  # one chain index
+
+    def test_observer_multiple_chains(self):
+        """Collect states from multiple chain indices."""
+        betas = [0.5, 1.0, 1.5, 2.0]
+        n_chains = 4
+        n_rounds = 5
+        _, _, fb, ebms, progs = _make_ising(4, betas)
+        init = make_empty_block_state(fb, ebms[0].node_shape_dtypes)
+
+        obs = NRPTStateObserver(chain_indices=(0, -1))
+        _, _, stats = nrpt(
+            jax.random.key(1),
+            ebms,
+            progs,
+            [init] * n_chains,
+            [],
+            n_rounds=n_rounds,
+            gibbs_steps_per_round=1,
+            observer=obs,
+        )
+        for arr in stats["observations"]:
+            assert arr.shape[0] == n_rounds
+            assert arr.shape[1] == 2  # two chain indices
+
+    def test_observer_last_round_matches_final_state(self):
+        """The last observation should match the returned cold-chain state."""
+        betas = [0.5, 1.0, 1.5]
+        n_chains = 3
+        n_rounds = 10
+        _, _, fb, ebms, progs = _make_ising(4, betas, coupling=0.5)
+        init = make_empty_block_state(fb, ebms[0].node_shape_dtypes)
+
+        obs = NRPTStateObserver(chain_indices=(-1,))
+        states, _, stats = nrpt(
+            jax.random.key(7),
+            ebms,
+            progs,
+            [init] * n_chains,
+            [],
+            n_rounds=n_rounds,
+            gibbs_steps_per_round=2,
+            observer=obs,
+        )
+        # states[-1] is the cold chain; observations[-1] is last round
+        cold_state = states[-1]  # list of arrays, one per free block
+        for b, arr in enumerate(stats["observations"]):
+            last_obs = arr[-1, 0]  # last round, first (only) chain index
+            assert jnp.array_equal(last_obs, cold_state[b])
+
+    def test_no_observer_backward_compat(self):
+        """Without observer, stats should not contain observation keys."""
+        betas = [0.5, 1.0, 1.5]
+        _, _, fb, ebms, progs = _make_ising(4, betas)
+        init = make_empty_block_state(fb, ebms[0].node_shape_dtypes)
+
+        _, _, stats = nrpt(
+            jax.random.key(0),
+            ebms,
+            progs,
+            [init] * 3,
+            [],
+            n_rounds=5,
+            gibbs_steps_per_round=2,
+        )
+        assert "observations" not in stats
+        assert "observer_carry" not in stats

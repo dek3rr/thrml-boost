@@ -29,8 +29,10 @@ from .factor import AbstractFactor as AbstractFactor
 from .factor import FactorSamplingProgram as FactorSamplingProgram
 from .factor import WeightedFactor as WeightedFactor
 from .interaction import InteractionGroup as InteractionGroup
+from .observers import AbstractNRPTObserver as AbstractNRPTObserver
 from .observers import AbstractObserver as AbstractObserver
 from .observers import MomentAccumulatorObserver as MomentAccumulatorObserver
+from .observers import NRPTStateObserver as NRPTStateObserver
 from .observers import StateObserver as StateObserver
 from .pgm import AbstractNode as AbstractNode
 from .pgm import CategoricalNode as CategoricalNode

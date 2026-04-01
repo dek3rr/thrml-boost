@@ -291,3 +291,78 @@ class MomentAccumulatorObserver(AbstractObserver):
             jnp.zeros(x.shape[0], dtype=self._accumulate_dtype)
             for x in self.flat_to_full_moment_slices
         ]
+
+
+# ---------------------------------------------------------------------------
+# NRPT observers
+# ---------------------------------------------------------------------------
+
+
+class AbstractNRPTObserver(eqx.Module):
+    """Observer for NRPT rounds, called once per round after Gibbs sweeps and swaps.
+
+    Concrete subclasses must implement ``__call__`` and may override ``init``
+    to provide a non-trivial carry.  The ``observation`` returned by
+    ``__call__`` is stacked by ``lax.scan`` into a pytree with a leading axis
+    of size ``n_rounds``.  Return ``None`` as the observation for
+    accumulate-only observers that do not need per-round storage.
+    """
+
+    @abc.abstractmethod
+    def __call__(
+        self,
+        stacked_states: list[Array],
+        base_energies: Array,
+        round_idx: Int[Array, ""],
+        carry: ObserveCarry,
+    ) -> tuple[ObserveCarry, PyTree]:
+        """Observe one NRPT round.
+
+        **Arguments:**
+
+        - `stacked_states`: Per-block arrays, each of shape ``(n_chains, ...)``.
+          The cold chain (target) is at index ``-1``.
+        - `base_energies`: Shape ``(n_chains,)`` base energies (no β factor).
+        - `round_idx`: Zero-based round counter.
+        - `carry`: Arbitrary pytree state threaded across rounds.
+
+        **Returns:**
+
+        ``(updated_carry, observation)`` — *observation* is stacked by
+        ``lax.scan``; use ``None`` for accumulate-only mode.
+        """
+        ...
+
+    def init(self) -> PyTree:
+        """Initialize the observer carry.  Defaults to ``None``."""
+        return None
+
+
+class NRPTStateObserver(AbstractNRPTObserver):
+    """Collect raw chain states at specified chain indices each round.
+
+    This observer is stateless (carry is always ``None``).  The returned
+    observation is a list of arrays — one per free block — each of shape
+    ``(len(chain_indices), ...)``.  After ``lax.scan`` stacking the leading
+    axis becomes ``n_rounds``.
+
+    **Attributes:**
+
+    - `chain_indices`: Tuple of chain positions to record.  Use ``(-1,)``
+      to collect only the cold chain (the default).
+    """
+
+    chain_indices: tuple[int, ...]
+
+    def __init__(self, chain_indices: tuple[int, ...] = (-1,)):
+        self.chain_indices = chain_indices
+
+    def __call__(
+        self,
+        stacked_states: list[Array],
+        base_energies: Array,
+        round_idx: Int[Array, ""],
+        carry: None,
+    ) -> tuple[None, list[Array]]:
+        idx = jnp.array(self.chain_indices)
+        return None, [s[idx] for s in stacked_states]

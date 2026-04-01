@@ -12,7 +12,7 @@ rectangular block partitions.
 from __future__ import annotations
 
 from collections.abc import Sequence
-from typing import Any, Callable
+from typing import Any, Callable, NamedTuple
 
 import jax
 import jax.numpy as jnp
@@ -21,6 +21,7 @@ from jax import lax
 
 from hamon.block_sampling import _run_blocks, BlockSamplingProgram
 from hamon.models.ebm import AbstractEBM
+from hamon.observers import AbstractNRPTObserver
 from hamon.round_trips import (
     init_index_state,
     update_index_state,
@@ -195,6 +196,18 @@ def optimize_schedule(rejection_rates: jax.Array, betas: jax.Array) -> jax.Array
     return new.at[0].set(betas[0]).at[-1].set(betas[-1])
 
 
+class NRPTCarry(NamedTuple):
+    """Scan carry for the NRPT inner loop."""
+
+    key: jax.Array
+    states: Any  # list of (n_chains, ...) arrays, one per free block
+    accepted: jax.Array
+    attempted: jax.Array
+    idx_state: Any  # round-trip tracking dict
+    base_E: jax.Array
+    obs_carry: Any  # observer carry (None when no observer)
+
+
 # ---------------------------------------------------------------------------
 # Main entry point
 # ---------------------------------------------------------------------------
@@ -212,6 +225,7 @@ def nrpt(
     sampler_states: Sequence[list] | None = None,
     track_round_trips: bool = True,
     energy_delta_fn: Callable | None = None,
+    observer: AbstractNRPTObserver | None = None,
 ) -> tuple[list, list, dict]:
     """Non-Reversible Parallel Tempering with vectorized swaps.
 
@@ -232,7 +246,12 @@ def nrpt(
         round_trip_diagnostics (if track_round_trips=True):
             Lambda, tau_predicted, tau_observed, efficiency,
             lambda_profile, round_trips_per_chain, restarts_per_chain
+        observations (if observer is not None):
+            Per-round observer output stacked along axis 0.
+        observer_carry (if observer is not None):
+            Final observer carry after all rounds.
     """
+    # --- Validation -----------------------------------------------------------
     if not (len(ebms) == len(programs) == len(init_states)):
         raise ValueError("ebms, programs, and init_states must have the same length.")
 
@@ -262,29 +281,13 @@ def nrpt(
     if betas is None:
         betas = jnp.array([float(getattr(ebm, "beta")) for ebm in ebms])
 
+    # --- Stack states ---------------------------------------------------------
     states = [list(s) for s in init_states]
-    sampler_states_l = (
-        [list(s) for s in sampler_states]
-        if sampler_states is not None
-        else [_init_sampler_states(p) for p in programs]
-    )
-    all_ss_none = all(s is None for chain_ss in sampler_states_l for s in chain_ss)
-
-    # Stack states
     stacked_states = [
         jnp.stack([states[c][b] for c in range(n_chains)]) for b in range(n_free_blocks)
     ]
-    if all_ss_none:
-        stacked_ss = [None] * n_free_blocks
-    else:
-        stacked_ss = [
-            jnp.stack([sampler_states_l[c][b] for c in range(n_chains)])
-            if sampler_states_l[0][b] is not None
-            else None
-            for b in range(n_free_blocks)
-        ]
 
-    # Stack per-block interactions
+    # --- Stack per-block interactions -----------------------------------------
     stacked_pbi = [
         [
             _stack_pbi_across_chains(
@@ -296,78 +299,73 @@ def nrpt(
     ]
     pbi_in_axes = _make_pbi_in_axes(stacked_pbi)
 
-    # Build vmapped Gibbs kernel
-    _run_all_chains = None
-    if all_ss_none:
-        null_ss = [None] * n_free_blocks
+    # --- Vmapped Gibbs kernel -------------------------------------------------
+    null_ss = [None] * n_free_blocks
 
-        def _run_one(gibbs_key, state_free, pbi):
-            new_state, _, _ = _run_blocks(
-                gibbs_key,
-                programs[0],
-                state_free,
-                clamp_state,
-                gibbs_steps_per_round,
-                null_ss,
-                per_block_interactions=pbi,
-            )
-            return new_state
-
-        _run_all_chains = jax.vmap(
-            _run_one,
-            in_axes=(0, [0] * n_free_blocks, pbi_in_axes),
+    def _run_one(gibbs_key, state_free, pbi):
+        new_state, _, _ = _run_blocks(
+            gibbs_key,
+            programs[0],
+            state_free,
+            clamp_state,
+            gibbs_steps_per_round,
+            null_ss,
+            per_block_interactions=pbi,
         )
+        return new_state
 
-    # Pair indices and precomputed constants
+    run_chains = jax.vmap(
+        _run_one,
+        in_axes=(0, [0] * n_free_blocks, pbi_in_axes),
+    )
+
+    # --- Swap setup -----------------------------------------------------------
     n_pairs = n_chains - 1
     even_pairs = jnp.arange(0, n_pairs, 2, dtype=jnp.int32)
     odd_pairs = jnp.arange(1, n_pairs, 2, dtype=jnp.int32)
-    n_even = len(even_pairs)
-    n_odd = len(odd_pairs)
     att_even = jnp.zeros(n_pairs, dtype=jnp.int32).at[even_pairs].set(1)
     att_odd = jnp.zeros(n_pairs, dtype=jnp.int32).at[odd_pairs].set(1)
     base_perm = jnp.arange(n_chains, dtype=jnp.int32)
 
-    # Reference EBM for vmapped energy — any chain works,
-    # temperature linearity means E_base = E_β / β for all.
     ebm0 = ebms[0]
-
     accepted = jnp.zeros(n_pairs, dtype=jnp.int32)
     attempted = jnp.zeros(n_pairs, dtype=jnp.int32)
     idx_state = init_index_state(n_chains)
 
     use_cached = energy_delta_fn is not None
 
-    # Narrow type for Pyright — guaranteed non-None when all_ss_none is True.
-    assert _run_all_chains is not None
-    run_chains = _run_all_chains
-
     swap_args = (betas, n_chains, n_pairs, n_free_blocks, base_perm)
     do_even = _make_swap_branch(
         even_pairs,
-        n_even,
+        len(even_pairs),
         att_even,
         *swap_args,
-        return_perm=use_cached,
+        return_perm=True,
     )
     do_odd = _make_swap_branch(
         odd_pairs,
-        n_odd,
+        len(odd_pairs),
         att_odd,
         *swap_args,
-        return_perm=use_cached,
+        return_perm=True,
     )
 
-    if not use_cached:
+    # --- Energy strategy (cached vs recomputed) -------------------------------
+    def _make_energy_fns():
+        if use_cached:
+            assert energy_delta_fn is not None
+            _delta_fn = energy_delta_fn
 
-        def one_round(carry, round_idx):
-            key, st_states, st_ss, acc, att, idx_st = carry
-            key, k_gibbs, k_swap = jax.random.split(key, 3)
+            def compute_cached(st_states, old_states, cached_bE):
+                return cached_bE + _delta_fn(old_states, st_states)
 
-            gibbs_keys = jax.random.split(k_gibbs, n_chains)
-            st_states = run_chains(gibbs_keys, st_states, stacked_pbi)
+            def permute_cached(bE, pm):
+                return bE[pm]
 
-            base_E = _compute_base_energies(
+            return compute_cached, permute_cached
+
+        def compute_fresh(st_states, old_states, cached_bE):
+            return _compute_base_energies(
                 ebm0,
                 betas[0],
                 base_spec,
@@ -375,95 +373,90 @@ def nrpt(
                 clamp_state,
             )
 
-            st_states, acc, att, idx_st = lax.cond(
-                (round_idx & 1) == 0,
-                do_even,
-                do_odd,
-                (st_states, acc, att, k_swap, base_E, idx_st),
-            )
-            return (key, st_states, st_ss, acc, att, idx_st), None
+        def permute_noop(bE, pm):
+            return bE
 
-        if n_rounds > 0:
-            init_carry = (
-                key,
-                stacked_states,
-                stacked_ss,
-                accepted,
-                attempted,
-                idx_state,
-            )
-            (key, stacked_states, stacked_ss, accepted, attempted, idx_state), _ = (
-                lax.scan(one_round, init_carry, jnp.arange(n_rounds))
-            )
+        return compute_fresh, permute_noop
 
-    else:
-        # Cached path: carry base_E, update via delta, permute after swap.
-        # bE[pm] MUST be applied outside lax.cond (traced intermediates).
-        base_E = _compute_base_energies(
-            ebm0,
-            betas[0],
-            base_spec,
-            stacked_states,
-            clamp_state,
+    energy_compute, energy_permute = _make_energy_fns()
+
+    # --- Observer strategy (present vs absent) --------------------------------
+    def _make_observer_fns():
+        if observer is not None:
+            return observer.init, observer
+        else:
+
+            def _init():
+                return None
+
+            def _step(stacked_states, base_energies, round_idx, carry):
+                return carry, None
+
+            return _init, _step
+
+    observer_init, observer_step = _make_observer_fns()
+
+    # --- Initial energy -------------------------------------------------------
+    base_E = _compute_base_energies(
+        ebm0,
+        betas[0],
+        base_spec,
+        stacked_states,
+        clamp_state,
+    )
+
+    # --- Scan body ------------------------------------------------------------
+    def one_round(carry: NRPTCarry, round_idx):
+        key, k_gibbs, k_swap = jax.random.split(carry.key, 3)
+
+        old_states = carry.states
+        gibbs_keys = jax.random.split(k_gibbs, n_chains)
+        new_states = run_chains(gibbs_keys, carry.states, stacked_pbi)
+
+        bE = energy_compute(new_states, old_states, carry.base_E)
+
+        new_states, acc, att, idx_st, pm = lax.cond(
+            (round_idx & 1) == 0,
+            do_even,
+            do_odd,
+            (new_states, carry.accepted, carry.attempted, k_swap, bE, carry.idx_state),
         )
+        bE = energy_permute(bE, pm)
 
-        # Narrow type for Pyright — we're in the `use_cached` branch.
-        assert energy_delta_fn is not None
-        delta_fn = energy_delta_fn
+        obs_carry, obs_out = observer_step(new_states, bE, round_idx, carry.obs_carry)
+        return NRPTCarry(key, new_states, acc, att, idx_st, bE, obs_carry), obs_out
 
-        def one_round_cached(carry, round_idx):
-            key, st_states, st_ss, acc, att, idx_st, cached_bE = carry
-            key, k_gibbs, k_swap = jax.random.split(key, 3)
+    # --- Run ------------------------------------------------------------------
+    init_carry = NRPTCarry(
+        key=key,
+        states=stacked_states,
+        accepted=accepted,
+        attempted=attempted,
+        idx_state=idx_state,
+        base_E=base_E,
+        obs_carry=observer_init(),
+    )
 
-            old_states = st_states
-            gibbs_keys = jax.random.split(k_gibbs, n_chains)
-            st_states = run_chains(gibbs_keys, st_states, stacked_pbi)
-
-            # delta_fn(old, new) = E_base(new) - E_base(old), no beta factor.
-            cached_bE = cached_bE + delta_fn(old_states, st_states)
-
-            st_states, acc, att, idx_st, pm = lax.cond(
-                (round_idx & 1) == 0,
-                do_even,
-                do_odd,
-                (st_states, acc, att, k_swap, cached_bE, idx_st),
-            )
-            # Permute cached energies to match post-swap chain ordering.
-            cached_bE = cached_bE[pm]
-            return (key, st_states, st_ss, acc, att, idx_st, cached_bE), None
-
-        if n_rounds > 0:
-            init_carry = (
-                key,
-                stacked_states,
-                stacked_ss,
-                accepted,
-                attempted,
-                idx_state,
-                base_E,
-            )
-            (key, stacked_states, stacked_ss, accepted, attempted, idx_state, _), _ = (
-                lax.scan(one_round_cached, init_carry, jnp.arange(n_rounds))
-            )
-
-    # Unstack
-    states_out = [
-        [stacked_states[b][c] for b in range(n_free_blocks)] for c in range(n_chains)
-    ]
-    if all_ss_none:
-        ss_out = [[None] * n_free_blocks for _ in range(n_chains)]
+    if n_rounds > 0:
+        final, observations = lax.scan(one_round, init_carry, jnp.arange(n_rounds))
     else:
-        ss_arrays = [s for s in stacked_ss if s is not None]
-        ss_out = [
-            [ss_arrays[b][c] for b in range(n_free_blocks)] for c in range(n_chains)
-        ]
+        final = init_carry
+        observations = None
 
-    acceptance_rate = jnp.where(attempted > 0, accepted / attempted, 0.0)
+    # --- Unstack --------------------------------------------------------------
+    states_out = [
+        [final.states[b][c] for b in range(n_free_blocks)] for c in range(n_chains)
+    ]
+    ss_out = [[None] * n_free_blocks for _ in range(n_chains)]
+
+    acceptance_rate = jnp.where(
+        final.attempted > 0, final.accepted / final.attempted, 0.0
+    )
     rejection_rates = 1.0 - acceptance_rate
 
     stats: dict[str, Any] = {
-        "accepted": accepted,
-        "attempted": attempted,
+        "accepted": final.accepted,
+        "attempted": final.attempted,
         "acceptance_rate": acceptance_rate,
         "rejection_rates": rejection_rates,
         "betas": betas,
@@ -471,12 +464,16 @@ def nrpt(
 
     if track_round_trips:
         stats["round_trip_diagnostics"] = round_trip_summary(
-            idx_state,
+            final.idx_state,
             rejection_rates,
             betas,
             n_rounds,
         )
-        stats["index_state"] = idx_state
+        stats["index_state"] = final.idx_state
+
+    if observer is not None and n_rounds > 0:
+        stats["observations"] = observations
+        stats["observer_carry"] = final.obs_carry
 
     return states_out, ss_out, stats
 
@@ -501,6 +498,7 @@ def nrpt_adaptive(
     *,
     ebm: AbstractEBM | None = None,
     program: BlockSamplingProgram | None = None,
+    observer: AbstractNRPTObserver | None = None,
 ) -> tuple[list, list, dict]:
     """NRPT with iterative schedule optimization (Algorithm 4).
 
@@ -587,6 +585,7 @@ def nrpt_adaptive(
         gibbs_steps_per_round,
         betas=betas,
         track_round_trips=track_round_trips,
+        observer=observer,
     )
     stats["tuning_history"] = tuning_history
     return states, ss, stats
