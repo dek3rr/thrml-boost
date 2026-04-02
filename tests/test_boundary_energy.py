@@ -353,7 +353,7 @@ class TestMakeIsingDeltaFn:
 
         delta_fn = make_ising_delta_fn(nodes, edges, free_blocks, biases, weights)
 
-        states_ref, _, stats_ref = nrpt(
+        states_ref, stats_ref = nrpt(
             jax.random.key(7),
             ebms,
             progs,
@@ -364,7 +364,7 @@ class TestMakeIsingDeltaFn:
             betas=betas,
             track_round_trips=False,
         )
-        states_cac, _, stats_cac = nrpt(
+        states_cac, stats_cac = nrpt(
             jax.random.key(7),
             ebms,
             progs,
@@ -411,7 +411,7 @@ class TestMakeIsingDeltaFn:
 
         delta_fn = make_ising_delta_fn(nodes, edges, free_blocks, biases, weights)
 
-        _, _, stats_ref = nrpt(
+        _, stats_ref = nrpt(
             jax.random.key(5),
             ebms,
             progs,
@@ -422,7 +422,7 @@ class TestMakeIsingDeltaFn:
             betas=betas,
             track_round_trips=False,
         )
-        _, _, stats_cac = nrpt(
+        _, stats_cac = nrpt(
             jax.random.key(5),
             ebms,
             progs,

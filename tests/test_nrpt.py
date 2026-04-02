@@ -148,7 +148,7 @@ class TestSinglePassDEO:
         init = make_empty_block_state(fb, ebms[0].node_shape_dtypes)
 
         n_rounds = 50
-        _, _, stats = nrpt(
+        _, stats = nrpt(
             jax.random.key(0),
             ebms,
             progs,
@@ -171,7 +171,7 @@ class TestSinglePassDEO:
         init = make_empty_block_state(fb, ebms[0].node_shape_dtypes)
 
         # 4 chains, single-pass DEO: ~6 rounds per round trip
-        _, _, stats = nrpt(
+        _, stats = nrpt(
             jax.random.key(0),
             ebms,
             progs,
@@ -189,7 +189,7 @@ class TestSinglePassDEO:
         _, _, fb, ebms, progs = _make_ising(8, betas, coupling=0.5)
         states = _make_states(jax.random.key(0), ebms, fb, 5)
 
-        _, _, stats = nrpt(
+        _, stats = nrpt(
             jax.random.key(1),
             ebms,
             progs,
@@ -208,7 +208,7 @@ class TestSinglePassDEO:
         _, _, fb, ebms, progs = _make_ising(8, betas, coupling=0.5)
         states = _make_states(jax.random.key(0), ebms, fb, 4)
 
-        _, _, stats = nrpt(
+        _, stats = nrpt(
             jax.random.key(42),
             ebms,
             progs,
@@ -228,7 +228,7 @@ class TestSinglePassDEO:
         _, _, fb, ebms, progs = _make_ising(8, betas, coupling=1.0)
         states = _make_states(jax.random.key(0), ebms, fb, 4)
 
-        _, _, stats = nrpt(
+        _, stats = nrpt(
             jax.random.key(0),
             ebms,
             progs,
@@ -277,7 +277,7 @@ class TestAPIUnchanged:
         betas = [0.5, 1.0, 1.5]
         _, _, fb, ebms, progs = _make_ising(4, betas)
         init = make_empty_block_state(fb, ebms[0].node_shape_dtypes)
-        states, ss, stats = nrpt(
+        states, stats = nrpt(
             jax.random.key(0),
             ebms,
             progs,
@@ -295,7 +295,7 @@ class TestAPIUnchanged:
         betas = [0.5, 1.0]
         _, _, fb, ebms, progs = _make_ising(4, betas)
         init = make_empty_block_state(fb, ebms[0].node_shape_dtypes)
-        _, _, stats = nrpt(
+        _, stats = nrpt(
             jax.random.key(0),
             ebms,
             progs,
@@ -310,7 +310,7 @@ class TestAPIUnchanged:
         betas = [0.5, 1.0, 1.5]
         _, _, fb, ebms, progs = _make_ising(4, betas)
         init = make_empty_block_state(fb, ebms[0].node_shape_dtypes)
-        _, _, stats = nrpt(
+        _, stats = nrpt(
             jax.random.key(0),
             ebms,
             progs,
@@ -326,7 +326,7 @@ class TestAPIUnchanged:
         betas = [0.5, 1.0, 2.0]
         _, _, fb, ebms, progs = _make_ising(8, betas, coupling=1.0)
         states = _make_states(jax.random.key(0), ebms, fb, 3)
-        _, _, stats = nrpt(
+        _, stats = nrpt(
             jax.random.key(7),
             ebms,
             progs,
@@ -356,7 +356,7 @@ class TestNRPTObserver:
         init = make_empty_block_state(fb, ebms[0].node_shape_dtypes)
 
         obs = NRPTStateObserver(chain_indices=(-1,))
-        _, _, stats = nrpt(
+        _, stats = nrpt(
             jax.random.key(0),
             ebms,
             progs,
@@ -381,7 +381,7 @@ class TestNRPTObserver:
         init = make_empty_block_state(fb, ebms[0].node_shape_dtypes)
 
         obs = NRPTStateObserver(chain_indices=(0, -1))
-        _, _, stats = nrpt(
+        _, stats = nrpt(
             jax.random.key(1),
             ebms,
             progs,
@@ -404,7 +404,7 @@ class TestNRPTObserver:
         init = make_empty_block_state(fb, ebms[0].node_shape_dtypes)
 
         obs = NRPTStateObserver(chain_indices=(-1,))
-        states, _, stats = nrpt(
+        states, stats = nrpt(
             jax.random.key(7),
             ebms,
             progs,
@@ -426,7 +426,7 @@ class TestNRPTObserver:
         _, _, fb, ebms, progs = _make_ising(4, betas)
         init = make_empty_block_state(fb, ebms[0].node_shape_dtypes)
 
-        _, _, stats = nrpt(
+        _, stats = nrpt(
             jax.random.key(0),
             ebms,
             progs,

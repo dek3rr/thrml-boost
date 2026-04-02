@@ -34,8 +34,32 @@ from hamon.round_trips import (
 # ---------------------------------------------------------------------------
 
 
-def _init_sampler_states(program: BlockSamplingProgram) -> list:
-    return [s.init() for s in program.samplers]
+def _resolve_factories(
+    ebm_factory: Callable | None,
+    program_factory: Callable | None,
+    ebm: AbstractEBM | None,
+    program: BlockSamplingProgram | None,
+) -> tuple[Callable, Callable]:
+    """Resolve (ebm_factory, program_factory) or (ebm, program) into callables."""
+    if ebm_factory is None and program_factory is None:
+        if ebm is None or program is None:
+            raise ValueError(
+                "Provide either (ebm_factory, program_factory) or (ebm=, program=)."
+            )
+        _ebm = ebm
+        _prog = program
+
+        def _make_ebms(betas):
+            return [_ebm.with_beta(jnp.array(float(b))) for b in betas]
+
+        def _make_programs(ebms):
+            return [_prog.with_ebm(e) for e in ebms]
+
+        return _make_ebms, _make_programs
+    elif ebm_factory is not None and program_factory is not None:
+        return ebm_factory, program_factory
+    else:
+        raise ValueError("Provide both ebm_factory and program_factory, or neither.")
 
 
 def _stack_pbi_across_chains(interaction_list: list) -> object:
@@ -132,33 +156,13 @@ def _make_swap_branch(
     n_pairs: int,
     n_free_blocks: int,
     base_perm: jax.Array,
-    return_perm: bool = False,
 ):
     """Build a lax.cond branch for even or odd swap pass.
 
-    Returns (states, acc, att, idx_state[, perm]) — perm included when return_perm=True.
+    Returns (states, acc, att, idx_state, perm).
     """
-    if not return_perm:
 
-        def _branch_no_perm(args):
-            ss, ac, at, sk, bE, ist = args
-            ss2, ac2, pm = _vectorized_swap(
-                sk,
-                ss,
-                betas,
-                bE,
-                pair_indices,
-                n_active,
-                n_chains,
-                n_pairs,
-                n_free_blocks,
-                base_perm,
-            )
-            return ss2, ac + ac2, at + att_mask, update_index_state(ist, pm, n_chains)
-
-        return _branch_no_perm
-
-    def _branch_with_perm(args):
+    def _branch(args):
         ss, ac, at, sk, bE, ist = args
         ss2, ac2, pm = _vectorized_swap(
             sk,
@@ -180,7 +184,7 @@ def _make_swap_branch(
             pm,
         )
 
-    return _branch_with_perm
+    return _branch
 
 
 # ---------------------------------------------------------------------------
@@ -222,11 +226,10 @@ def nrpt(
     n_rounds: int,
     gibbs_steps_per_round: int,
     betas: jax.Array | None = None,
-    sampler_states: Sequence[list] | None = None,
     track_round_trips: bool = True,
     energy_delta_fn: Callable | None = None,
     observer: AbstractNRPTObserver | None = None,
-) -> tuple[list, list, dict]:
+) -> tuple[list, dict]:
     """Non-Reversible Parallel Tempering with vectorized swaps.
 
     Single-pass DEO: one swap parity per round, alternating even/odd.
@@ -340,61 +343,49 @@ def nrpt(
         len(even_pairs),
         att_even,
         *swap_args,
-        return_perm=True,
     )
     do_odd = _make_swap_branch(
         odd_pairs,
         len(odd_pairs),
         att_odd,
         *swap_args,
-        return_perm=True,
     )
 
     # --- Energy strategy (cached vs recomputed) -------------------------------
-    def _make_energy_fns():
-        if use_cached:
-            assert energy_delta_fn is not None
-            _delta_fn = energy_delta_fn
+    if use_cached:
+        _delta_fn = energy_delta_fn
 
-            def compute_cached(st_states, old_states, cached_bE):
-                return cached_bE + _delta_fn(old_states, st_states)
+        def _energy_cached(st_states, old_states, cached_bE):
+            return cached_bE + _delta_fn(old_states, st_states)
 
-            def permute_cached(bE, pm):
-                return bE[pm]
+        def _permute_cached(bE, pm):
+            return bE[pm]
 
-            return compute_cached, permute_cached
+        energy_compute, energy_permute = _energy_cached, _permute_cached
+    else:
 
-        def compute_fresh(st_states, old_states, cached_bE):
+        def _energy_fresh(st_states, old_states, cached_bE):
             return _compute_base_energies(
-                ebm0,
-                betas[0],
-                base_spec,
-                st_states,
-                clamp_state,
+                ebm0, betas[0], base_spec, st_states, clamp_state
             )
 
-        def permute_noop(bE, pm):
+        def _permute_noop(bE, pm):
             return bE
 
-        return compute_fresh, permute_noop
-
-    energy_compute, energy_permute = _make_energy_fns()
+        energy_compute, energy_permute = _energy_fresh, _permute_noop
 
     # --- Observer strategy (present vs absent) --------------------------------
-    def _make_observer_fns():
-        if observer is not None:
-            return observer.init, observer
-        else:
+    if observer is not None:
+        observer_init, observer_step = observer.init, observer
+    else:
 
-            def _init():
-                return None
+        def _obs_init():
+            return None
 
-            def _step(stacked_states, base_energies, round_idx, carry):
-                return carry, None
+        def _obs_step(stacked_states, base_energies, round_idx, carry):
+            return carry, None
 
-            return _init, _step
-
-    observer_init, observer_step = _make_observer_fns()
+        observer_init, observer_step = _obs_init, _obs_step
 
     # --- Initial energy -------------------------------------------------------
     base_E = _compute_base_energies(
@@ -447,8 +438,6 @@ def nrpt(
     states_out = [
         [final.states[b][c] for b in range(n_free_blocks)] for c in range(n_chains)
     ]
-    ss_out = [[None] * n_free_blocks for _ in range(n_chains)]
-
     acceptance_rate = jnp.where(
         final.attempted > 0, final.accepted / final.attempted, 0.0
     )
@@ -475,7 +464,7 @@ def nrpt(
         stats["observations"] = observations
         stats["observer_carry"] = final.obs_carry
 
-    return states_out, ss_out, stats
+    return states_out, stats
 
 
 # ---------------------------------------------------------------------------
@@ -499,7 +488,7 @@ def nrpt_adaptive(
     ebm: AbstractEBM | None = None,
     program: BlockSamplingProgram | None = None,
     observer: AbstractNRPTObserver | None = None,
-) -> tuple[list, list, dict]:
+) -> tuple[list, dict]:
     """NRPT with iterative schedule optimization (Algorithm 4).
 
     Runs n_tune adaptation phases, each of rounds_per_tune rounds, updating
@@ -510,28 +499,13 @@ def nrpt_adaptive(
     a template ``ebm`` and ``program`` and the factories will be built
     internally using ``ebm.with_beta()`` and ``program.with_ebm()``.
 
-    Returns ``(states, sampler_states, stats)`` where stats includes tuning
-    history in ``stats["tuning_history"]``.  States are ordered by ascending
-    β — the **cold chain** (target distribution) is ``states[-1]``.
+    Returns ``(states, stats)`` where stats includes tuning history in
+    ``stats["tuning_history"]``.  States are ordered by ascending β — the
+    **cold chain** (target distribution) is ``states[-1]``.
     """
-    if ebm_factory is None and program_factory is None:
-        if ebm is None or program is None:
-            raise ValueError(
-                "Provide either (ebm_factory, program_factory) or (ebm=, program=)."
-            )
-        _ebm = ebm
-        _prog = program
-
-        def _make_ebms(betas):
-            return [_ebm.with_beta(jnp.array(float(b))) for b in betas]
-
-        def _make_programs(ebms):
-            return [_prog.with_ebm(e) for e in ebms]
-    elif ebm_factory is not None and program_factory is not None:
-        _make_ebms = ebm_factory
-        _make_programs = program_factory
-    else:
-        raise ValueError("Provide both ebm_factory and program_factory, or neither.")
+    _make_ebms, _make_programs = _resolve_factories(
+        ebm_factory, program_factory, ebm, program
+    )
 
     if clamp_state is None:
         clamp_state = []
@@ -546,7 +520,7 @@ def nrpt_adaptive(
         key, subkey = jax.random.split(key)
         ebms = _make_ebms(betas)
         programs = _make_programs(ebms)
-        states, ss, stats = nrpt(
+        states, stats = nrpt(
             subkey,
             ebms,
             programs,
@@ -575,7 +549,7 @@ def nrpt_adaptive(
     key, subkey = jax.random.split(key)
     ebms = _make_ebms(betas)
     programs = _make_programs(ebms)
-    states, ss, stats = nrpt(
+    states, stats = nrpt(
         subkey,
         ebms,
         programs,
@@ -588,7 +562,7 @@ def nrpt_adaptive(
         observer=observer,
     )
     stats["tuning_history"] = tuning_history
-    return states, ss, stats
+    return states, stats
 
 
 # ---------------------------------------------------------------------------
@@ -669,24 +643,9 @@ def discover_chain_count(
             converged_reason: "chain_count" | "lambda_stable" | "no_progress" | "max_iters"
             history: list of per-iteration dicts
     """
-    if ebm_factory is None and program_factory is None:
-        if ebm is None or program is None:
-            raise ValueError(
-                "Provide either (ebm_factory, program_factory) or (ebm=, program=)."
-            )
-        _ebm = ebm
-        _prog = program
-
-        def _make_ebms(betas):
-            return [_ebm.with_beta(jnp.array(float(b))) for b in betas]
-
-        def _make_programs(ebms):
-            return [_prog.with_ebm(e) for e in ebms]
-    elif ebm_factory is not None and program_factory is not None:
-        _make_ebms = ebm_factory
-        _make_programs = program_factory
-    else:
-        raise ValueError("Provide both ebm_factory and program_factory, or neither.")
+    _make_ebms, _make_programs = _resolve_factories(
+        ebm_factory, program_factory, ebm, program
+    )
 
     if init_factory is None:
         raise ValueError("init_factory is required.")
@@ -716,7 +675,7 @@ def discover_chain_count(
         probe_tune = max(2, n_tune_per_probe // 2) if is_early else n_tune_per_probe
         probe_rounds = max(50, rounds_per_probe // 3) if is_early else rounds_per_probe
 
-        _, _, stats = nrpt_adaptive(
+        _, stats = nrpt_adaptive(
             k_probe,
             _make_ebms,
             _make_programs,

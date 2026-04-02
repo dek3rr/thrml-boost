@@ -443,7 +443,7 @@ def ising_sample(
     init_progs = [program.with_ebm(e) for e in init_ebms]
     init_states = _init_factory(n_chains, init_ebms, init_progs)
 
-    warm_states, _, nrpt_stats = nrpt_adaptive(
+    warm_states, nrpt_stats = nrpt_adaptive(
         k_nrpt,
         ebm=ebm,
         program=program,

@@ -120,7 +120,7 @@ class TestBoltzmannMarginals:
         def prog_factory(es):
             return [IsingSamplingProgram(e, fb, []) for e in es]
 
-        warm_states, _, _ = nrpt_adaptive(
+        warm_states, _ = nrpt_adaptive(
             k_nrpt,
             ebm_factory,
             prog_factory,
@@ -225,7 +225,7 @@ class TestBoltzmannMarginals:
         def prog_f(es):
             return [IsingSamplingProgram(e, fb, []) for e in es]
 
-        warm, _, _ = nrpt_adaptive(
+        warm, _ = nrpt_adaptive(
             k_pt,
             ebm_f,
             prog_f,
@@ -326,7 +326,7 @@ class TestDEODetailedBalance:
             f"Test setup error: expected alpha=1, got {alpha}"
         )
 
-        _, _, stats = nrpt(
+        _, stats = nrpt(
             jax.random.key(0),
             ebms,
             progs,
@@ -370,7 +370,7 @@ class TestDEODetailedBalance:
         # log_r = negative * positive = negative → α = exp(log_r) << 1
         assert alpha < 0.02, f"Test setup error: expected α≈0, got {alpha}"
 
-        _, _, stats = nrpt(
+        _, stats = nrpt(
             jax.random.key(1),
             ebms,
             progs,
@@ -411,7 +411,7 @@ class TestDEODetailedBalance:
         alpha_B = min(1.0, float(np.exp(-log_r)))
         expected_eq_rate = 2.0 * alpha_A * alpha_B / (alpha_A + alpha_B)
 
-        _, _, stats = nrpt(
+        _, stats = nrpt(
             jax.random.key(2),
             ebms,
             progs,
@@ -516,7 +516,7 @@ class TestAdaptiveSchedule:
         init = _init_states(k_init, 6, ebms_init, fb)
         ebm_f, prog_f = self._make_factories(nodes, edges, biases, weights, fb)
 
-        _, _, stats = nrpt_adaptive(
+        _, stats = nrpt_adaptive(
             jax.random.key(0),
             ebm_f,
             prog_f,
@@ -561,7 +561,7 @@ class TestAdaptiveSchedule:
         init = _init_states(k_init, 6, ebms_init, fb)
         ebm_f, prog_f = self._make_factories(nodes, edges, biases, weights, fb)
 
-        _, _, stats = nrpt_adaptive(
+        _, stats = nrpt_adaptive(
             jax.random.key(11),
             ebm_f,
             prog_f,
@@ -605,7 +605,7 @@ class TestAdaptiveSchedule:
         init = _init_states(k_init, 6, ebms_init, fb)
         ebm_f, prog_f = self._make_factories(nodes, edges, biases, weights, fb)
 
-        _, _, stats = nrpt_adaptive(
+        _, stats = nrpt_adaptive(
             jax.random.key(22),
             ebm_f,
             prog_f,
@@ -680,7 +680,7 @@ class TestRoundTripPrediction:
         def prog_f(es):
             return [IsingSamplingProgram(e, fb, []) for e in es]
 
-        _, _, stats = nrpt_adaptive(
+        _, stats = nrpt_adaptive(
             jax.random.key(0),
             ebm_f,
             prog_f,
@@ -731,7 +731,7 @@ class TestRoundTripPrediction:
         progs = [IsingSamplingProgram(e, fb, []) for e in ebms]
         init = _init_states(jax.random.key(1), 4, ebms, fb)
 
-        _, _, stats = nrpt(
+        _, stats = nrpt(
             jax.random.key(2),
             ebms,
             progs,
@@ -761,7 +761,7 @@ class TestRoundTripPrediction:
         progs = [IsingSamplingProgram(e, fb, []) for e in ebms]
         init = _init_states(k_init, 5, ebms, fb)
 
-        _, _, stats = nrpt(
+        _, stats = nrpt(
             jax.random.key(7),
             ebms,
             progs,
